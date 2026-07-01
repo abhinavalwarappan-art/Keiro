@@ -1,0 +1,151 @@
+/* ─────────────────────────────────────────────────────────────
+   Keiro landing — "Biometric dark"
+   Off-black base · single warm amber accent · Instrument Serif display.
+   ALL styles are scoped under .kx so the app design system (globals.css,
+   warm-stone/teal) is never touched. This is the landing surface only.
+   ───────────────────────────────────────────────────────────── */
+
+.kx {
+  /* Base — deep off-black, three raised surfaces */
+  --ink:    #0a0b0f;
+  --ink-1:  #0e0f15;
+  --ink-2:  #13141c;
+  --ink-3:  #191b25;
+
+  /* Hairlines — the only borders allowed */
+  --line:        rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.14);
+
+  /* Type — warm whites, never pure #fff */
+  --fg:   #f5f3ef;
+  --fg-2: #aba89f;
+  --fg-3: #6d6a62;
+
+  /* The one accent — pulse amber. Used sparingly. */
+  --amber:      #e8a045;
+  --amber-soft: #f3c68d;
+  --amber-deep: #b9762a;
+  --amber-glow: rgba(232, 160, 69, 0.55);
+  --amber-faint: rgba(232, 160, 69, 0.10);
+
+  /* Tinted shadows that carry the accent hue */
+  --shadow-amber: 0 40px 120px -32px rgba(232, 160, 69, 0.28);
+  --shadow-deep:  0 30px 90px -28px rgba(0, 0, 0, 0.75);
+
+  background: var(--ink);
+  color: var(--fg);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Instrument Serif — large editorial display only */
+.kx-serif {
+  font-family: var(--font-instrument-serif), Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 0.96;
+}
+.kx-serif-italic {
+  font-family: var(--font-instrument-serif), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* Mono micro-labels (eyebrows, indices) */
+.kx-mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ── Grain / noise overlay — fixed, non-interactive, ~4% ── */
+.kx-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Glass card — real inner border, not just blur ── */
+.kx-glass {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012));
+  border: 1px solid var(--line);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+    var(--shadow-deep);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+}
+.kx-glass-amber {
+  border-color: rgba(232, 160, 69, 0.22);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
+    var(--shadow-amber);
+}
+
+/* Hairline divider */
+.kx-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-strong), transparent);
+}
+
+/* Accent text + selection */
+.kx-amber { color: var(--amber); }
+.kx ::selection { background: rgba(232, 160, 69, 0.28); color: var(--fg); }
+
+/* ── Kai — bioluminescent breathing organism ── */
+@keyframes kx-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.045); }
+}
+@keyframes kx-glow {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 0.95; transform: scale(1.08); }
+}
+@keyframes kx-spin       { to { transform: rotate(360deg); } }
+@keyframes kx-spin-rev   { to { transform: rotate(-360deg); } }
+@keyframes kx-orbit      { to { transform: rotate(360deg); } }
+@keyframes kx-flicker {
+  0%, 100% { opacity: 1; }
+  48%      { opacity: 0.92; }
+  52%      { opacity: 0.78; }
+}
+
+.kx-breathe { animation: kx-breathe 6s ease-in-out infinite; transform-origin: center; }
+.kx-glow    { animation: kx-glow 6s ease-in-out infinite; transform-origin: center; }
+.kx-spin-slow   { animation: kx-spin 60s linear infinite; transform-origin: center; }
+.kx-spin-mid    { animation: kx-spin-rev 40s linear infinite; transform-origin: center; }
+.kx-spin-fast   { animation: kx-spin 24s linear infinite; transform-origin: center; }
+.kx-orbit       { animation: kx-orbit 18s linear infinite; transform-origin: center; }
+.kx-orbit-rev   { animation: kx-spin-rev 28s linear infinite; transform-origin: center; }
+
+/* ── ECG sweep line in the hero backdrop ── */
+@keyframes kx-ecg {
+  from { stroke-dashoffset: 1400; }
+  to   { stroke-dashoffset: 0; }
+}
+.kx-ecg-line {
+  stroke-dasharray: 1400;
+  animation: kx-ecg 5s linear infinite;
+}
+
+/* ── GSAP reveal base state (JS removes/animates these) ── */
+.kx-reveal { opacity: 0; transform: translateY(28px); will-change: transform, opacity; }
+
+/* ── Soft radial vignette helper ── */
+.kx-vignette {
+  background: radial-gradient(120% 80% at 50% 0%, rgba(232, 160, 69, 0.06), transparent 55%);
+}
+
+/* Honour reduced motion for JS-independent animations */
+@media (prefers-reduced-motion: reduce) {
+  .kx-breathe, .kx-glow, .kx-spin-slow, .kx-spin-mid, .kx-spin-fast,
+  .kx-orbit, .kx-orbit-rev, .kx-ecg-line, .kx-flicker {
+    animation: none !important;
+  }
+  .kx-reveal { opacity: 1; transform: none; }
+}

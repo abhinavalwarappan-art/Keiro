@@ -1,8 +1,11 @@
 'use client'
 
+import { useCallback, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
-import { Phone, ChevronLeft } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { MessageCircle, Phone } from 'lucide-react'
+import { trackEmergencyShown } from '@/lib/analytics'
+import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY } from '@/lib/chatSession'
 
 const EMERGENCY_TRANSLATIONS = [
   { flag: '🇪🇸', lang: 'Español', text: 'Necesito ayuda médica urgente. Por favor llame al 911 inmediatamente.', roman: 'Necesito ayuda médica urgente.' },
@@ -22,87 +25,140 @@ const EMERGENCY_TRANSLATIONS = [
   { flag: '🇮🇷', lang: 'فارسی', text: 'به کمک فوری پزشکی نیاز دارم. لطفاً همین الان با ۹۱۱ تماس بگیرید.', roman: 'Be komak fowri pezeshki niyaz daram.' },
 ]
 
+const RTL_LANGUAGES = new Set(['العربية', 'اردو', 'فارسی'])
+
 export default function EmergencyPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    trackEmergencyShown()
+  }, [])
+
+  const handleContinueChat = useCallback(() => {
+    let hasActiveChat: string | null = null
+    let cameFromChat: string | null = null
+
+    try {
+      hasActiveChat = sessionStorage.getItem(ACTIVE_CHAT_SESSION_KEY)
+      cameFromChat = sessionStorage.getItem(EMERGENCY_CHAT_SOURCE_KEY)
+      sessionStorage.removeItem(EMERGENCY_CHAT_SOURCE_KEY)
+    } catch {
+      // sessionStorage unavailable (e.g. private browsing restrictions)
+    }
+
+    if (hasActiveChat && cameFromChat) {
+      router.back()
+      return
+    }
+
+    router.push('/chat')
+  }, [router])
+
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: '#fff5f5', maxWidth: 430, margin: '0 auto' }}>
-      {/* Header */}
-      <div className="px-4 py-5 text-center" style={{ background: '#A32D2D' }}>
-        <div className="flex justify-center mb-3">
-          {[1, 2, 3].map(i => (
-            <motion.div
-              key={i}
-              className="absolute rounded-full"
-              style={{ width: 24 + i * 20, height: 24 + i * 20, border: '2px solid rgba(255,255,255,0.3)', marginTop: -(i * 10) }}
-              animate={{ scale: [1, 1.3, 1], opacity: [0.7, 0.1, 0.7] }}
-              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
-            />
-          ))}
-          <motion.div
-            className="w-16 h-16 rounded-full flex items-center justify-center text-3xl relative z-10"
-            style={{ background: 'rgba(255,255,255,0.2)' }}
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 1, repeat: Infinity }}
+    <div className="min-h-screen bg-transparent">
+      <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-4 py-4 sm:py-6">
+        {/* Header — the one place red owns the screen */}
+        <section className="overflow-hidden rounded-2xl border border-error/20 bg-error text-center shadow-[0_18px_45px_rgba(220,38,38,0.22)]">
+          <div className="relative px-5 py-8">
+            <div className="absolute inset-x-8 top-0 h-28 rounded-full bg-white/10 blur-3xl" aria-hidden />
+            <div className="relative mx-auto mb-5 flex size-24 items-center justify-center">
+              {[1, 2, 3].map(i => (
+                <motion.div
+                  key={i}
+                  className="absolute rounded-full border border-white/35 shadow-[0_0_28px_rgba(255,255,255,0.22)]"
+                  style={{ width: 38 + i * 22, height: 38 + i * 22 }}
+                  animate={{ scale: [0.82, 1.28], opacity: [0.55, 0] }}
+                  transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.24, ease: 'easeOut' }}
+                />
+              ))}
+              <motion.div
+                className="relative z-10 flex size-[4.5rem] items-center justify-center rounded-full border border-white/35 bg-white/20 text-4xl shadow-inner backdrop-blur-md"
+                animate={{ scale: [1, 1.04, 1], rotate: [0, -2, 2, 0] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                🚨
+              </motion.div>
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight text-white text-balance">This looks urgent</h1>
+            <p className="mt-2 text-sm font-medium text-white/85">Please get help now</p>
+          </div>
+        </section>
+
+        {/* Call 911 */}
+        <section className="py-5">
+          <motion.a
+            href="tel:911"
+            className="flex min-h-[60px] w-full items-center justify-center gap-3 rounded-xl bg-error py-4 text-lg font-semibold text-white shadow-[0_12px_28px_rgba(220,38,38,0.25)] transition-[background-color,box-shadow,transform] duration-150 hover:bg-red-700 active:scale-[0.98]"
+            animate={{ boxShadow: ['0 12px 28px rgba(220,38,38,0.22)', '0 16px 36px rgba(220,38,38,0.32)', '0 12px 28px rgba(220,38,38,0.22)'] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
           >
-            🚨
-          </motion.div>
-        </div>
-        <h1 className="text-xl font-bold text-white mt-4 mb-1">This looks urgent</h1>
-        <p className="text-sm text-white opacity-80">Please get help now</p>
-      </div>
+            <Phone size={22} aria-hidden />
+            <span>Call 911 now</span>
+          </motion.a>
+          <p className="mt-3 text-center text-xs font-medium text-text-secondary">
+            Show this screen to anyone nearby
+          </p>
+        </section>
 
-      {/* Call 911 */}
-      <div className="px-4 py-6">
-        <motion.a
-          href="tel:911"
-          className="flex items-center justify-center gap-3 w-full py-5 rounded-2xl text-white font-bold text-xl"
-          style={{ background: '#A32D2D' }}
-          animate={{ scale: [1, 1.02, 1] }}
-          transition={{ duration: 1, repeat: Infinity }}
-        >
-          <Phone size={24} />
-          Call 911 Now
-        </motion.a>
-        <p className="text-center text-xs mt-3" style={{ color: '#A32D2D' }}>Show this screen to anyone nearby</p>
-      </div>
+        {/* Translations */}
+        <section className="flex-1 overflow-y-auto pb-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">
+              Emergency message in all languages
+            </h2>
+            <span className="rounded-full border border-border-subtle bg-surface px-2.5 py-1 text-[11px] font-medium text-text-tertiary">
+              911
+            </span>
+          </div>
+          <div className="flex flex-col gap-2.5">
+            {EMERGENCY_TRANSLATIONS.map((t, i) => {
+              const isRtl = RTL_LANGUAGES.has(t.lang)
 
-      {/* Translations */}
-      <div className="flex-1 px-4 pb-4 overflow-y-auto">
-        <div className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#A32D2D' }}>
-          Emergency message in all languages:
-        </div>
-        <div className="flex flex-col gap-3">
-          {EMERGENCY_TRANSLATIONS.map((t, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.04 }}
-              className="p-3 rounded-xl"
-              style={{ background: 'white', border: '1px solid #fecaca' }}
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-lg">{t.flag}</span>
-                <span className="text-xs font-semibold" style={{ color: '#A32D2D' }}>{t.lang}</span>
-              </div>
-              <p className="text-sm leading-relaxed" style={{ color: '#1a1a1a', direction: ['العربية', 'اردو', 'فارسی'].includes(t.lang) ? 'rtl' : 'ltr' }}>
-                {t.text}
-              </p>
-              {t.roman && (
-                <p className="text-xs mt-1" style={{ color: '#888' }}>{t.roman}</p>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      </div>
+              return (
+                <motion.article
+                  key={t.lang}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.035, duration: 0.22 }}
+                  className="grid grid-cols-[6.75rem_1fr] gap-3 rounded-xl border border-border-subtle bg-surface p-3.5 shadow-xs sm:grid-cols-[7.5rem_1fr] sm:p-4"
+                >
+                  <div className="flex min-w-0 items-start gap-2 border-r border-border-subtle pr-3">
+                    <span className="mt-0.5 text-base leading-none" aria-hidden>{t.flag}</span>
+                    <div className="min-w-0">
+                      <p className="truncate text-xs font-semibold text-error-text">{t.lang}</p>
+                      <p className="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-text-tertiary">
+                        Help phrase
+                      </p>
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <p
+                      dir={isRtl ? 'rtl' : 'ltr'}
+                      className={`text-[15px] leading-relaxed text-text-primary text-pretty ${isRtl ? 'text-right' : 'text-left'}`}
+                    >
+                      {t.text}
+                    </p>
+                    <p className="mt-1.5 min-h-4 text-xs leading-snug text-text-tertiary">
+                      {t.roman || ' '}
+                    </p>
+                  </div>
+                </motion.article>
+              )
+            })}
+          </div>
+        </section>
 
-      <div className="p-4" style={{ borderTop: '1px solid #fecaca' }}>
-        <Link href="/">
-          <button className="w-full py-3 rounded-xl text-sm font-medium" style={{ color: '#A32D2D', background: 'transparent' }}>
-            <ChevronLeft size={14} className="inline mr-1" />
-            I&apos;m okay, go back
+        <footer className="sticky bottom-0 -mx-4 border-t border-border-subtle bg-canvas/95 px-4 py-3 backdrop-blur">
+          <button
+            type="button"
+            onClick={handleContinueChat}
+            className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl border border-border-subtle bg-surface py-3 text-sm font-semibold text-text-primary shadow-xs transition-[background-color,border-color,box-shadow,transform] duration-150 hover:border-border-default hover:bg-sunken active:scale-[0.98]"
+          >
+            <MessageCircle size={17} aria-hidden />
+            Continue chat
           </button>
-        </Link>
-      </div>
+        </footer>
+      </main>
     </div>
   )
 }

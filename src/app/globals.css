@@ -1,138 +1,375 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=DM+Sans:wght@300;400;500;600&display=swap');
+/* Keiro design system — "Calm clinical warmth"
+   Geist everywhere · warm stone neutrals · one teal accent · hairline borders
+   Tokens defined here are the ONLY colors/radii/shadows allowed in the app.
+   See /DESIGN_SYSTEM.md for the rationale behind every value. */
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --green-dark: #1a3d2b;
-  --green-mid: #2da866;
-  --green-light: #5DCAA5;
-  --green-surface: #edfaf4;
-  --green-border: #c5edd8;
-  --off-white: #f8fffe;
-  --text-dark: #0a1f12;
-  --text-muted: #3B6D11;
-  --amber: #F4A535;
-  --red-emergency: #A32D2D;
-  --shadow-sm: 0 4px 16px rgba(10, 31, 18, 0.06);
-  --shadow-md: 0 8px 32px rgba(10, 31, 18, 0.08);
-  --shadow-lg: 0 24px 64px -16px rgba(10, 31, 18, 0.12);
+  color-scheme: light;
 
-  --keiro-dark: #0a1f12;
-  --keiro-deep: #1a3d2b;
-  --keiro-mid: #2da866;
-  --keiro-light: #5DCAA5;
-  --keiro-surface: #edfaf4;
-  --keiro-border: #c5edd8;
-  --keiro-off: #f8fffe;
-  --keiro-cream: #fafaf7;
-  --keiro-text: #0f2419;
-  --keiro-muted: #3B6D11;
-  --keiro-amber: #F4A535;
+  /* ─── Semantic palette (runtime-themeable) ─── */
+  --canvas:  #FAFAF9;
+  --surface: #FFFFFF;
+  --sunken:  #F5F5F4;
 
-  /* Legacy aliases for app pages */
-  --keiro-green-dark: #1a3d2b;
-  --keiro-green-mid: #2da866;
-  --keiro-green-light: #5DCAA5;
-  --keiro-green-surface: #edfaf4;
-  --keiro-green-border: #c5edd8;
-  --keiro-white: #ffffff;
-  --keiro-off-white: #f8fffe;
-  --keiro-text-muted: #3B6D11;
-  --keiro-red: #A32D2D;
-  --keiro-red-surface: #fff5f5;
+  --border-subtle:  #E7E5E4;
+  --border-default: #D6D3D1;
+  --border-strong:  #A8A29E;
+
+  --text-primary:     #1C1917;
+  --text-secondary:   #57534E;
+  --text-tertiary:    #79716B;
+  --text-placeholder: #A8A29E;
+  --text-inverse:     #FAFAF9;
+
+  /* Brand — teal, used sparingly. `ink` shades are the AA-safe fills/links. */
+  --brand-subtle:     #F0FDFA;
+  --brand-muted:      #CCFBF1;
+  --brand-border:     #99F6E4;
+  --brand:            #00c896;
+  --brand-strong:     #00e0aa;
+  --brand-ink:        #0F766E;
+  --brand-ink-hover:  #115E59;
+  --brand-ink-active: #134E4A;
+
+  --success-subtle: #F0FDF4;
+  --success:        #16A34A;
+  --success-text:   #166534;
+  --warning-subtle: #FFFBEB;
+  --warning:        #D97706;
+  --warning-text:   #92400E;
+  --error-subtle:   #FEF2F2;
+  --error:          #DC2626;
+  --error-text:     #991B1B;
+
+  /* ─── Legacy --keiro-* remap ───
+     App pages style via these vars inline. Remapped onto the new palette so
+     every surface shifts at the token layer; pages are rebuilt on top. */
+  --keiro-deep:    #134E4A;
+  --keiro-mid:     #0F766E;
+  --keiro-light:   #2DD4BF;
+  --keiro-surface: #F0FDFA;
+  --keiro-border:  #99F6E4;
+  --keiro-off:     #FAFAF9;
+  --keiro-text:    #1C1917;
+  --keiro-muted:   #57534E;
+  --keiro-amber:   #D97706;
+  --keiro-red:     #DC2626;
+  --keiro-red-surface: #FEF2F2;
+  --off-white:     #FAFAF9;
+
+  --keiro-dark:           #134E4A;
+  --keiro-cream:          #FAFAF9;
+  --keiro-white:          #ffffff;
+  --keiro-off-white:      #FAFAF9;
+  --keiro-text-muted:     #57534E;
+  --keiro-green-dark:     #0F766E;
+  --keiro-green-mid:      #0D9488;
+  --keiro-green-light:    #2DD4BF;
+  --keiro-green-surface:  #F0FDFA;
+  --keiro-green-border:   #99F6E4;
+  --text-dark:            #1C1917;
+  --text-muted:           #57534E;
+  --amber:                #D97706;
+  --red-emergency:        #DC2626;
+
+  /* Shadows — stone-tinted, barely there. Overlays only. */
+  --shadow-soft-xs: 0 1px 2px 0 rgb(28 25 23 / 0.05);
+  --shadow-soft-sm: 0 1px 3px 0 rgb(28 25 23 / 0.08), 0 1px 2px -1px rgb(28 25 23 / 0.08);
+  --shadow-soft-md: 0 10px 15px -3px rgb(28 25 23 / 0.08), 0 4px 6px -4px rgb(28 25 23 / 0.06);
+  --shadow-sm: var(--shadow-soft-sm);
+  --shadow-md: var(--shadow-soft-md);
+  --shadow-lg: 0 20px 25px -5px rgb(28 25 23 / 0.08), 0 8px 10px -6px rgb(28 25 23 / 0.06);
 }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.dark {
+  color-scheme: dark;
+
+  --canvas:  #0C0A09;
+  --surface: #1C1917;
+  --sunken:  #161312;
+
+  --border-subtle:  #292524;
+  --border-default: #44403C;
+  --border-strong:  #57534E;
+
+  --text-primary:     #FAFAF9;
+  --text-secondary:   #A8A29E;
+  --text-tertiary:    #78716C;
+  --text-placeholder: #57534E;
+  --text-inverse:     #1C1917;
+
+  --brand-subtle:     #042F2E;
+  --brand-muted:      #134E4A;
+  --brand-border:     #115E59;
+  --brand:            #2DD4BF;
+  --brand-strong:     #5EEAD4;
+  --brand-ink:        #0D9488;
+  --brand-ink-hover:  #14B8A6;
+  --brand-ink-active: #0F766E;
+
+  --success-subtle: #052E16;
+  --success-text:   #86EFAC;
+  --warning-subtle: #451A03;
+  --warning-text:   #FCD34D;
+  --error-subtle:   #450A0A;
+  --error:          #EF4444;
+  --error-text:     #FCA5A5;
+
+  --keiro-deep:    #5EEAD4;
+  --keiro-mid:     #2DD4BF;
+  --keiro-light:   #5EEAD4;
+  --keiro-surface: #042F2E;
+  --keiro-border:  #115E59;
+  --keiro-off:     #0C0A09;
+  --keiro-text:    #FAFAF9;
+  --keiro-muted:   #A8A29E;
+  --off-white:     #0C0A09;
+  --keiro-dark:    #5EEAD4;
+  --keiro-cream:   #0C0A09;
+  --keiro-white:   #1C1917;
+  --keiro-off-white:  #0C0A09;
+  --keiro-text-muted: #A8A29E;
+  --text-dark:     #FAFAF9;
+  --text-muted:    #A8A29E;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+/* ─── Tailwind v4 theme — semantic utilities (bg-canvas, text-text-primary…) ─── */
+@theme inline {
+  --color-canvas:  var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunken:  var(--sunken);
 
-body {
-  font-family: 'DM Sans', system-ui, sans-serif;
-  background: var(--off-white);
-  color: var(--text-dark);
-  overflow-x: hidden;
-  line-height: 1.5;
-}
+  --color-border-subtle:  var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong:  var(--border-strong);
 
-@media (pointer: fine) {
-  body {
-    cursor: none;
+  --color-text-primary:     var(--text-primary);
+  --color-text-secondary:   var(--text-secondary);
+  --color-text-tertiary:    var(--text-tertiary);
+  --color-text-placeholder: var(--text-placeholder);
+  --color-text-inverse:     var(--text-inverse);
+
+  --color-brand-subtle:     var(--brand-subtle);
+  --color-brand-muted:      var(--brand-muted);
+  --color-brand-border:     var(--brand-border);
+  --color-brand:            var(--brand);
+  --color-brand-strong:     var(--brand-strong);
+  --color-brand-ink:        var(--brand-ink);
+  --color-brand-ink-hover:  var(--brand-ink-hover);
+  --color-brand-ink-active: var(--brand-ink-active);
+
+  --color-success-subtle: var(--success-subtle);
+  --color-success:        var(--success);
+  --color-success-text:   var(--success-text);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning:        var(--warning);
+  --color-warning-text:   var(--warning-text);
+  --color-error-subtle:   var(--error-subtle);
+  --color-error:          var(--error);
+  --color-error-text:     var(--error-text);
+
+  /* keiro-* Tailwind aliases still referenced by a few components */
+  --color-keiro-deep:    var(--keiro-deep);
+  --color-keiro-dark:    var(--keiro-dark);
+  --color-keiro-mid:     var(--keiro-mid);
+  --color-keiro-light:   var(--keiro-light);
+  --color-keiro-surface: var(--keiro-surface);
+  --color-keiro-border:  var(--keiro-border);
+  --color-keiro-text:    var(--keiro-text);
+  --color-keiro-muted:   var(--keiro-muted);
+  --color-keiro-amber:   var(--keiro-amber);
+  --color-keiro-red:     var(--keiro-red);
+  --color-off-white:     var(--off-white);
+
+  --font-sans:    var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-xs: var(--shadow-soft-xs);
+  --shadow-sm: var(--shadow-soft-sm);
+  --shadow-md: var(--shadow-soft-md);
+
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(calc(-100% - var(--gap))); }
+  }
+  @keyframes marquee-vertical {
+    from { transform: translateY(0); }
+    to   { transform: translateY(calc(-100% - var(--gap))); }
   }
 }
 
-@media (pointer: coarse) {
+/* ─── Base — layered so utilities always win ─── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* No CSS scroll-behavior: Lenis (SmoothScroll) owns smoothing. A native
+     smooth here double-smooths and fights Lenis on anchor/programmatic jumps. */
+
   body {
-    cursor: auto;
+    font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+    background: transparent;
+    color: var(--text-primary);
+    overflow-x: hidden;
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::placeholder {
+    color: var(--text-placeholder);
+  }
+
+  /* Focus — visible, on-brand, never removed */
+  :focus-visible {
+    outline: 2px solid var(--brand-strong);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+    outline: none;
+    touch-action: manipulation;
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--brand-strong);
+    outline-offset: 2px;
+  }
+
+  input, textarea, select {
+    font-family: inherit;
+    font-size: 16px; /* ≥16px prevents iOS focus zoom */
+  }
+
+  input:focus, textarea:focus {
+    outline: none;
+  }
+
+  input:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--brand-strong);
+    outline-offset: 1px;
+  }
+
+  ::selection {
+    background: var(--brand-muted);
+    color: var(--brand-ink-active);
   }
 }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  background: none;
-  outline: none;
-}
-
-input, textarea {
-  font-family: inherit;
-}
-
-input:focus, textarea:focus {
-  outline: none;
-}
-
-/* Display font for hero statements */
+/* Display headings — DM Sans (site-wide single typeface) */
 .font-display {
-  font-family: 'Fraunces', Georgia, serif;
-  font-optical-sizing: auto;
-  letter-spacing: -0.02em;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.025em;
 }
 
-/* Subtle grain texture overlay */
-.grain {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 100;
-  opacity: 0.04;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' /%3E%3C/svg%3E");
+.font-body {
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Custom cursor */
-.cursor-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 8px;
-  height: 8px;
-  background: var(--keiro-deep);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9999;
-  transition: transform 0.15s ease, width 0.2s, height 0.2s, background 0.2s;
-  transform: translate(-50%, -50%);
+/* ─── Reduced motion: collapse all animation to near-instant ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-.cursor-dot.hover {
-  width: 48px;
-  height: 48px;
-  background: rgba(45, 168, 102, 0.2);
-  border: 1px solid var(--keiro-mid);
-  mix-blend-mode: difference;
+/* ─── Scrollbar — thin, stone ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ─── Language lists — wider, trackpad-friendly ─── */
+.lang-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: auto;
+  scrollbar-color: var(--border-strong) var(--sunken);
 }
 
-/* Marquee animation */
+.lang-scroll::-webkit-scrollbar { width: 10px; }
+
+.lang-scroll::-webkit-scrollbar-track {
+  background: var(--sunken);
+  border-radius: 8px;
+  margin: 6px 2px;
+}
+
+.lang-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+  min-height: 48px;
+}
+
+.lang-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+.lang-scroll--light {
+  scrollbar-color: var(--border-strong) var(--sunken);
+}
+
+.lang-scroll--dark {
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.06);
+}
+
+.lang-scroll--dark::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.lang-scroll--dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.lang-scroll--dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+/* ─── Page enter — one quiet fade, 150ms ─── */
+@keyframes page-fade-in {
+  to { opacity: 1; }
+}
+.page-enter {
+  opacity: 0;
+  animation: page-fade-in 150ms ease-out forwards;
+}
+
+/* ─── Section reveal (landing) ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Marquee (landing) ─── */
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -145,132 +382,236 @@ input:focus, textarea:focus {
   gap: 3rem;
 }
 
-/* Hover lift on cards */
-.lift {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.lift:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 24px 64px -16px rgba(15, 36, 25, 0.12);
-}
-
-/* Section reveal */
-.reveal {
-  opacity: 0;
-  transform: translateY(40px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.reveal.in-view {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Magnetic button effect base */
-.magnetic {
-  position: relative;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Subtle pattern on dark sections */
-.pattern-dots {
-  background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--keiro-border); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: var(--keiro-light); }
-
-/* Selection */
-::selection {
-  background: var(--keiro-surface);
-  color: var(--keiro-deep);
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
-}
-@keyframes bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
 @keyframes marquee-rev {
   from { transform: translateX(-50%); }
   to { transform: translateX(0); }
 }
-
-.animate-float { animation: float 4s ease-in-out infinite; }
-.animate-bob { animation: bob 3s ease-in-out infinite; }
 .animate-marquee-rev { animation: marquee-rev 22s linear infinite; }
 
-@theme inline {
-  --color-keiro-dark: #1a3d2b;
-  --color-keiro-mid: #2da866;
-  --color-keiro-light: #5DCAA5;
-  --color-keiro-surface: #edfaf4;
-  --color-keiro-border: #c5edd8;
-  --color-keiro-text: #0a1f12;
-  --color-keiro-muted: #3B6D11;
-  --color-keiro-amber: #F4A535;
-  --color-keiro-red: #A32D2D;
-  --color-off-white: #f8fffe;
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-sans: 'DM Sans', sans-serif;
-  --animate-marquee: marquee var(--duration) infinite linear;
-  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
-  @keyframes marquee {
-  from {
-    transform: translateX(0);
-    }
-  to {
-    transform: translateX(calc(-100% - var(--gap)));
-    }
+/* ─── Retro grid (landing backdrop) ─── */
+@keyframes retro-grid {
+  0%   { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+.animate-retro-grid {
+  animation: retro-grid 20s linear infinite;
+}
+
+/* ─── Float (Kai, landing accents) ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+.animate-float { animation: float 4s ease-in-out infinite; }
+
+@keyframes kai-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+@keyframes kai-eye-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* ─── Skeleton shimmer — mirrors final layout, stone tones ─── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--sunken) 25%,
+    var(--border-subtle) 50%,
+    var(--sunken) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* ─── Typing indicator — three quiet dots ─── */
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--text-tertiary);
+}
+.typing-dot:nth-child(1) { animation: typing-dot 1.2s infinite 0ms; }
+.typing-dot:nth-child(2) { animation: typing-dot 1.2s infinite 150ms; }
+.typing-dot:nth-child(3) { animation: typing-dot 1.2s infinite 300ms; }
+
+/* ─── Logo pulse (loading page — no spinners) ─── */
+@keyframes logo-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.96); }
+}
+.animate-logo-pulse { animation: logo-pulse 1.6s ease-in-out infinite; }
+
+/* ─── Spiral language picker (onboarding) ─── */
+@keyframes spiral-bokeh-drift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.35;
   }
-  @keyframes marquee-vertical {
-  from {
-    transform: translateY(0);
-    }
-  to {
-    transform: translateY(calc(-100% - var(--gap)));
-    }
-  }
-  --animate-shine: shine var(--duration) infinite linear
-;
-  @keyframes shine {
-  0% {
-    background-position: 0% 0%;
-    }
   50% {
-    background-position: 100% 100%;
-    }
-  to {
-    background-position: 0% 0%;
-    }
+    transform: translate3d(0, -18px, 0) scale(1.15);
+    opacity: 0.85;
   }
-  --animate-meteor: meteor 5s linear infinite;
-  @keyframes meteor {
-  0% {
-    transform: rotate(var(--angle)) translateX(0);
-    opacity: 1;
-    }
-  70% {
-    opacity: 1;
-    }
-  100% {
-    transform: rotate(var(--angle)) translateX(-500px);
-    opacity: 0;
-    }
+}
+
+.spiral-bokeh {
+  animation: spiral-bokeh-drift 4.5s ease-in-out infinite;
+  filter: blur(0.5px);
+}
+
+.spiral-lang-card {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.spiral-lang-card__inner {
+  position: relative;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.spiral-lang-card:hover .spiral-lang-card__inner,
+.spiral-lang-card:focus-visible .spiral-lang-card__inner {
+  border-color: rgba(45, 212, 191, 0.45);
+  background-color: rgba(0, 0, 0, 0.72);
+  box-shadow: 0 28px 70px rgba(0, 200, 150, 0.12);
+}
+
+/* Kai hologram — central spine (language ring) */
+@keyframes kai-holo-flicker {
+  0%, 100% { opacity: 0.82; filter: brightness(1.05) saturate(1.2); }
+  48% { opacity: 0.94; filter: brightness(1.15) saturate(1.35); }
+  52% { opacity: 0.78; filter: brightness(0.95) saturate(1.1); }
+}
+
+@keyframes kai-holo-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.kai-hologram {
+  height: 58svh;
+  width: min(43.5svh, 88vw);
+}
+
+.kai-hologram__column {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: min(14vw, 72px);
+  height: 100%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(167, 139, 250, 0.45) 0%,
+    rgba(45, 212, 191, 0.55) 42%,
+    rgba(244, 114, 182, 0.35) 100%
+  );
+  filter: blur(36px);
+  opacity: 0.55;
+  animation: kai-holo-flicker 5s ease-in-out infinite;
+}
+
+.kai-hologram__core {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  opacity: 0.86;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 18px rgba(45, 212, 191, 0.55))
+    drop-shadow(0 0 36px rgba(167, 139, 250, 0.28));
+  animation: kai-holo-flicker 4.2s ease-in-out infinite;
+}
+
+.kai-hologram__robot {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+
+.kai-hologram__robot > div {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+}
+
+.kai-hologram__core svg,
+.kai-hologram__robot svg {
+  width: 100% !important;
+  height: 100% !important;
+  filter: saturate(0.65) hue-rotate(145deg) brightness(1.25);
+}
+
+.kai-hologram__scanlines {
+  position: absolute;
+  inset: 8% 18%;
+  border-radius: 24px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.22;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(126, 234, 245, 0.12) 3px,
+    rgba(126, 234, 245, 0.12) 4px
+  );
+}
+
+.kai-hologram__scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(126, 234, 245, 0.18) 48%,
+    transparent 100%
+  );
+  animation: kai-holo-scan 3.8s linear infinite;
+}
+
+.kai-hologram__rim {
+  position: absolute;
+  inset: 6% 14%;
+  border-radius: 28px;
+  border: 1px solid rgba(126, 234, 245, 0.22);
+  box-shadow:
+    inset 0 0 30px rgba(45, 212, 191, 0.12),
+    0 0 40px rgba(167, 139, 250, 0.15);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kai-hologram__column,
+  .kai-hologram__core,
+  .kai-hologram__scanlines::after {
+    animation: none;
   }
-  --animate-gradient: gradient 8s linear infinite;
-  @keyframes gradient {
-  to {
-    background-position: var(--bg-size, 300%) 0;
-    }
-  }}
+}
+
+/* ─── Check draw (onboarding done state — CSS only) ─── */
+@keyframes check-draw {
+  to { stroke-dashoffset: 0; }
+}
+.check-draw {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: check-draw 0.45s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
+}

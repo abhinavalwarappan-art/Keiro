@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
-import Kai, { KaiState } from '@/components/kai/Kai'
+import { KaiState } from '@/components/kai/Kai'
+import KaiAvatar from '@/components/kai/KaiAvatar'
 
 interface TopBarProps {
   title?: string
@@ -11,40 +12,49 @@ interface TopBarProps {
   rightElement?: React.ReactNode
   kaiState?: KaiState
   language?: string
+  langNative?: string
 }
 
-export default function TopBar({ title, showBack, backHref, rightElement, kaiState = 'idle', language }: TopBarProps) {
+export default function TopBar({ showBack, backHref, rightElement, kaiState, language, langNative }: TopBarProps) {
   const router = useRouter()
+  const isOnline = kaiState !== 'thinking'
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 sticky top-0 z-20 bg-white border-b border-keiro-border">
+    <header className="sticky top-0 z-20 flex min-h-14 items-center gap-3 border-b border-border-subtle bg-surface px-4">
       {showBack && (
         <button
           onClick={() => (backHref ? router.push(backHref) : router.back())}
-          className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-keiro-surface flex-shrink-0"
+          className="flex size-9 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
+          aria-label="Go back"
         >
-          <ChevronLeft size={18} className="text-keiro-dark" />
+          <ChevronLeft size={18} aria-hidden />
         </button>
       )}
 
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <Kai size="sm" state={kaiState} interactive={false} />
-        <div className="min-w-0">
-          <div className="font-semibold text-sm truncate text-keiro-text">{title || 'Kai'}</div>
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <KaiAvatar pixels={40} state={kaiState ?? 'idle'} />
+
+        <div>
+          <div className="text-sm font-semibold leading-tight text-text-primary">Kai</div>
           <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-keiro-mid" />
-            <span className="text-xs text-keiro-muted">Online</span>
+            <span
+              className={`size-1.5 shrink-0 rounded-full ${isOnline ? 'bg-success' : 'animate-pulse bg-warning'}`}
+              aria-hidden
+            />
+            <span className="text-xs font-medium text-text-tertiary">
+              {kaiState === 'thinking' ? 'Thinking…' : 'Online'}
+            </span>
           </div>
         </div>
       </div>
 
       {language && (
-        <div className="px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 bg-keiro-surface text-keiro-dark border border-keiro-border">
-          {language}
-        </div>
+        <span className="max-w-[140px] shrink-0 truncate rounded-full border border-border-subtle bg-sunken px-2.5 py-1 text-xs font-medium text-text-secondary">
+          {langNative || language}
+        </span>
       )}
 
       {rightElement}
-    </div>
+    </header>
   )
 }

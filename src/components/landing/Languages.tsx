@@ -8,58 +8,66 @@ import { easeOutExpo } from '@/lib/motion'
 
 export default function Languages() {
   const [search, setSearch] = useState('')
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true, amount: 0.1 })
+  const headerRef = useRef(null)
+  const headerInView = useInView(headerRef, { once: true, margin: '-60px' })
 
-  const filtered = LANGUAGES.filter(
-    (l) =>
-      l.en.toLowerCase().includes(search.toLowerCase()) ||
-      l.native.toLowerCase().includes(search.toLowerCase())
+  const searchLower = search.toLowerCase()
+  const filtered = LANGUAGES.filter(l =>
+    l.en.toLowerCase().includes(searchLower) ||
+    l.native.toLowerCase().includes(searchLower)
   )
 
   return (
-    <section id="languages" className="bg-keiro-surface py-24 md:py-32 px-4 md:px-8 relative overflow-hidden">
-      <div className="absolute -top-20 -right-20 font-display text-[120px] md:text-[200px] text-keiro-border opacity-40 leading-none pointer-events-none select-none">
-        Hola·नमस्ते·你好
-      </div>
-      <div ref={ref} className="max-w-[1400px] mx-auto relative">
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, ease: easeOutExpo }}
-          className="mb-12"
-        >
-          <div className="text-[11px] uppercase tracking-widest text-keiro-muted mb-4">— Languages</div>
-          <h2 className="font-display text-[clamp(40px,7vw,72px)] leading-[0.95] tracking-tight text-[#0a1f12] max-w-[800px]">
-            25+ languages.<br />
-            <span className="italic text-keiro-mid font-normal">More every month.</span>
-          </h2>
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search languages..."
-            className="mt-8 w-full max-w-sm h-11 px-5 rounded-full border border-keiro-border bg-white text-sm outline-none focus:border-keiro-mid focus:ring-2 focus:ring-keiro-mid/10 transition"
-          />
-        </motion.div>
+    <section id="languages" className="relative overflow-hidden bg-canvas px-6 py-28 md:px-12 md:py-36">
+      <div className="pointer-events-none absolute inset-0" aria-hidden
+        style={{ background: 'radial-gradient(ellipse at 80% 20%, rgb(20 184 166 / 0.06) 0%, transparent 70%)' }}
+      />
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, ease: easeOutExpo, delay: 0.15 }}
-          className="flex flex-wrap gap-3"
-        >
-          {filtered.map((lang) => (
+      <div className="relative mx-auto max-w-[1200px]">
+
+        {/* Label + Headline (animate in) */}
+        <div ref={headerRef}>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={headerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, ease: easeOutExpo, delay: 0.07 }}
+            className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-14"
+          >
+            <h2 className="font-display leading-[0.95] tracking-[-0.035em] text-text-primary"
+              style={{ fontSize: 'clamp(36px,5vw,64px)' }}
+            >
+              25+ languages.<br />
+              <span className="font-light text-text-tertiary">More every month.</span>
+            </h2>
+
+            <input
+              type="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search…"
+              className="h-11 w-full flex-shrink-0 rounded-full border border-border-subtle bg-surface px-5 text-sm text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-brand-strong focus:outline-none focus:ring-2 focus:ring-brand-strong/25 lg:w-56"
+              aria-label="Search languages"
+            />
+          </motion.div>
+        </div>
+
+        {/* Language chips — always visible, no inView gate */}
+        <div className="flex flex-wrap gap-2.5">
+          {filtered.map(lang => (
             <div
               key={lang.code}
-              className="group bg-white border border-keiro-border rounded-full px-5 py-3 flex items-center gap-3 hover:border-keiro-mid hover:bg-[#0a1f12] hover:text-white transition-all duration-300 cursor-default hover:-translate-y-0.5 hover:shadow-[var(--shadow-md)]"
+              className="flex cursor-default items-center gap-2 rounded-full border border-border-subtle bg-surface px-4 py-2.5 transition-colors duration-150 hover:border-brand-border hover:bg-brand-subtle"
             >
-              <span className="text-[20px]">{lang.flag}</span>
-              <span className="text-[14px] font-medium">{lang.en}</span>
-              <span className="text-[14px] opacity-60 group-hover:opacity-100">{lang.native}</span>
+              <span className="text-[17px] leading-none" role="img" aria-label={lang.en}>{lang.flag}</span>
+              <span className="text-sm font-medium text-text-primary">{lang.en}</span>
+              <span className="text-[13px] text-text-tertiary">{lang.native}</span>
             </div>
           ))}
-        </motion.div>
+          {filtered.length === 0 && (
+            <p className="text-sm text-text-tertiary">No languages match your search.</p>
+          )}
+        </div>
+
       </div>
     </section>
   )

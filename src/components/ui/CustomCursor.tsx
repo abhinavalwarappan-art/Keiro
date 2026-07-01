@@ -11,7 +11,7 @@ export function CustomCursor() {
     const isTouch = window.matchMedia('(pointer: coarse)').matches
     if (isTouch) return
 
-    setVisible(true)
+    const visibleTimer = setTimeout(() => setVisible(true), 0)
 
     const move = (e: MouseEvent) => setPos({ x: e.clientX, y: e.clientY })
 
@@ -26,9 +26,19 @@ export function CustomCursor() {
 
     window.addEventListener('mousemove', move)
     window.addEventListener('mouseover', handleHover)
+
+    const handleMouseLeave = () => setVisible(false)
+    const handleMouseEnter = () => setVisible(true)
+
+    document.documentElement.addEventListener('mouseleave', handleMouseLeave)
+    document.documentElement.addEventListener('mouseenter', handleMouseEnter)
+
     return () => {
+      clearTimeout(visibleTimer)
       window.removeEventListener('mousemove', move)
       window.removeEventListener('mouseover', handleHover)
+      document.documentElement.removeEventListener('mouseleave', handleMouseLeave)
+      document.documentElement.removeEventListener('mouseenter', handleMouseEnter)
     }
   }, [])
 
@@ -36,6 +46,7 @@ export function CustomCursor() {
 
   return (
     <div
+      aria-hidden="true"
       className={`cursor-dot ${hovering ? 'hover' : ''}`}
       style={{ transform: `translate(${pos.x}px, ${pos.y}px) translate(-50%, -50%)` }}
     />

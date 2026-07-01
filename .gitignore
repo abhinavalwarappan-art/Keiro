@@ -42,3 +42,14 @@ next-env.d.ts
 .env.local
 .env*.local
 .env.local
+.gstack/
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/tests/e2e/.auth/
+
+# graphify — generated knowledge-graph output (regenerate via run-graphify.sh)
+/graphify-out/

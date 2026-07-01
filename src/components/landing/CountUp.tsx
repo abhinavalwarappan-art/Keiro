@@ -17,10 +17,7 @@ export function CountUp({
 
   useEffect(() => {
     if (!inView) return
-    if (display) {
-      setCount(target)
-      return
-    }
+    if (display) return
     let start = 0
     const step = Math.max(1, target / 60)
     const timer = setInterval(() => {

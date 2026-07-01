@@ -15,7 +15,7 @@ export function Reveal({
   return (
     <div
       ref={ref}
-      className={`reveal ${inView ? 'in-view' : ''} ${className}`}
+      className={`reveal ${inView ? 'in-view' : ''} ${className}`.trim()}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}

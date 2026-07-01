@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import Kai, { KaiState } from '@/components/kai/Kai'
 import { LANGUAGES, Language } from '@/lib/languages'
 
@@ -16,170 +17,338 @@ const GREETINGS: Record<string, string> = {
 
 const QUICK_LANGS = ['es-ES', 'hi-IN', 'zh-CN', 'ar-SA', 'vi-VN']
 
+const DEFAULT_LANGUAGE = LANGUAGES[0]
+const DEFAULT_GREETING = GREETINGS[DEFAULT_LANGUAGE?.code] ?? 'What brings you in today?'
+
+const KAI_WAVE_DURATION = 1400
+
 export default function Hero() {
-  const [selected, setSelected] = useState<Language>(LANGUAGES[0])
+  const [selected, setSelected] = useState<Language>(DEFAULT_LANGUAGE)
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [kaiState, setKaiState] = useState<KaiState>('idle')
-  const [greeting, setGreeting] = useState(GREETINGS['es-ES'])
+  const [greeting, setGreeting] = useState(DEFAULT_GREETING)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const dropdownPanelRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; left: number } | null>(null)
+  const [mounted, setMounted] = useState(false)
+  const kaiWaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const close = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
+      const target = e.target as Node
+      if (dropdownRef.current?.contains(target)) return
+      if (dropdownPanelRef.current?.contains(target)) return
+      setOpen(false)
     }
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
   }, [])
 
+  useEffect(() => {
+    if (!open || !dropdownRef.current) {
+      setDropdownPos(null)
+      return
+    }
+
+    const updatePosition = () => {
+      if (!dropdownRef.current) return
+      const rect = dropdownRef.current.getBoundingClientRect()
+      setDropdownPos({ top: rect.bottom + 16, left: rect.left })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [open])
+
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(() => searchRef.current?.focus(), 50)
+      return () => clearTimeout(timer)
+    }
+  }, [open])
+
+  // Cleanup kai wave timer on unmount
+  useEffect(() => {
+    return () => {
+      if (kaiWaveTimerRef.current !== null) {
+        clearTimeout(kaiWaveTimerRef.current)
+      }
+    }
+  }, [])
+
   const pickLanguage = (lang: Language) => {
     setSelected(lang)
-    setGreeting(GREETINGS[lang.code] || `Hello in ${lang.en}`)
+    setGreeting(GREETINGS[lang.code] ?? `Hello in ${lang.en}`)
     setOpen(false)
+    setSearch('')
     setKaiState('waving')
-    setTimeout(() => setKaiState('idle'), 1200)
+
+    if (kaiWaveTimerRef.current !== null) {
+      clearTimeout(kaiWaveTimerRef.current)
+    }
+    kaiWaveTimerRef.current = setTimeout(() => {
+      setKaiState('idle')
+      kaiWaveTimerRef.current = null
+    }, KAI_WAVE_DURATION)
   }
 
-  const filtered = LANGUAGES.filter(
-    (l) =>
-      l.en.toLowerCase().includes(search.toLowerCase()) ||
-      l.native.toLowerCase().includes(search.toLowerCase())
-  ).slice(0, 10)
+  const filtered = LANGUAGES.filter(l =>
+    l.en.toLowerCase().includes(search.toLowerCase()) ||
+    l.native.toLowerCase().includes(search.toLowerCase()) ||
+    l.roman.toLowerCase().includes(search.toLowerCase())
+  )
 
   const startHref = `/onboarding?lang=${encodeURIComponent(selected.code)}`
 
+  const scrollLanguageList = (e: React.WheelEvent) => {
+    const el = listRef.current
+    if (!el) return
+    e.stopPropagation()
+    const maxScroll = el.scrollHeight - el.clientHeight
+    if (maxScroll <= 0) return
+    e.preventDefault()
+    el.scrollTop = Math.min(maxScroll, Math.max(0, el.scrollTop + e.deltaY))
+  }
+
   return (
-    <section className="relative min-h-screen pt-24 pb-16 px-4 md:px-8 overflow-hidden bg-gradient-to-b from-white to-off-white">
-      <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[55%_45%] gap-12 items-center min-h-[calc(100vh-6rem)]">
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white border border-keiro-border rounded-full px-4 py-2 mb-8 text-[11px] uppercase tracking-widest text-keiro-muted font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-keiro-mid animate-pulse" />
-            Medical intake · 25+ languages · Always free
-          </div>
+    <section className="relative flex min-h-screen flex-col bg-canvas">
+      {/* Quiet atmosphere: stone dot grid + one soft brand wash behind Kai */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        aria-hidden
+        style={{
+          backgroundImage: 'radial-gradient(rgb(28 25 23 / 0.05) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
+          maskImage: 'radial-gradient(ellipse 80% 80% at 50% 40%, black 30%, transparent 80%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at 50% 40%, black 30%, transparent 80%)',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0 z-0"
+        aria-hidden
+        style={{
+          background: 'radial-gradient(ellipse 45% 55% at 75% 45%, rgb(20 184 166 / 0.09) 0%, transparent 70%)',
+        }}
+      />
 
-          <h1 className="font-display text-[clamp(48px,8vw,88px)] leading-[0.88] tracking-[-0.05em] text-[#0a1f12]">
-            Speak<br />
-            <span className="italic text-keiro-mid font-normal">freely.</span>
-            <br />
-            Be understood.
-          </h1>
+      {/* ── Main grid ── */}
+      <div className="mx-auto flex w-full max-w-[1200px] flex-1 items-center px-6 pb-16 pt-28 md:px-12">
+        <div className="grid w-full items-center gap-12 lg:grid-cols-2 xl:gap-20">
 
-          <p className="mt-8 text-[17px] text-keiro-muted leading-relaxed max-w-[440px]">
-            No translator needed. Tell Kai your symptoms in your own language — get a clean report your doctor can read in minutes.
-          </p>
+          {/* ── LEFT ── */}
+          <div className="relative z-10 order-last lg:order-first">
+            {/* Eyebrow */}
+            <span className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-brand-muted bg-brand-subtle px-3 py-1 text-xs font-medium text-brand-ink">
+              AI healthcare assistant · Free forever
+            </span>
 
-          <div ref={dropdownRef} className="mt-10 relative max-w-lg">
-            <div className="flex flex-col sm:flex-row gap-2 bg-white border border-keiro-border rounded-2xl p-1.5 shadow-[var(--shadow-md)]">
-              <button
-                type="button"
-                onClick={() => setOpen(!open)}
-                className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-keiro-surface/50 transition text-left"
-              >
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-keiro-muted mb-1">Select your language</div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{selected.flag}</span>
-                    <span className="font-medium text-keiro-text">{selected.en}</span>
-                    <span className="text-keiro-muted text-sm">· {selected.native}</span>
-                  </div>
-                </div>
-                <ChevronDown size={18} className="ml-auto text-keiro-muted" />
-              </button>
-              <a
-                href={startHref}
-                className="flex items-center justify-center gap-2 bg-keiro-dark text-white rounded-xl px-6 py-3 text-[13px] font-medium hover:bg-[#0a1f12] transition whitespace-nowrap"
-              >
-                Start with Kai →
-              </a>
+            {/* Headline — weight contrast carries the drama, not color */}
+            <h1
+              className="mb-8 font-display leading-[0.95] tracking-[-0.035em] text-text-primary"
+              style={{ fontSize: 'clamp(48px,7vw,84px)' }}
+            >
+              <span className="font-bold">Speak freely.</span>
+              <br />
+              <span className="font-light text-text-tertiary">Be understood.</span>
+            </h1>
+
+            {/* Subhead */}
+            <p className="mb-12 max-w-[460px] text-lg leading-relaxed text-text-secondary">
+              No translator needed. Tell Kai your symptoms in your own language — get a clean report your doctor can read in minutes.
+            </p>
+
+            {/* ── Language selector ── */}
+            <div ref={dropdownRef} className={`relative mb-8 ${open ? 'z-[1]' : ''}`}>
+              <div className="flex flex-wrap items-center gap-4">
+                {/* Language button — no box, just text */}
+                <button
+                  type="button"
+                  onClick={() => setOpen(o => !o)}
+                  className="flex items-center gap-3 rounded-md text-text-primary"
+                  aria-expanded={open}
+                  aria-label="Select your language"
+                >
+                  <span className="text-2xl leading-none">{selected.flag}</span>
+                  <span className="font-display font-semibold tracking-tight"
+                    style={{ fontSize: 'clamp(22px,3vw,30px)' }}>
+                    {selected.en}
+                  </span>
+                  <svg
+                    width="14" height="14" viewBox="0 0 14 14" fill="none"
+                    className={`shrink-0 text-brand-ink transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+                    aria-hidden
+                  >
+                    <path d="M2.5 4.5l4.5 5 4.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                {/* Separator */}
+                <span className="hidden h-7 w-px bg-border-default sm:block" />
+
+                {/* CTA */}
+                <a
+                  href={startHref}
+                  className="inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-md bg-brand-ink px-7 text-base font-medium text-white shadow-xs transition-[background-color,transform] duration-150 hover:bg-brand-ink-hover active:scale-[0.98] sm:w-auto"
+                >
+                  Start with Kai
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                    <path d="M2.5 7h9M7.5 2.5l4.5 4.5-4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+              </div>
+
             </div>
 
-            {open && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-keiro-border rounded-2xl shadow-[var(--shadow-lg)] z-50 overflow-hidden">
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search languages..."
-                  className="w-full px-4 py-3 border-b border-keiro-border text-sm outline-none focus:ring-2 focus:ring-keiro-mid/10"
-                />
-                <div className="max-h-64 overflow-y-auto">
-                  {filtered.map((lang) => (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      onClick={() => pickLanguage(lang)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-keiro-surface text-left transition"
+            {/* Dropdown — portaled so it isn't clipped by hero or covered by sections below */}
+            {mounted &&
+              createPortal(
+                <AnimatePresence>
+                  {open && dropdownPos && (
+                    <motion.div
+                      ref={dropdownPanelRef}
+                      onWheel={scrollLanguageList}
+                      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.97 }}
+                      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                      className="fixed z-[200] w-72 overflow-hidden rounded-lg border border-border-subtle bg-surface shadow-md"
+                      style={{
+                        top: dropdownPos.top,
+                        left: dropdownPos.left,
+                      }}
+                      role="listbox"
+                      aria-label="Available languages"
                     >
-                      <span className="text-xl">{lang.flag}</span>
-                      <span className="font-medium">{lang.en}</span>
-                      <span className="text-keiro-muted text-sm">{lang.native}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+                      <div className="border-b border-border-subtle p-3">
+                        <input
+                          ref={searchRef}
+                          value={search}
+                          onChange={e => setSearch(e.target.value)}
+                          placeholder="Search languages…"
+                          className="w-full bg-transparent px-3 py-2 text-sm text-text-primary placeholder:text-text-placeholder focus:outline-none"
+                          aria-label="Search languages"
+                        />
+                      </div>
+                      <div
+                        ref={listRef}
+                        className="lang-scroll lang-scroll--light max-h-[min(360px,55vh)] py-2 pr-1"
+                      >
+                        {filtered.length === 0 ? (
+                          <p className="px-4 py-3 text-sm text-text-tertiary">
+                            No languages match your search.
+                          </p>
+                        ) : (
+                          filtered.map(lang => (
+                            <button
+                              key={lang.code}
+                              type="button"
+                              onClick={() => pickLanguage(lang)}
+                              className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors duration-150 hover:bg-sunken"
+                            >
+                              <span className="text-xl leading-none">{lang.flag}</span>
+                              <span className="text-sm font-medium text-text-primary">{lang.en}</span>
+                              <span className="ml-auto text-xs text-text-tertiary">{lang.native}</span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>,
+                document.body,
+              )}
 
-          <div className="mt-4 flex flex-wrap gap-2 text-[13px] text-keiro-muted">
-            <span className="mr-1">Try:</span>
-            {QUICK_LANGS.map((code) => {
-              const lang = LANGUAGES.find((l) => l.code === code)
-              if (!lang) return null
-              return (
-                <button
-                  key={code}
-                  type="button"
-                  onClick={() => pickLanguage(lang)}
-                  className="hover:text-keiro-mid transition hover:scale-105"
-                >
-                  {lang.flag} {lang.en}
-                </button>
-              )
-            })}
-            <span>· + 20 more →</span>
-          </div>
-
-          <div className="mt-10 flex flex-wrap gap-6 text-[12px] text-keiro-muted">
-            {['100% Free forever', 'No account for emergencies', 'Private by design'].map((t) => (
-              <span key={t} className="flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-keiro-mid" />
-                {t}
+            {/* Quick picks */}
+            <div className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-text-tertiary">
+                Try
               </span>
-            ))}
-          </div>
-        </div>
+              {QUICK_LANGS.map(code => {
+                const lang = LANGUAGES.find(l => l.code === code)
+                if (!lang) return null
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => pickLanguage(lang)}
+                    className="rounded-sm text-sm text-text-secondary transition-colors duration-150 hover:text-brand-ink"
+                  >
+                    {lang.flag} {lang.en}
+                  </button>
+                )
+              })}
+            </div>
 
-        <div className="relative flex items-center justify-center min-h-[480px]">
-          <div
-            className="absolute inset-0 rounded-full opacity-30 blur-3xl"
-            style={{ background: 'radial-gradient(circle, rgba(93,202,165,0.15) 0%, transparent 70%)' }}
-          />
-          <span
-            className="absolute font-display text-[clamp(120px,20vw,280px)] leading-none pointer-events-none select-none opacity-[0.07]"
-            style={{ WebkitTextStroke: '1px #2da866', color: 'transparent' }}
-            aria-hidden
-          >
-            kai
-          </span>
-          <div className="relative animate-float">
-            <Kai size="xl" state={kaiState} interactive={true} />
+            {/* Trust */}
+            <div className="flex items-center gap-6">
+              {['100% free', 'No account needed', 'Private'].map((t, i) => (
+                <span key={t} className="flex items-center gap-2 text-xs text-text-tertiary">
+                  {i > 0 && <span className="h-3 w-px bg-border-default" />}
+                  {t}
+                </span>
+              ))}
+            </div>
           </div>
-          <div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 w-32 h-4 rounded-full opacity-40 blur-md animate-pulse"
-            style={{ background: 'rgba(45,168,102,0.35)' }}
-          />
-          <div className="absolute top-8 left-4 md:left-8 bg-keiro-dark rounded-[14px_14px_14px_2px] p-3 shadow-lg animate-bob max-w-[180px]">
-            <div className="text-[9px] uppercase tracking-wider text-keiro-light mb-1">Kai</div>
-            <div className="text-[13px] text-white">{greeting}</div>
-          </div>
-          <div className="absolute top-12 right-0 bg-white/90 backdrop-blur border border-keiro-border rounded-xl px-3 py-2 text-[11px] shadow-sm">
-            <div className="text-keiro-muted uppercase tracking-wider">Languages</div>
-            <div className="font-semibold text-keiro-text">25+ supported</div>
-          </div>
-          <div className="absolute bottom-24 right-0 bg-white/90 backdrop-blur border border-keiro-border rounded-xl px-3 py-2 text-[11px] shadow-sm">
-            <div className="text-keiro-muted uppercase tracking-wider">Cost to patients</div>
-            <div className="font-semibold text-keiro-text">$0 forever</div>
+
+          {/* ── RIGHT — Kai (centerpiece) ── */}
+          <div className="relative order-first flex min-h-[300px] flex-col items-center justify-center lg:order-last lg:min-h-[600px]">
+
+            {/* Kai + speech bubble — single animated unit */}
+            <div className="animate-float relative z-10 flex flex-col items-center">
+
+              {/* Speech bubble — anchored above Kai's head */}
+              <div className="relative mb-3 rounded-lg rounded-bl-sm border border-border-subtle bg-surface px-5 py-4 shadow-sm">
+                <p className="mb-1 text-xs font-medium text-brand-ink">
+                  Kai says
+                </p>
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={greeting}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.25 }}
+                    className="font-display text-xl font-medium leading-snug text-text-primary"
+                  >
+                    {greeting}
+                  </motion.p>
+                </AnimatePresence>
+                {/* Tail — points down toward Kai */}
+                <div
+                  className="absolute left-8 top-full"
+                  aria-hidden
+                  style={{
+                    width: 0,
+                    height: 0,
+                    borderLeft: '9px solid transparent',
+                    borderRight: '9px solid transparent',
+                    borderTop: '9px solid var(--color-surface, #fff)',
+                    filter: 'drop-shadow(0 1px 0 rgb(28 25 23 / 0.06))',
+                  }}
+                />
+              </div>
+
+              {/* Kai — the centerpiece; reacts to language picks */}
+              <Kai size="xl" state={kaiState} interactive />
+
+              {/* Soft contact shadow anchoring Kai to the canvas */}
+              <div
+                className="pointer-events-none mt-2 h-3 w-28 rounded-full bg-brand-ink/10 blur-md"
+                aria-hidden
+              />
+            </div>
           </div>
         </div>
       </div>

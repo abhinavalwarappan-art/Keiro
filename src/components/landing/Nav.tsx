@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
+    const onScroll = () => setScrolled(window.scrollY > 60)
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll()
     return () => window.removeEventListener('scroll', onScroll)
@@ -18,41 +19,53 @@ export default function Nav() {
 
   return (
     <nav
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow] duration-300 ${
         scrolled
-          ? 'bg-white/85 backdrop-blur-xl border-b border-keiro-border'
-          : 'bg-transparent'
+          ? 'border-b border-border-subtle bg-surface/90 shadow-xs backdrop-blur-xl'
+          : 'border-b border-transparent bg-transparent'
       }`}
     >
-      <div className="h-16 px-4 md:px-8 flex items-center justify-between max-w-[1400px] mx-auto">
-        <div className="flex items-center gap-2">
-          <div className="w-[30px] h-[30px] rounded-lg bg-keiro-dark flex items-center justify-center">
-            <span className="text-white font-medium text-sm">K</span>
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6 md:px-12">
+
+        {/* Wordmark */}
+        <Link href="/" className="group flex items-center gap-2.5">
+          <div className="flex size-8 items-center justify-center rounded-md bg-brand-ink">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M2 2h4v4L2 12V2z" fill="white" opacity="0.9"/>
+              <path d="M7 2h5L7 12H4.5L7 2z" fill="white"/>
+            </svg>
           </div>
-          <span className="font-medium text-[15px] tracking-tight text-keiro-text">Keiro</span>
-          <span className="hidden sm:inline text-[9px] uppercase tracking-widest text-keiro-mid bg-keiro-surface border border-keiro-border rounded-full px-3 py-1 font-medium">
-            Free forever
+          <span className="text-base font-semibold tracking-tight text-text-primary">
+            Keiro
           </span>
+        </Link>
+
+        {/* Links */}
+        <div className="hidden items-center gap-7 text-sm font-medium md:flex">
+          {[
+            { label: 'How it works', id: 'how' },
+            { label: 'Languages', id: 'languages' },
+            { label: 'Meet Kai', id: 'meet-kai' },
+            { label: 'For clinics', id: 'hospitals' },
+          ].map(({ label, id }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => scrollTo(id)}
+              className="rounded-sm text-text-secondary transition-colors duration-150 hover:text-text-primary"
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-8 text-[13px] text-keiro-muted">
-          <button type="button" onClick={() => scrollTo('how')} className="hover:text-keiro-text transition-colors">
-            How it works
-          </button>
-          <button type="button" onClick={() => scrollTo('languages')} className="hover:text-keiro-text transition-colors">
-            Languages
-          </button>
-          <button type="button" onClick={() => scrollTo('hospitals')} className="hover:text-keiro-text transition-colors">
-            For hospitals
-          </button>
-        </div>
-
-        <a
-          href="/onboarding"
-          className="bg-keiro-dark text-white rounded-full px-5 py-2.5 text-[13px] font-medium hover:bg-keiro-mid transition-colors"
+        {/* CTA */}
+        <Link
+          href="/onboarding?fresh=1"
+          className="inline-flex h-9 items-center gap-2 rounded-md bg-brand-ink px-4 text-sm font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover"
         >
           Open app →
-        </a>
+        </Link>
       </div>
     </nav>
   )

@@ -93,6 +93,9 @@ create policy "Users can view own sessions"
 create policy "Users can insert own sessions"
   on public.sessions for insert with check (auth.uid() = user_id);
 
+create policy "Users can update own sessions"
+  on public.sessions for update using (auth.uid() = user_id);
+
 create policy "Users can view own reports"
   on public.reports for select using (auth.uid() = user_id);
 
@@ -117,10 +120,18 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   insert into public.profiles (id, is_anonymous)
-  values (new.id, (new.raw_user_meta_data->>'is_anonymous')::boolean);
+  values (
+    new.id,
+    coalesce((new.raw_user_meta_data->>'is_anonymous')::boolean, false)
+  );
   return new;
+exception
+  when others then
+    raise log 'handle_new_user failed for user %: %', new.id, sqlerrm;
+    return new;
 end;
-$$ language plpgsql security definer;
+$$ language plpgsql security definer
+set search_path = public;
 
 create trigger on_auth_user_created
   after insert on auth.users
@@ -128,3 +139,26 @@ create trigger on_auth_user_created
 
 -- Index for rate limiting queries
 create index on public.api_calls (user_id, endpoint, created_at);
+
+-- Index to support session lookups by user
+create index on public.sessions (user_id, status);
+
+-- Index to support report lookups by user
+create index on public.reports (user_id, created_at);
+
+-- Index to support hospital QR slug lookups
+create index on public.hospitals (qr_slug) where qr_slug is not null;
+
+-- Trigger to keep updated_at current on profiles
+create or replace function public.set_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql
+set search_path = public;
+
+create trigger profiles_set_updated_at
+  before update on public.profiles
+  for each row execute procedure public.set_updated_at();

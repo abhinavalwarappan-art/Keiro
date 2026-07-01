@@ -10,11 +10,11 @@ const ROW2 = [
 function Row({ items, reverse }: { items: string[]; reverse?: boolean }) {
   const doubled = [...items, ...items]
   return (
-    <div className="overflow-hidden py-3">
-      <div className={`flex gap-8 whitespace-nowrap ${reverse ? 'animate-marquee-rev' : 'marquee-track'}`}>
+    <div className="overflow-hidden py-3.5">
+      <div className={`flex gap-10 whitespace-nowrap ${reverse ? 'animate-marquee-rev' : 'animate-marquee'}`}>
         {doubled.map((item, i) => (
-          <span key={i} className="text-[13px] text-keiro-muted font-medium">
-            {item} ·
+          <span key={i} className="text-sm font-medium text-text-secondary">
+            {item}
           </span>
         ))}
       </div>
@@ -24,7 +24,7 @@ function Row({ items, reverse }: { items: string[]; reverse?: boolean }) {
 
 export default function Marquee() {
   return (
-    <section className="bg-keiro-surface border-y border-keiro-border">
+    <section className="border-y border-border-subtle bg-sunken">
       <Row items={ROW1} />
       <Row items={ROW2} reverse />
     </section>

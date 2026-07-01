@@ -1,115 +1,178 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
 import { easeOutExpo } from '@/lib/motion'
+import { RetroGrid } from '@/components/ui/retro-grid'
 
 const ITEMS = [
-  { label: 'Custom QR code', desc: 'Branded for your facility, deployed in minutes' },
+  { label: 'Custom QR code',    desc: 'Branded for your facility, deployed in minutes' },
   { label: 'No software install', desc: 'Patients use it on their own phones, browser-based' },
   { label: 'Free during pilot', desc: "No contracts, no cost. We're onboarding partners across DFW right now." },
 ]
 
 export default function ForHospitals() {
-  const [contactForm, setContactForm] = useState({ name: '', email: '', hospital: '', message: '' })
+  const [contactForm, setContactForm] = useState({ clinicName: '', contactName: '', email: '', phone: '' })
   const [submitted, setSubmitted] = useState(false)
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true })
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [focused, setFocused] = useState<string | null>(null)
+  const headerRef = useRef(null)
+  const headerInView = useInView(headerRef, { once: true, margin: '-60px' })
 
   const handleContact = async (e: React.FormEvent) => {
     e.preventDefault()
-    await fetch('/api/contact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(contactForm),
-    })
-    setSubmitted(true)
+    setSubmitting(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactForm),
+      })
+      if (!res.ok) {
+        throw new Error('Submission failed. Please try again.')
+      }
+      setSubmitted(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
+  const inputStyle = (field: string) => ({
+    width: '100%',
+    height: 48,
+    padding: '0 16px',
+    borderRadius: 8,
+    fontSize: 16,
+    color: 'var(--text-primary)',
+    background: 'var(--surface)',
+    border: `1px solid ${focused === field ? 'var(--brand-strong)' : 'var(--border-subtle)'}`,
+    boxShadow: focused === field ? '0 0 0 3px rgb(13 148 136 / 0.15)' : 'none',
+    outline: 'none',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+    fontFamily: 'inherit',
+  })
+
   return (
-    <section id="hospitals" className="bg-[#fafaf7] py-24 md:py-32 px-4 md:px-8">
-      <div ref={ref} className="max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-16">
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, ease: easeOutExpo }}
-          className="lg:col-span-6"
-        >
-          <div className="text-[11px] uppercase tracking-widest text-keiro-muted mb-4">— For providers</div>
-          <h2 className="font-display text-[clamp(36px,5.5vw,80px)] leading-[1] tracking-tight text-[#0a1f12] mb-8">
-            Bring Keiro to<br />
-            <span className="italic text-keiro-mid font-normal">your waiting room.</span>
-          </h2>
-          <p className="text-[17px] text-keiro-muted leading-[1.7] mb-12">
-            Free for hospitals and clinics. Give every patient a QR code at reception — they walk in, scan, speak their language, and arrive at intake already prepared. Less waiting. Better care.
-          </p>
-          <div className="space-y-6">
-            {ITEMS.map((item) => (
-              <div key={item.label} className="border-l-2 border-keiro-mid pl-6">
-                <div className="font-display text-[24px] text-[#0a1f12] mb-1">{item.label}</div>
-                <div className="text-[14px] text-keiro-muted">{item.desc}</div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+    <section id="hospitals" className="relative overflow-hidden bg-sunken px-6 py-28 md:px-12 md:py-36">
+      <RetroGrid lineColor="rgba(28,25,23,0.04)" fadeFromColor="#F5F5F4" />
+      <div className="relative z-10 max-w-[1200px] mx-auto">
 
-        <motion.div
-          initial={{ opacity: 0, y: 32 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, ease: easeOutExpo, delay: 0.12 }}
-          className="lg:col-span-5 lg:col-start-8"
-        >
-          <div className="bg-white rounded-[32px] p-8 md:p-10 border border-keiro-border shadow-[var(--shadow-lg)]">
-            <div className="text-[11px] uppercase tracking-widest text-keiro-muted mb-2">Request a demo</div>
-            <h3 className="font-display text-[28px] md:text-[32px] text-[#0a1f12] mb-2 leading-tight">
-              Let&apos;s get Keiro in your waiting room.
-            </h3>
-            <p className="text-[13px] text-keiro-muted mb-8">No sales calls. No contracts. Just helping patients.</p>
+        {/* Label */}
+        <div ref={headerRef}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={headerInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, ease: easeOutExpo }}
+            className="flex items-center gap-4 mb-14"
+          >
+          </motion.div>
+        </div>
 
-            {submitted ? (
-              <div className="text-center py-10 rounded-2xl bg-keiro-surface border border-keiro-border">
-                <div className="text-4xl mb-3">✓</div>
-                <p className="font-medium text-keiro-dark">Thanks! We&apos;ll be in touch shortly.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleContact} className="space-y-5">
-                {[
-                  { key: 'name', label: 'Your name', type: 'text' },
-                  { key: 'email', label: 'Work email', type: 'email' },
-                  { key: 'hospital', label: 'Hospital or clinic', type: 'text' },
-                ].map((field) => (
-                  <div key={field.key}>
-                    <label className="text-[12px] text-keiro-muted block mb-2">{field.label}</label>
-                    <input
-                      type={field.type}
-                      required
-                      value={contactForm[field.key as keyof typeof contactForm]}
-                      onChange={(e) => setContactForm((p) => ({ ...p, [field.key]: e.target.value }))}
-                      className="w-full h-12 px-4 rounded-xl border border-keiro-border bg-[#fafaf7] focus:bg-white focus:border-keiro-mid focus:ring-4 focus:ring-keiro-mid/10 outline-none transition"
-                    />
-                  </div>
-                ))}
-                <div>
-                  <label className="text-[12px] text-keiro-muted block mb-2">Tell us about your patients</label>
-                  <textarea
-                    rows={3}
-                    value={contactForm.message}
-                    onChange={(e) => setContactForm((p) => ({ ...p, message: e.target.value }))}
-                    className="w-full p-4 rounded-xl border border-keiro-border bg-[#fafaf7] focus:bg-white focus:border-keiro-mid focus:ring-4 focus:ring-keiro-mid/10 outline-none transition resize-none"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full h-14 bg-[#0a1f12] text-white rounded-xl font-medium hover:bg-keiro-dark transition flex items-center justify-center gap-2 group"
+        <div className="grid lg:grid-cols-[1fr_480px] gap-16 lg:gap-20">
+
+          {/* Left — always visible */}
+          <div>
+            <h2 className="font-display leading-[0.95] tracking-[-0.035em] text-text-primary mb-10"
+              style={{ fontSize: 'clamp(36px,5vw,64px)' }}>
+              Bring Keiro to<br />
+              <span className="font-light text-brand-ink">your waiting room.</span>
+            </h2>
+
+            <p className="text-lg text-text-secondary leading-relaxed mb-14 max-w-[500px]">
+              Free for hospitals and clinics. Give every patient a QR code at reception — they walk in, scan, speak their language, and arrive at intake already prepared.
+            </p>
+
+            {/* Features — always visible */}
+            <div className="space-y-0">
+              {ITEMS.map((item, i) => (
+                <div
+                  key={item.label}
+                  className="flex items-start gap-6 border-t border-border-subtle py-6"
                 >
-                  Request a demo
-                  <span className="group-hover:translate-x-1 transition">→</span>
-                </button>
-              </form>
-            )}
+                  <span className="mt-0.5 flex-shrink-0 font-display text-[13px] font-semibold tabular-nums text-text-tertiary"
+                    style={{ minWidth: 28 }}>
+                    0{i + 1}
+                  </span>
+                  <div>
+                    <div className="text-base font-semibold text-text-primary">{item.label}</div>
+                    <div className="mt-0.5 text-sm text-text-secondary">{item.desc}</div>
+                  </div>
+                </div>
+              ))}
+              <div className="border-t border-border-subtle" />
+            </div>
           </div>
-        </motion.div>
+
+          {/* Right — contact form */}
+          <div>
+            <div className="rounded-xl border border-border-subtle bg-surface p-8 shadow-sm md:p-10">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wide text-text-tertiary">
+                Request a demo
+              </p>
+              <h3 className="mb-2 font-display text-2xl font-semibold leading-tight tracking-tight text-text-primary">
+                Let&apos;s get Keiro in your waiting room.
+              </h3>
+              <p className="mb-8 text-sm text-text-secondary">No sales calls. No contracts. Just helping patients.</p>
+
+              {submitted ? (
+                <div className="rounded-lg bg-brand-subtle py-12 text-center">
+                  <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-brand-ink">
+                    <svg width="24" height="20" viewBox="0 0 24 20" fill="none" aria-hidden>
+                      <path d="M2 10l7 7L22 2" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <p className="text-base font-semibold text-brand-ink">Thanks! We&apos;ll be in touch shortly.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleContact} className="space-y-4">
+                  {[
+                    { key: 'clinicName',   label: 'Clinic name',    type: 'text'  },
+                    { key: 'contactName',  label: 'Contact name',   type: 'text'  },
+                    { key: 'email',        label: 'Email',          type: 'email' },
+                    { key: 'phone',        label: 'Phone number',   type: 'tel'   },
+                  ].map(field => (
+                    <div key={field.key}>
+                      <label
+                        className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-text-secondary"
+                        htmlFor={`field-${field.key}`}
+                      >
+                        {field.label}
+                      </label>
+                      <input
+                        id={`field-${field.key}`}
+                        type={field.type}
+                        required
+                        value={contactForm[field.key as keyof typeof contactForm]}
+                        onChange={e => setContactForm(p => ({ ...p, [field.key]: e.target.value }))}
+                        style={inputStyle(field.key)}
+                        onFocus={() => setFocused(field.key)}
+                        onBlur={() => setFocused(null)}
+                        disabled={submitting}
+                      />
+                    </div>
+                  ))}
+                  {error && (
+                    <p className="text-sm text-red-600" role="alert">{error}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="group flex h-12 w-full items-center justify-center gap-2 rounded-md bg-brand-ink text-sm font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {submitting ? 'Sending…' : 'Request a demo'}
+                    {!submitting && (
+                      <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )

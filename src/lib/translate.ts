@@ -6,6 +6,10 @@ export async function translateText(
   sourceLang: string = 'en',
   deeplCode?: string
 ): Promise<string> {
+  if (!text) {
+    return text
+  }
+
   const cacheKey = `${sourceLang}:${targetLang}:${text}`
   if (translationCache.has(cacheKey)) {
     return translationCache.get(cacheKey)!
@@ -41,13 +45,26 @@ async function translateWithDeepL(text: string, targetLang: string, sourceLang: 
     }),
   })
 
+  if (!response.ok) {
+    throw new Error(`DeepL API error: ${response.status} ${response.statusText}`)
+  }
+
   const data = await response.json()
+
+  if (!data?.translations?.[0]?.text) {
+    throw new Error('DeepL API returned an unexpected response structure')
+  }
+
   return data.translations[0].text
 }
 
 async function translateWithGoogle(text: string, targetLang: string, sourceLang: string): Promise<string> {
+  if (!process.env.GOOGLE_TRANSLATE_KEY) {
+    throw new Error('GOOGLE_TRANSLATE_KEY environment variable is not set')
+  }
+
   const params = new URLSearchParams({
-    key: process.env.GOOGLE_TRANSLATE_KEY!,
+    key: process.env.GOOGLE_TRANSLATE_KEY,
     q: text,
     target: targetLang,
     source: sourceLang,
@@ -58,6 +75,15 @@ async function translateWithGoogle(text: string, targetLang: string, sourceLang:
     `https://translation.googleapis.com/language/translate/v2?${params}`
   )
 
+  if (!response.ok) {
+    throw new Error(`Google Translate API error: ${response.status} ${response.statusText}`)
+  }
+
   const data = await response.json()
+
+  if (!data?.data?.translations?.[0]?.translatedText) {
+    throw new Error('Google Translate API returned an unexpected response structure')
+  }
+
   return data.data.translations[0].translatedText
 }

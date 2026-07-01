@@ -10,11 +10,34 @@ export interface Language {
   rtl?: boolean
 }
 
+export type BiologicalSex = 'male' | 'female' | 'other'
+
+export interface PatientProfile {
+  fullName: string
+  dateOfBirth: string
+  age?: number
+  biologicalSex: BiologicalSex
+  primaryLanguage: string
+  primaryLanguageCode: string
+  chronicConditions?: string
+  consentAt: string
+}
+
+export interface ConsultMessage {
+  id: string
+  side: 'doctor' | 'patient'
+  original: string
+  translation: string
+  timestamp: string
+}
+
 export interface Profile {
   id: string
   name?: string
   age?: number
-  sex?: 'male' | 'female' | 'prefer_not_to_say'
+  date_of_birth?: string
+  sex?: BiologicalSex | 'prefer_not_to_say'
+  chronic_conditions?: string
   preferred_language: string
   language_code: string
   romanization_enabled: boolean
@@ -78,10 +101,12 @@ export interface Report {
   report_id: string
   patient_name?: string
   patient_age?: number
+  patient_dob?: string
   patient_sex?: string
   language_used: string
   visit_type: string
   chief_complaint: string
+  clinical_symptoms_summary?: string
   symptoms_json: Symptom[]
   associated_symptoms_json: AssociatedSymptoms
   lifestyle_json: Lifestyle
@@ -91,6 +116,8 @@ export interface Report {
   allergies_json: string[]
   possible_conditions_json: PossibleCondition[]
   additional_notes: string
+  physician_notes?: string
+  consult_transcript_json?: ConsultMessage[]
   created_at: string
 }
 
@@ -114,6 +141,7 @@ export interface ChatMessage {
 
 export interface ReportData {
   chief_complaint: string
+  clinical_symptoms_summary?: string
   symptoms: Symptom[]
   associated_symptoms: AssociatedSymptoms
   medications: Medication[]

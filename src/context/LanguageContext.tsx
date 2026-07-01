@@ -17,22 +17,38 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [romanization, setRomanization] = useState(false)
 
   useEffect(() => {
-    const code = localStorage.getItem('keiro-lang')
-    if (code) {
-      const lang = getLanguageByCode(code)
-      if (lang) setLanguageState(lang)
-    }
-    setRomanization(localStorage.getItem('keiro-roman') === '1')
+    // Deferred so the restore doesn't cascade renders during hydration
+    const timer = setTimeout(() => {
+      try {
+        const code = localStorage.getItem('keiro-lang')
+        if (code) {
+          const lang = getLanguageByCode(code)
+          if (lang) setLanguageState(lang)
+        }
+        setRomanization(localStorage.getItem('keiro-roman') === '1')
+      } catch {
+        // localStorage may be unavailable (e.g. private browsing restrictions)
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
-    localStorage.setItem('keiro-lang', lang.code)
+    try {
+      localStorage.setItem('keiro-lang', lang.code)
+    } catch {
+      // localStorage may be unavailable
+    }
   }
 
   const setRomanizationPersist = (v: boolean) => {
     setRomanization(v)
-    localStorage.setItem('keiro-roman', v ? '1' : '0')
+    try {
+      localStorage.setItem('keiro-roman', v ? '1' : '0')
+    } catch {
+      // localStorage may be unavailable
+    }
   }
 
   return (
