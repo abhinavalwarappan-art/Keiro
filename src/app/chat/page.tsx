@@ -187,6 +187,16 @@ function getCompletionMessage(langCode: string, romanized: boolean): string {
   return map[langCode] ?? map[langCode.split('-')[0]] ?? map.en
 }
 
+// Kai appends an invisible UI-signal tag (e.g. [[PICKER:SEVERITY]]) at the end of
+// a reply to drive quick-reply pickers in a language-agnostic way. Strip them from
+// anything shown to the patient — including a partial tag still arriving mid-stream.
+const COMPLETE_PICKER_RE = /\s*\[\[PICKER:[A-Z_]+\]\]/g
+const TRAILING_PARTIAL_PICKER_RE = /\s*\[\[[A-Z:_]*$/
+
+function stripPickerMarkers(text: string): string {
+  return text.replace(COMPLETE_PICKER_RE, '').replace(TRAILING_PARTIAL_PICKER_RE, '')
+}
+
 function ChatContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -375,7 +385,7 @@ function ChatContent() {
               if (parsed.text) {
                 fullText += parsed.text
                 setMessages(prev =>
-                  prev.map(m => (m.id === kaiMessageId ? { ...m, content: fullText } : m)),
+                  prev.map(m => (m.id === kaiMessageId ? { ...m, content: stripPickerMarkers(fullText) } : m)),
                 )
               }
             } catch {
@@ -386,18 +396,16 @@ function ChatContent() {
 
         scrollToBottom()
 
-        const lower = fullText.toLowerCase()
-        if (lower.includes('scale of 1') || lower.includes('how bad')) {
+        // Language-agnostic quick-reply signals: Kai appends an invisible
+        // [[PICKER:*]] tag (stripped from the visible text above) instead of us
+        // sniffing English keywords, so pickers work in every language.
+        if (fullText.includes('[[PICKER:SEVERITY]]')) {
           setQuickReply('severity')
-        } else if (
-          lower.includes('yes or no') ||
-          lower.includes('do you have') ||
-          lower.includes('are you')
-        ) {
+        } else if (fullText.includes('[[PICKER:YESNO]]')) {
           setQuickReply('yesno')
         }
 
-        if (lower.includes('shall i prepare') || lower.includes('prepare your report')) {
+        if (fullText.includes('[[PICKER:PREPARE_REPORT]]')) {
           setShowPrepareReport(true)
         }
       } catch (error) {
@@ -606,7 +614,12 @@ function ChatContent() {
       />
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 md:px-8">
+        <div
+          role="log"
+          aria-label="Conversation with Kai"
+          aria-live="polite"
+          className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 md:px-8"
+        >
           {messages.map(message => (
             <ChatBubble key={message.id} message={message} langCode={langCode} />
           ))}
