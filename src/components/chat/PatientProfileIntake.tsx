@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/Input'
+import { DateInput } from '@/components/ui/DateInput'
 import { ageFromDateOfBirth } from '@/lib/patientProfile'
+import { getLanguageByCode } from '@/lib/languages'
+import { useTranslations, type MessageKey, type TranslateFn } from '@/i18n/useTranslations'
 import type { BiologicalSex, PatientProfile } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -15,13 +18,48 @@ interface PatientProfileIntakeProps {
   onComplete: (profile: PatientProfile) => void
 }
 
-const SEX_OPTIONS: { value: BiologicalSex; label: string }[] = [
-  { value: 'male', label: 'Male' },
-  { value: 'female', label: 'Female' },
-  { value: 'other', label: 'Other' },
+const SEX_OPTIONS: { value: BiologicalSex; labelKey: MessageKey }[] = [
+  { value: 'male', labelKey: 'intake.sexMale' },
+  { value: 'female', labelKey: 'intake.sexFemale' },
+  { value: 'other', labelKey: 'intake.sexOther' },
 ]
 
+/**
+ * Render the consent sentence, splicing the Terms and Privacy links into the
+ * translated template at its {terms} / {privacy} placeholders so word order
+ * stays correct in every language.
+ */
+function renderConsent(t: TranslateFn) {
+  const template = t('intake.consent')
+  const nodes: Record<string, React.ReactNode> = {
+    '{terms}': (
+      <Link href="/terms" className="font-medium text-brand-ink underline underline-offset-2" target="_blank">
+        {t('intake.termsOfService')}
+      </Link>
+    ),
+    '{privacy}': (
+      <Link href="/privacy" className="font-medium text-brand-ink underline underline-offset-2" target="_blank">
+        {t('intake.privacyPolicy')}
+      </Link>
+    ),
+  }
+  return template.split(/(\{terms\}|\{privacy\})/).map((part, i) => (
+    <Fragment key={i}>{nodes[part] ?? part}</Fragment>
+  ))
+}
+
+// The profiles.sex column only allows 'male' | 'female' | 'prefer_not_to_say',
+// so map the UI's 'other' to the stored value in both directions.
+const toDbSex = (sex: BiologicalSex): string => (sex === 'other' ? 'prefer_not_to_say' : sex)
+const fromDbSex = (sex: string): BiologicalSex | null => {
+  if (sex === 'male' || sex === 'female') return sex
+  if (sex === 'other' || sex === 'prefer_not_to_say') return 'other'
+  return null
+}
+
 export function PatientProfileIntake({ langCode, langName, onComplete }: PatientProfileIntakeProps) {
+  const t = useTranslations(langCode)
+  const rtl = getLanguageByCode(langCode)?.rtl ?? false
   const supabase = useMemo(() => createClient(), [])
   const [fullName, setFullName] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
@@ -50,7 +88,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
 
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('name, date_of_birth, sex, chronic_conditions, preferred_language, language_code')
+          .select('name, sex, preferred_language, language_code')
           .eq('id', user.id)
           .single()
 
@@ -60,11 +98,8 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
         }
 
         if (profile.name) setFullName(profile.name)
-        if (profile.date_of_birth) setDateOfBirth(profile.date_of_birth)
-        if (profile.sex === 'male' || profile.sex === 'female' || profile.sex === 'other') {
-          setBiologicalSex(profile.sex)
-        }
-        if (profile.chronic_conditions) setChronicConditions(profile.chronic_conditions)
+        const loadedSex = profile.sex ? fromDbSex(profile.sex) : null
+        if (loadedSex) setBiologicalSex(loadedSex)
         if (profile.preferred_language) setPrimaryLanguage(profile.preferred_language)
         if (profile.language_code) setPrimaryLanguageCode(profile.language_code)
       } finally {
@@ -78,13 +113,13 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
 
   const validate = (): boolean => {
     const next: Record<string, string> = {}
-    if (!fullName.trim()) next.fullName = 'Full name is required'
-    if (!dateOfBirth) next.dateOfBirth = 'Date of birth is required'
-    else if (computedAge === null || computedAge < 0) next.dateOfBirth = 'Enter a valid date of birth'
-    else if (computedAge > 120) next.dateOfBirth = 'Enter a valid date of birth'
-    if (!biologicalSex) next.biologicalSex = 'Please select biological sex'
-    if (!primaryLanguage.trim()) next.primaryLanguage = 'Primary language is required'
-    if (!consentChecked) next.consent = 'You must agree before continuing'
+    if (!fullName.trim()) next.fullName = t('intake.errFullName')
+    if (!dateOfBirth) next.dateOfBirth = t('intake.errDobRequired')
+    else if (computedAge === null || computedAge < 0) next.dateOfBirth = t('intake.errDobInvalid')
+    else if (computedAge > 120) next.dateOfBirth = t('intake.errDobInvalid')
+    if (!biologicalSex) next.biologicalSex = t('intake.errSex')
+    if (!primaryLanguage.trim()) next.primaryLanguage = t('intake.errPrimaryLanguage')
+    if (!consentChecked) next.consent = t('intake.errConsent')
     setErrors(next)
     return Object.keys(next).length === 0
   }
@@ -118,7 +153,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
           name: profile.fullName,
           age: profile.age,
           date_of_birth: profile.dateOfBirth,
-          sex: profile.biologicalSex,
+          sex: toDbSex(profile.biologicalSex),
           chronic_conditions: profile.chronicConditions ?? null,
           preferred_language: profile.primaryLanguage,
           language_code: profile.primaryLanguageCode,
@@ -161,8 +196,9 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
       sessionStorage.setItem('keiro_patient_profile', JSON.stringify(profile))
       sessionStorage.setItem('keiro_health_consent', '1')
       onComplete(profile)
-    } catch {
-      setSubmitError('Something went wrong saving your profile. Please try again.')
+    } catch (err) {
+      console.error('Failed to save patient profile', err)
+      setSubmitError(t('intake.errSubmit'))
     } finally {
       setSubmitting(false)
     }
@@ -185,14 +221,15 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
           exit={{ y: 24, opacity: 0 }}
           transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.25 }}
           onSubmit={handleSubmit}
+          dir={rtl ? 'rtl' : 'ltr'}
           className="my-auto flex w-full max-w-lg flex-col gap-5 rounded-lg bg-surface p-6 shadow-md"
         >
           <div className="flex flex-col gap-1">
             <h2 id="profile-intake-title" className="text-lg font-semibold text-text-primary">
-              Patient information
+              {t('intake.title')}
             </h2>
             <p className="text-sm leading-relaxed text-text-secondary">
-              Before Kai asks about your symptoms, we need a few details for your doctor&apos;s report.
+              {t('intake.subtitle')}
             </p>
           </div>
 
@@ -205,7 +242,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
           ) : (
             <div className="flex flex-col gap-4">
               <Input
-                label="Full name"
+                label={t('intake.fullName')}
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
                 autoComplete="name"
@@ -214,28 +251,26 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
               />
 
               <div className="grid grid-cols-2 gap-3">
-                <Input
-                  label="Date of birth"
-                  type="date"
+                <DateInput
+                  label={t('intake.dateOfBirth')}
                   value={dateOfBirth}
-                  onChange={e => setDateOfBirth(e.target.value)}
-                  max={new Date().toISOString().split('T')[0]}
+                  onChange={setDateOfBirth}
                   error={errors.dateOfBirth}
                   required
                 />
                 <Input
-                  label="Age"
-                  value={computedAge != null ? `${computedAge} years` : '—'}
+                  label={t('intake.age')}
+                  value={computedAge != null ? t('intake.ageValue', { age: computedAge }) : '—'}
                   readOnly
                   tabIndex={-1}
                   className="bg-sunken text-text-secondary"
-                  helper="Calculated from date of birth"
+                  helper={t('intake.ageHelper')}
                 />
               </div>
 
               <fieldset>
                 <legend className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-secondary">
-                  Biological sex
+                  {t('intake.biologicalSex')}
                 </legend>
                 <div className="flex flex-wrap gap-2">
                   {SEX_OPTIONS.map(opt => (
@@ -250,7 +285,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                           : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
                       )}
                     >
-                      {opt.label}
+                      {t(opt.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -260,10 +295,10 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
               </fieldset>
 
               <Input
-                label="Primary language"
+                label={t('intake.primaryLanguage')}
                 value={primaryLanguage}
                 onChange={e => setPrimaryLanguage(e.target.value)}
-                helper="Auto-detected from your app settings — confirm or edit"
+                helper={t('intake.primaryLanguageHelper')}
                 error={errors.primaryLanguage}
                 required
               />
@@ -273,14 +308,14 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                   htmlFor="chronic-conditions"
                   className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-text-secondary"
                 >
-                  Chronic conditions or allergies <span className="normal-case text-text-tertiary">(optional)</span>
+                  {t('intake.chronicConditions')} <span className="normal-case text-text-tertiary">{t('common.optional')}</span>
                 </label>
                 <textarea
                   id="chronic-conditions"
                   value={chronicConditions}
                   onChange={e => setChronicConditions(e.target.value)}
                   rows={2}
-                  placeholder="e.g. Type 2 diabetes, penicillin allergy"
+                  placeholder={t('intake.chronicPlaceholder')}
                   className="w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-base text-text-primary placeholder:text-text-placeholder focus:border-brand-strong focus:outline-none focus:ring-2 focus:ring-brand-strong/25"
                 />
               </div>
@@ -293,15 +328,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                   className="mt-0.5 size-4 shrink-0 rounded border-border-default accent-brand-ink"
                 />
                 <span className="text-sm leading-relaxed text-text-secondary">
-                  I agree to Keiro&apos;s{' '}
-                  <Link href="/terms" className="font-medium text-brand-ink underline underline-offset-2" target="_blank">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link href="/privacy" className="font-medium text-brand-ink underline underline-offset-2" target="_blank">
-                    Privacy Policy
-                  </Link>
-                  , including the collection and processing of my health information to generate medical reports.
+                  {renderConsent(t)}
                 </span>
               </label>
               {errors.consent && (
@@ -319,7 +346,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
             disabled={submitting || loadingProfile}
             className="min-h-[48px] w-full rounded-md bg-brand-ink py-3 text-base font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? 'Starting session…' : 'Continue to symptom intake'}
+            {submitting ? t('intake.submitting') : t('intake.submit')}
           </button>
         </motion.form>
       </motion.div>
