@@ -2,7 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
-import { checkRateLimit } from '@/lib/rateLimit'
+import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
+import { getClientIp, hashIp } from '@/lib/clientIp'
 import { buildKaiSystemPrompt, buildOpeningUserPrompt, buildConsultSystemPrompt, buildConsultUserPrompt } from '@/lib/claude'
 import { isAllowedChatLanguage } from '@/lib/languages'
 import { logger } from '@/lib/logger'
@@ -65,8 +66,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { allowed } = await checkRateLimit(user.id, 'chat', supabase)
-    if (!allowed) {
+    const ipHash = await hashIp(getClientIp(request))
+    const [userLimit, ipLimit] = await Promise.all([
+      checkRateLimit(user.id, 'chat', supabase),
+      checkIpRateLimit(ipHash, 'chat', supabase),
+    ])
+    if (!userLimit.allowed || !ipLimit.allowed) {
       logger.warn('rate_limit_hit', '/api/chat', user.id)
       return NextResponse.json(
         { error: 'Please wait a moment before continuing.' },

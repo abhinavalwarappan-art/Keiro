@@ -3,7 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
-import { checkRateLimit } from '@/lib/rateLimit'
+import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
+import { getClientIp, hashIp } from '@/lib/clientIp'
 import { isAllowedChatLanguage } from '@/lib/languages'
 import { logger } from '@/lib/logger'
 
@@ -95,8 +96,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { allowed } = await checkRateLimit(user.id, 'report', supabase)
-    if (!allowed) {
+    const ipHash = await hashIp(getClientIp(request))
+    const [userLimit, ipLimit] = await Promise.all([
+      checkRateLimit(user.id, 'report', supabase),
+      checkIpRateLimit(ipHash, 'report', supabase),
+    ])
+    if (!userLimit.allowed || !ipLimit.allowed) {
       logger.warn('rate_limit_hit', '/api/report', user.id)
       return NextResponse.json(
         { error: 'Please wait a moment before continuing.' },
@@ -245,8 +250,12 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { allowed } = await checkRateLimit(user.id, 'report_patch', supabase)
-    if (!allowed) {
+    const ipHash = await hashIp(getClientIp(request))
+    const [userLimit, ipLimit] = await Promise.all([
+      checkRateLimit(user.id, 'report_patch', supabase),
+      checkIpRateLimit(ipHash, 'report_patch', supabase),
+    ])
+    if (!userLimit.allowed || !ipLimit.allowed) {
       return NextResponse.json(
         { error: 'Please wait a moment before continuing.' },
         { status: 429 }

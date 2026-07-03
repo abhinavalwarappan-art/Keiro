@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
+import { logger } from '@/lib/logger'
 
 interface RateLimitConfig {
   limit: number
@@ -43,5 +44,51 @@ export async function checkRateLimit(
   } catch {
     // Fail closed: deny the request rather than bypass rate limiting on DB failure
     return { allowed: false, remaining: 0 }
+  }
+}
+
+// Per-IP limits — a durable, cross-instance safety net keyed on a hashed IP.
+// A user can mint fresh anonymous accounts to reset the per-user tier above, but
+// not change their IP, so this backstops that bypass. Ceilings are higher than the
+// per-user limits because one IP (shared WiFi, clinic, NAT) may host several people.
+const IP_ENDPOINT_CONFIGS: Record<string, RateLimitConfig> = {
+  chat:         { limit: 200, windowMs: 60 * 60 * 1000 }, // 200 chat requests per IP/hour
+  report:       { limit: 20,  windowMs: 60 * 60 * 1000 }, // 20 reports per IP/hour
+  report_patch: { limit: 60,  windowMs: 60 * 60 * 1000 }, // 60 note saves per IP/hour
+  translate:    { limit: 500, windowMs: 60 * 60 * 1000 }, // 500 translations per IP/hour
+}
+
+const IP_DEFAULT_CONFIG: RateLimitConfig = { limit: 100, windowMs: 60 * 60 * 1000 }
+
+/**
+ * Durable per-IP rate limit, backed by the atomic check_and_record_ip_call RPC
+ * (migration 007). Secondary to checkRateLimit (per user): it fails OPEN, so a
+ * missing migration or a transient DB issue on the IP path can't lock users out —
+ * the per-user tier stays the fail-closed primary guard.
+ */
+export async function checkIpRateLimit(
+  ipHash: string,
+  endpoint: string,
+  supabase: SupabaseClient
+): Promise<{ allowed: boolean }> {
+  if (RATE_LIMIT_DISABLED) return { allowed: true }
+  if (!ipHash || !endpoint) return { allowed: true }
+
+  try {
+    const { limit, windowMs } = IP_ENDPOINT_CONFIGS[endpoint] ?? IP_DEFAULT_CONFIG
+    const { data: allowed, error } = await supabase.rpc('check_and_record_ip_call', {
+      p_ip_hash: ipHash,
+      p_endpoint: endpoint,
+      p_limit: limit,
+      p_window_ms: windowMs,
+    })
+    if (error) {
+      // Fail open (secondary tier). Log so a missing 007 migration is visible.
+      logger.warn('ip_rate_limit_rpc_error', endpoint)
+      return { allowed: true }
+    }
+    return { allowed: !!allowed }
+  } catch {
+    return { allowed: true }
   }
 }

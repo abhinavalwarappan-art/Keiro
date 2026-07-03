@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { translateText } from '@/lib/translate'
 import { LANGUAGES, resolveLanguage } from '@/lib/languages'
 import { createClient } from '@/lib/supabase/server'
-import { checkRateLimit } from '@/lib/rateLimit'
+import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
+import { getClientIp, hashIp } from '@/lib/clientIp'
 import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
@@ -15,8 +16,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { allowed } = await checkRateLimit(user.id, 'translate', supabase)
-    if (!allowed) {
+    const ipHash = await hashIp(getClientIp(request))
+    const [userLimit, ipLimit] = await Promise.all([
+      checkRateLimit(user.id, 'translate', supabase),
+      checkIpRateLimit(ipHash, 'translate', supabase),
+    ])
+    if (!userLimit.allowed || !ipLimit.allowed) {
       logger.warn('rate_limit_hit', '/api/translate', user.id)
       return NextResponse.json(
         { error: 'Please wait a moment before continuing.' },
