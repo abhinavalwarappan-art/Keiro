@@ -10,7 +10,7 @@
    ========================================================================== */
 
 import { useRef } from 'react'
-import { motion, useScroll, useTransform, type MotionValue } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { StarrySkyBackground } from '@/components/ui/starry-sky-background'
 import { KaiRobot } from './KaiRobot'
 
@@ -20,52 +20,26 @@ const HEADLINE_LINES = [
   ['your', 'language.'],
 ] as const
 
-/* The headline resolves letter-by-letter AS YOU SCROLL, across this window of the
-   section's scroll progress — Kai gets the opening beat to himself, then the copy
-   sweeps in left→right. Each letter resolves over CHAR_SPAN of scroll. */
-const REVEAL_START = 0.34
-const REVEAL_END = 0.82
-const CHAR_SPAN = 0.1
-
 /* White → teal-green vertical fill, fading translucent at the foot of each letter
-   so the dark sky shows through. Painted per-letter (not on the h1) because each
-   letter is its own animated layer, which breaks an ancestor's background-clip. */
+   so the dark sky shows through. Painted per-letter (not on the h1) because
+   background-clip:text does not clip through descendant boxes on the h1 itself. */
 const HEADLINE_GRADIENT =
   'linear-gradient(to bottom, #ffffff 0%, #00c896 74%, rgba(0,200,150,0.32) 100%)'
 
-/* One letter that resolves from faint + blurred to sharp over its own slice of
-   the scroll. Keeps the parent h1's clipped gradient — only fades its portion. */
-function RevealChar({
-  char,
-  progress,
-  start,
-  end,
-}: {
-  char: string
-  progress: MotionValue<number>
-  start: number
-  end: number
-}) {
-  const opacity = useTransform(progress, [start, end], [0, 1])
-  const blur = useTransform(progress, [start, end], [8, 0])
-  const y = useTransform(progress, [start, end], [12, 0])
-  const filter = useTransform(blur, (b) => `blur(${b}px)`)
-
+/* One letter, statically painted with the clipped gradient. The whole headline
+   fades in and out as a single unit — no per-letter timing. */
+function GradientChar({ char }: { char: string }) {
   return (
-    <motion.span
+    <span
       className="inline-block text-transparent"
       style={{
-        opacity,
-        y,
-        filter,
-        willChange: 'transform, opacity, filter',
         backgroundImage: HEADLINE_GRADIENT,
         WebkitBackgroundClip: 'text',
         backgroundClip: 'text',
       }}
     >
       {char}
-    </motion.span>
+    </span>
   )
 }
 
@@ -89,16 +63,11 @@ export function Hero() {
 
   const copyY = useTransform(scrollYProgress, [0, 1], [0, -26])
 
-  // Eyebrow resolves first, just ahead of the headline's reveal front.
-  const eyebrowOpacity = useTransform(scrollYProgress, [0.24, 0.34], [0, 1])
-  const eyebrowBlur = useTransform(scrollYProgress, [0.24, 0.34], [10, 0])
-  const eyebrowFilter = useTransform(eyebrowBlur, (b) => `blur(${b}px)`)
-
-  // Per-letter scroll slices: total non-space letters, evenly spread so the
-  // front sweeps continuously from the first line into the second.
-  const totalChars = HEADLINE_LINES.flat().join('').length
-  const step = totalChars > 1 ? (REVEAL_END - REVEAL_START - CHAR_SPAN) / (totalChars - 1) : 0
-  let charIndex = 0
+  // Eyebrow + headline resolve TOGETHER as one block once Kai has dissolved,
+  // hold, then fade out together as you keep scrolling down.
+  const copyOpacity = useTransform(scrollYProgress, [0.4, 0.52, 0.8, 0.96], [0, 1, 1, 0])
+  const copyBlur = useTransform(scrollYProgress, [0.4, 0.52, 0.8, 0.96], [8, 0, 0, 8])
+  const copyFilter = useTransform(copyBlur, (b) => `blur(${b}px)`)
 
   return (
     <section ref={sectionRef} id="hero" className="relative h-[250vh] scroll-mt-32 bg-transparent">
@@ -126,14 +95,11 @@ export function Hero() {
 
         <motion.div
           className="relative z-20 mx-auto max-w-3xl text-center"
-          style={{ y: copyY }}
+          style={{ y: copyY, opacity: copyOpacity, filter: copyFilter }}
         >
-          <motion.p
-            className="mb-5 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--kx-accent)]"
-            style={{ opacity: eyebrowOpacity, filter: eyebrowFilter }}
-          >
+          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--kx-accent)]">
             Meet Kai
-          </motion.p>
+          </p>
           <h1 className="font-sans text-[clamp(2.6rem,6.4vw,5.5rem)] font-medium leading-[1.05] tracking-[-0.025em]">
             <span className="sr-only">Healthcare that speaks your language.</span>
             <span aria-hidden>
@@ -141,22 +107,10 @@ export function Hero() {
                 <span key={lineIndex} className="block">
                   {words.map((word, wordIndex) => (
                     <span key={wordIndex} className="inline-block whitespace-nowrap align-top">
-                      {wordIndex > 0 && (
-                        <span className="inline-block">{' '}</span>
-                      )}
-                      {word.split('').map((char) => {
-                        const i = charIndex++
-                        const start = REVEAL_START + i * step
-                        return (
-                          <RevealChar
-                            key={i}
-                            char={char}
-                            progress={scrollYProgress}
-                            start={start}
-                            end={Math.min(start + CHAR_SPAN, REVEAL_END)}
-                          />
-                        )
-                      })}
+                      {wordIndex > 0 && <span className="inline-block" aria-hidden>{'\u00A0'}</span>}
+                      {word.split('').map((char, charIndex) => (
+                        <GradientChar key={charIndex} char={char} />
+                      ))}
                     </span>
                   ))}
                 </span>
