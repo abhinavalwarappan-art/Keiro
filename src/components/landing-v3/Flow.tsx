@@ -48,8 +48,8 @@ export function Flow() {
   // Phone reads as one continuous Serve-Robotics shot: a slow scroll-linked dolly
   // (scale) plus a gentle parallax drift, layered over the per-step flip below.
   // lg-only — a phone this size would overflow a phone-sized viewport.
-  const phoneScale = useTransform(scrollYProgress, [0, 1], [1, 1.26])
-  const phoneY = useTransform(scrollYProgress, [0, 1], [28, -28])
+  const phoneScale = useTransform(scrollYProgress, [0, 1], [1, 1.08])
+  const phoneY = useTransform(scrollYProgress, [0, 1], [22, -6])
 
   const [isDesktop, setIsDesktop] = useState(false)
   useEffect(() => {
@@ -192,7 +192,7 @@ export function Flow() {
             {/* ── right: phone mockup, flips on step change ── */}
             <motion.div
               className="[perspective:1200px] mx-auto w-full max-w-[340px] lg:-mt-4 lg:mx-0 lg:max-w-none"
-              style={isDesktop ? { scale: phoneScale, y: phoneY } : undefined}
+              style={isDesktop ? { scale: phoneScale, y: phoneY, transformOrigin: 'center bottom' } : undefined}
             >
               <AnimatePresence mode="wait">
                 <motion.div
