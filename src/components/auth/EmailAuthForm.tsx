@@ -47,11 +47,14 @@ export function EmailAuthForm({ onSuccess }: EmailAuthFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  // Once a confirmation/reset email is sent, lock the button so users can't spam it
+  const [emailSent, setEmailSent] = useState(false)
 
   const strength = passwordStrength(password)
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   const canSubmit =
     !loading &&
+    !emailSent &&
     emailValid &&
     (mode === 'forgot' || password.length >= 8) &&
     (mode !== 'signup' || fullName.trim().length > 0)
@@ -60,6 +63,7 @@ export function EmailAuthForm({ onSuccess }: EmailAuthFormProps) {
     setMode(next)
     setError('')
     setNotice('')
+    setEmailSent(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +86,7 @@ export function EmailAuthForm({ onSuccess }: EmailAuthFormProps) {
         // When confirmation is required, no session is returned
         if (!data.session) {
           setNotice('Almost there — check your email and tap the confirmation link.')
+          setEmailSent(true)
           return
         }
         onSuccess()
@@ -95,6 +100,7 @@ export function EmailAuthForm({ onSuccess }: EmailAuthFormProps) {
         })
         if (err) throw err
         setNotice('If an account exists for that email, a reset link is on its way.')
+        setEmailSent(true)
       }
     } catch (err: unknown) {
       setError(friendlyAuthError(err instanceof Error ? err.message : ''))
@@ -150,7 +156,7 @@ export function EmailAuthForm({ onSuccess }: EmailAuthFormProps) {
           inputMode="email"
           spellCheck={false}
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => { setEmail(e.target.value); setEmailSent(false) }}
           className={INPUT_CLASSES}
           maxLength={254}
         />
@@ -207,11 +213,13 @@ export function EmailAuthForm({ onSuccess }: EmailAuthFormProps) {
       >
         {loading
           ? 'Working…'
-          : mode === 'signup'
-            ? 'Create account →'
-            : mode === 'signin'
-              ? 'Sign in →'
-              : 'Send reset link →'}
+          : emailSent
+            ? 'Email sent — check your inbox'
+            : mode === 'signup'
+              ? 'Create account →'
+              : mode === 'signin'
+                ? 'Sign in →'
+                : 'Send reset link →'}
       </button>
 
       <p className="text-center text-sm text-text-secondary">
