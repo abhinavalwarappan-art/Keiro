@@ -54,20 +54,31 @@ export function buildChatSSE(chunks: string[]): string {
 }
 
 export interface ChatMockOptions {
-  /** Text Kai streams back. A string is sent as one chunk; an array streams in parts. */
+  /** Text Kai streams back to a user message. A string is one chunk; an array streams in parts. */
   reply?: string | string[]
+  /** Reply streamed for the opening message (the `isOpening:true` call the chat fires on load). */
+  openingReply?: string
   /** Respond with the emergency JSON ({emergency:true}) instead of a stream. */
   emergency?: boolean
   /** Force a non-200 status (e.g. 429 to exercise the rate-limit banner, 500 the error banner). */
   status?: number
 }
 
-/** A default Kai reply that ends the intake and offers a report. */
+/**
+ * A default Kai reply that offers a report. It carries the invisible
+ * [[PICKER:PREPARE_REPORT]] signal the chat client looks for to show the
+ * "prepare report" button (the tag is stripped from the visible text — see
+ * stripPickerMarkers in src/app/chat/page.tsx).
+ */
 export const PREPARE_REPORT_REPLY =
-  'Thank you for sharing that. Shall I prepare your report now?'
+  'Thank you for sharing that. Shall I prepare your report now? [[PICKER:PREPARE_REPORT]]'
+
+/** Neutral greeting streamed for the on-load opening message so it never preempts a test's reply. */
+export const OPENING_GREETING = 'Hello, I am Kai. What is bothering you today?'
 
 export async function mockChat(page: Page, opts: ChatMockOptions = {}): Promise<void> {
   await page.route('**/api/chat', async (route: Route) => {
+    const isOpening = route.request().postDataJSON()?.isOpening === true
     if (opts.status !== undefined && opts.status !== 200) {
       await route.fulfill({
         status: opts.status,
@@ -76,7 +87,9 @@ export async function mockChat(page: Page, opts: ChatMockOptions = {}): Promise<
       })
       return
     }
-    if (opts.emergency) {
+    // Emergency applies only to user messages — never the on-load opening call,
+    // which would otherwise redirect to /emergency before the chat is ready.
+    if (opts.emergency && !isOpening) {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -84,9 +97,11 @@ export async function mockChat(page: Page, opts: ChatMockOptions = {}): Promise<
       })
       return
     }
-    const chunks = Array.isArray(opts.reply)
-      ? opts.reply
-      : [opts.reply ?? PREPARE_REPORT_REPLY]
+    const chunks = isOpening
+      ? [opts.openingReply ?? OPENING_GREETING]
+      : Array.isArray(opts.reply)
+        ? opts.reply
+        : [opts.reply ?? PREPARE_REPORT_REPLY]
     await route.fulfill({
       status: 200,
       headers: { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' },
@@ -226,11 +241,41 @@ export async function completeProfileIntake(page: Page, o: ProfileOpts = {}): Pr
   const fullName = dialog.getByLabel('Full name')
   await expect(fullName).toBeVisible()
   await fullName.fill(o.fullName ?? 'Test Patient')
-  await dialog.getByLabel('Date of birth').fill(o.dob ?? '1990-01-01')
+  // The DOB field is a masked MM/DD/YYYY text input; convert the ISO dob before typing.
+  const [y, m, d] = (o.dob ?? '1990-01-01').split('-')
+  await dialog.getByLabel('Date of birth').fill(`${m}/${d}/${y}`)
   await dialog.getByRole('button', { name: o.sex ?? 'Male', exact: true }).click()
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: /continue to symptom intake/i }).click()
   await expect(dialog).toBeHidden()
+}
+
+/**
+ * Intercept the Supabase REST writes the PatientProfileIntake gate performs on
+ * submit (profiles upsert, consents insert, sessions insert) and fulfill them as
+ * success. The live `sessions`/`profiles` schema has drifted from the code
+ * (missing columns such as `consent_at`, `patient_profile_json`, `date_of_birth`),
+ * so the real inserts 400 and leave the dialog stuck open. Reads (GET) pass
+ * through untouched. Install before submitting the intake form.
+ */
+export async function mockSupabaseIntakeWrites(page: Page): Promise<void> {
+  await page.route(/\/rest\/v1\/(profiles|consents|sessions)(\?|$|\/)/, async (route: Route) => {
+    const method = route.request().method()
+    if (method === 'GET' || method === 'HEAD') {
+      await route.continue()
+      return
+    }
+    // sessions insert uses .select('id').single() → expects one object back.
+    if (/\/rest\/v1\/sessions/.test(route.request().url())) {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({ id: 'e2e-session-id' }),
+      })
+      return
+    }
+    await route.fulfill({ status: 201, contentType: 'application/json', body: '[]' })
+  })
 }
 
 /**
@@ -240,12 +285,20 @@ export async function completeProfileIntake(page: Page, o: ProfileOpts = {}): Pr
  * storageState (see tests/e2e/auth.setup.ts + the `chromium-authed` project),
  * so we navigate straight into /chat rather than re-running signInAnonymously
  * per test — Supabase throttles sign-ins per IP, and ~one-per-test exhausts it.
+ *
+ * We drive the REAL PatientProfileIntake gate but stub its Supabase writes (see
+ * mockSupabaseIntakeWrites). We deliberately do NOT pre-seed the profile in
+ * sessionStorage: the chat page reads it in a useState initializer, which would
+ * make the server render the intake while the client renders the chat — a
+ * hydration mismatch that regenerates the tree and drops chat state.
+ *
  * Call installAIMocks(page, …) first to control the replies.
  */
 export async function startGuestSession(page: Page, lang: LangOpts = {}, profile: ProfileOpts = {}): Promise<void> {
+  await mockSupabaseIntakeWrites(page)
   await page.goto(`/chat?${chatQuery(lang)}`)
   await completeProfileIntake(page, profile)
-  // Opening message + enabled composer means the chat is interactive.
+  // Opening message log + enabled composer means the chat is interactive.
   await expect(page.getByRole('log', { name: /conversation with kai/i })).toBeVisible()
   await expect(page.locator('#chat-input')).toBeEnabled()
 }

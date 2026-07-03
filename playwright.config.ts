@@ -21,7 +21,10 @@ export default defineConfig({
   // E2E under heavy parallel load has rare timing flakes; one local retry absorbs
   // them. A genuinely broken test fails both attempts, so real failures still surface.
   retries: process.env.CI ? 2 : 1,
-  workers: process.env.CI ? 1 : undefined,
+  // The app under test is a single `next dev` server; too many parallel workers
+  // contend on it (slow route compiles → navigation/teardown timeouts). Cap local
+  // workers to keep runs stable. CI stays single-worker for full determinism.
+  workers: process.env.CI ? 1 : 3,
   reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list'], ['html', { open: 'never' }]],
 
   timeout: 30_000,

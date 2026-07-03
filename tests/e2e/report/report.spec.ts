@@ -9,7 +9,7 @@
  * to /report?reportId=<id>&langName=English.
  */
 
-import { test, expect, mockReport, appAlert } from '../fixtures/keiro'
+import { test, expect, mockReport } from '../fixtures/keiro'
 import type { Page } from '@playwright/test'
 import type { Report, PatientProfile } from '../../../src/types'
 
@@ -100,7 +100,7 @@ async function seedReport(page: Page, report: Report): Promise<void> {
 
 /**
  * seedProfile — seeds the patient-profile sessionStorage key alongside the
- * report so the "Continue with Doctor" button becomes enabled.
+ * report so the "Start live consult mode" button renders.
  */
 async function seedProfile(page: Page, profile: PatientProfile): Promise<void> {
   const value = JSON.stringify(profile)
@@ -120,16 +120,12 @@ async function seedProfile(page: Page, profile: PatientProfile): Promise<void> {
 
 test.describe('/report page', () => {
   test('missing reportId shows graceful error state', async ({ page }) => {
-    // page.tsx L137-140: if (!reportId) { setError('Report not found'); setLoading(false) }
-    // The page renders a "not found" state — it does NOT crash.
+    // page.tsx: if (!reportId) setError('Report not found') → renders the error
+    // state with a "View past visits" button (not a crash).
     await page.goto('/report')
 
-    // The error/not-found UI renders with a "Try again" button (L430 in page.tsx).
-    // Both the error text and button are present; assert the button specifically.
-    const tryAgain = page.getByRole('button', { name: /try again/i })
-
-    // Wait for loading to finish then assert a graceful state exists.
-    await expect(tryAgain).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(/report not found/i)).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByRole('button', { name: /view past visits/i })).toBeVisible()
   })
 
   test.describe('seeded report renders correctly', () => {
@@ -139,68 +135,59 @@ test.describe('/report page', () => {
     })
 
     test('chief complaint text is visible', async ({ page }) => {
-      // Section "Chief Complaint" → <p> with rd.chief_complaint (L597-599 in page.tsx)
-      await expect(
-        page.getByText('Severe headache for two days'),
-      ).toBeVisible()
+      await expect(page.getByText('Severe headache for two days')).toBeVisible()
     })
 
-    test('report_id renders in font-mono header', async ({ page }) => {
-      // L479: <div className="font-mono text-xs text-text-tertiary">{rd.report_id}</div>
+    test('report_id renders in the font-mono header', async ({ page }) => {
+      // <div className="font-mono text-xs …">{rd.report_id}</div>
       await expect(page.getByText(REPORT_ID)).toBeVisible()
     })
 
     test('language badge is visible', async ({ page }) => {
-      // L482-484: <span class="rounded-full ...">{rd.language_used}</span>
-      // Use .exact() text match on the badge span specifically to avoid strict-mode
-      // ambiguity with the "formatted in English" prose elsewhere on the page.
+      // <span class="rounded-full …">{rd.language_used}</span>
       await expect(
         page.locator('span.rounded-full', { hasText: 'English' }),
       ).toBeVisible()
     })
 
     test('section headings are rendered', async ({ page }) => {
-      // Section component renders uppercase h3 headings (L87 in page.tsx)
+      // Section component renders an <h3> per title.
       const sections = [
-        'Patient Summary',
+        'Patient Information',
         'Chief Complaint',
-        'Clinical Symptom Summary',
+        'Clinical Summary',
         'Associated Symptoms',
         'Lifestyle Notes',
       ]
       for (const title of sections) {
         await expect(
-          page.getByRole('heading', { name: new RegExp(title, 'i') }),
+          page.getByRole('heading', { name: new RegExp(`^${title}$`, 'i') }),
         ).toBeVisible()
       }
     })
 
     test('back button has aria-label "Go back"', async ({ page }) => {
-      // L471-475: <button ... aria-label="Go back">
       await expect(page.getByRole('button', { name: 'Go back' })).toBeVisible()
     })
 
-    test('"Continue with Doctor" is disabled without a patient profile', async ({
-      page,
-    }) => {
-      // L489-497: disabled={!patientProfile} — no profile seeded in this test
-      const btn = page.getByRole('button', { name: /continue with doctor/i })
-      await expect(btn).toBeVisible()
-      await expect(btn).toBeDisabled()
+    test('live consult button is absent without a patient profile', async ({ page }) => {
+      // The "Start live consult mode" button only renders when a patient profile
+      // is present. No profile seeded here → button absent.
+      await expect(page.getByText('Severe headache for two days')).toBeVisible()
+      await expect(
+        page.getByRole('button', { name: /start live consult mode/i }),
+      ).toHaveCount(0)
     })
   })
 
-  test('"Continue with Doctor" is enabled when patient profile is seeded', async ({
-    page,
-  }) => {
-    // Seed both report and profile so patientProfile state is truthy.
+  test('live consult button renders when a patient profile is seeded', async ({ page }) => {
     await mockReport(page)
     await seedProfile(page, SEED_PROFILE)
     await seedReport(page, SEED_REPORT)
 
-    const btn = page.getByRole('button', { name: /continue with doctor/i })
-    await expect(btn).toBeVisible()
-    await expect(btn).toBeEnabled()
+    await expect(
+      page.getByRole('button', { name: /start live consult mode/i }),
+    ).toBeVisible()
   })
 
   test.describe('PDF action buttons', () => {
@@ -209,70 +196,46 @@ test.describe('/report page', () => {
       await seedReport(page, SEED_REPORT)
     })
 
-    test('"Open full PDF report" button is present and clickable', async ({
-      page,
-    }) => {
-      // L500-508: "Open full PDF report" button
-      const openBtn = page.getByRole('button', { name: /open full pdf report/i })
+    test('"Open PDF" button is present and clickable', async ({ page }) => {
+      // Icon-only button, aria-label="Open PDF".
+      const openBtn = page.getByRole('button', { name: 'Open PDF' })
       await expect(openBtn).toBeVisible()
-      // Click must not throw (jsPDF runs client-side; window.open may be blocked headlessly)
+      // Click must not throw (jsPDF runs client-side; window.open may be blocked headlessly).
       await openBtn.click()
-      // After click, either the text changes to "Opening PDF..." momentarily or stays the same.
-      // Either way, no crash — no alert with error text should surface.
-      const errorAlert = appAlert(page)
-      // Give any error alert 500ms to appear; if it doesn't that's fine.
-      await expect(errorAlert).not.toBeVisible({ timeout: 500 }).catch(() => {
-        // Some environments do surface the "Please allow pop-ups" alert — that is
-        // acceptable app behaviour, not a bug. We only care no exception is thrown.
-      })
     })
 
-    test('"Download" button is present and initiates a download attempt', async ({
-      page,
-    }) => {
-      // L511-519: "Download" button calls doc.save(...)
-      const downloadBtn = page.getByRole('button', { name: /^download$/i })
+    test('"Download PDF" button is present and initiates a download attempt', async ({ page }) => {
+      const downloadBtn = page.getByRole('button', { name: /download pdf/i })
       await expect(downloadBtn).toBeVisible()
-      // Listen for download event; it may or may not fire depending on jsPDF.save behavior.
       const downloadPromise = page.waitForEvent('download', { timeout: 5_000 }).catch(() => null)
       await downloadBtn.click()
-      // Just resolve — whether or not a file download fires is environment-dependent.
       await downloadPromise
     })
   })
 
-  test('QR code button opens dialog with heading and image', async ({ page }) => {
+  test('share-link button opens the share sheet with the report URL', async ({ page }) => {
     await mockReport(page)
     await seedReport(page, SEED_REPORT)
 
-    // L537-544: "QR code" button
-    const qrBtn = page.getByRole('button', { name: /qr code/i })
-    await expect(qrBtn).toBeVisible()
-    await qrBtn.click()
+    // Icon-only button, aria-label="Share report link".
+    const shareBtn = page.getByRole('button', { name: 'Share report link' })
+    await expect(shareBtn).toBeVisible()
+    await shareBtn.click()
 
-    // L549-579: dialog rendered with role="dialog" (no aria-labelledby set, so use role alone)
-    const dialog = page.locator('[role="dialog"]')
-    await expect(dialog).toBeVisible()
-
-    // L559: <h3>Share report</h3>
-    await expect(dialog.getByText('Share report')).toBeVisible()
-
-    // L561-567: <img alt="QR code linking to this report" ...>
-    const qrImage = dialog.getByAltText('QR code linking to this report')
-    await expect(qrImage).toBeVisible()
+    // The share sheet (a plain modal, no role="dialog") shows a heading and the
+    // shareable URL with a Copy control. There is no QR image in this UI.
+    await expect(page.getByText('Share this report')).toBeVisible()
+    await expect(page.getByText(new RegExp(`reportId=${REPORT_ID}`))).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Copy link' })).toBeVisible()
   })
 
-  test('physician notes textarea triggers PATCH /api/report on blur', async ({
-    page,
-  }) => {
-    // Mock PATCH so no real call goes through (mockReport handles PATCH → {ok:true})
+  test('physician notes textarea triggers PATCH /api/report on blur', async ({ page }) => {
     await mockReport(page)
     await seedReport(page, SEED_REPORT)
 
-    const textarea = page.getByPlaceholder(/clinical impressions/i)
+    const textarea = page.getByPlaceholder(/add notes for the record/i)
     await expect(textarea).toBeVisible()
 
-    // Intercept the PATCH request that fires on blur (L258-272, L275-280 in page.tsx)
     const patchPromise = page.waitForRequest(
       (req) => req.url().includes('/api/report') && req.method() === 'PATCH',
       { timeout: 8_000 },
@@ -281,10 +244,9 @@ test.describe('/report page', () => {
     await textarea.fill('Test physician note')
     await textarea.blur()
 
-    // Assert the PATCH fired — the mock returns {ok:true} so no error should surface.
     await patchPromise
 
-    // No error message should appear after a successful save.
-    await expect(page.getByText(/notes could not be saved/i)).not.toBeVisible()
+    // The mock returns {ok:true}; the "sync failed" state must not appear.
+    await expect(page.getByText(/sync failed/i)).not.toBeVisible()
   })
 })

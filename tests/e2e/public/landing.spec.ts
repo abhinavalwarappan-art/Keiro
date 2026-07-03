@@ -21,7 +21,7 @@ test.describe('landing page — initial paint', () => {
   })
 
   test('h1 contains the hero headline text', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     // Hero renders a sr-only span with the full headline inside h1.
     // We check textContent (which includes sr-only text) rather than visible text.
     const h1 = page.locator('h1').first()
@@ -81,7 +81,7 @@ test.describe('navigation bar', () => {
 
 test.describe('KaiJourney section', () => {
   test('section mounts in the DOM and contains scene copy', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     const section = page.locator('#kai')
     await expect(section).toBeAttached()
 
@@ -93,7 +93,7 @@ test.describe('KaiJourney section', () => {
   })
 
   test('contains the "Built to be understood" eyebrow text', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     await expect(page.getByText('Built to be understood').first()).toBeAttached()
   })
 })
@@ -104,34 +104,25 @@ test.describe('KaiJourney section', () => {
 
 test.describe('Flow section — three steps', () => {
   test('section heading "Three simple steps." is present', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     const heading = page.getByRole('heading', { name: /Three simple steps/i })
     await expect(heading).toBeAttached()
   })
 
-  test('all three step titles exist in the DOM', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
-    // Flow section only renders the active step copy via AnimatePresence — scroll
-    // through each slice so each step enters the DOM at least once before asserting.
-    // On mobile (stacked layout) all three render immediately.
-    // We check each title is attached at some point by scrolling and waiting.
-    await expect(page.getByText('You speak').first()).toBeAttached()
-
-    // Step 2 & 3 require scrolling into the Flow section.
-    // Find the #flow section offset and scroll to each step's slice.
-    const flowTop = await page.locator('#flow').evaluate((el) => el.getBoundingClientRect().top + window.scrollY)
-    // Each step occupies 1/3 of the section height; use mid-slice offsets.
-    // Scroll to step 2 slice (33-66% of section scroll range).
-    const sectionHeight = await page.locator('#flow').evaluate((el) => (el as HTMLElement).offsetHeight)
-    await scrollTo(page, flowTop + sectionHeight * 0.45)
-    await expect(page.getByText('Kai interprets').first()).toBeAttached({ timeout: 8000 })
-
-    await scrollTo(page, flowTop + sectionHeight * 0.78)
-    await expect(page.getByText('Doctor reads').first()).toBeAttached({ timeout: 8000 })
+  test('all three step titles render when their step is selected', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+    // Flow renders only the ACTIVE step's copy via AnimatePresence. Rather than
+    // depend on scroll-driven progress (flaky), drive it deterministically with the
+    // step nav dots (aria-label "Go to step N") and assert the active heading.
+    const titles = ['You speak', 'Kai interprets', 'Doctor reads']
+    for (let i = 0; i < titles.length; i++) {
+      await page.getByRole('button', { name: new RegExp(`^Go to step ${i + 1}$`) }).click()
+      await expect(page.getByRole('heading', { name: titles[i] })).toBeVisible()
+    }
   })
 
   test('step nav buttons are accessible via aria-label', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     // Flow renders buttons with aria-label "Go to step N: <title>"
     await expect(
       page.getByRole('button', { name: /Go to step 1/i }).first(),
@@ -145,7 +136,7 @@ test.describe('Flow section — three steps', () => {
 
 test.describe('HowKaiWorks section', () => {
   test('section renders with its heading', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     const section = page.locator('#how-kai-works')
     await expect(section).toBeAttached()
 
@@ -156,7 +147,7 @@ test.describe('HowKaiWorks section', () => {
   })
 
   test('feature labels are present in the DOM', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     // From HowKaiWorks.tsx features array
     for (const label of ['Speak naturally', 'Real-time interpretation', 'Instant report']) {
       await expect(page.getByText(label).first()).toBeAttached()
@@ -164,7 +155,7 @@ test.describe('HowKaiWorks section', () => {
   })
 
   test('"Open app" link inside HowKaiWorks points to /onboarding', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     // MotionLink renders <a href="/onboarding?fresh=1">Open app →</a>
     const link = page.getByRole('link', { name: /Open app/i })
     await expect(link).toBeAttached()
@@ -179,7 +170,7 @@ test.describe('HowKaiWorks section', () => {
 
 test.describe('footer', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
     // Scroll to the bottom so the footer is rendered
     await scrollTo(page, 99999)
   })

@@ -8,20 +8,20 @@ import {
   startGuestSession,
   sendChatMessage,
 } from '../fixtures/keiro'
+import type { Page, Route } from '@playwright/test'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers (inlined — no fixture change needed)
 // ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Wait for the Kai reply stream to finish by polling until the last message in
- * the conversation log stops being an empty-content bubble.  We cannot use a
- * fixed `waitForTimeout`; instead we wait for a text node to appear inside the
- * log that matches the expected partial text.
- */
-async function waitForKaiReply(page: import('@playwright/test').Page, partialText: string) {
-  await expect(page.getByRole('log', { name: /conversation with kai/i })
-    .getByText(partialText, { exact: false })).toBeVisible()
+/** The conversation transcript is a role="log" live region labelled "Conversation with Kai". */
+function chatLog(page: Page) {
+  return page.getByRole('log', { name: /conversation with kai/i })
+}
+
+/** Wait until a text node matching `partialText` appears inside the conversation log. */
+async function waitForKaiReply(page: Page, partialText: string) {
+  await expect(chatLog(page).getByText(partialText, { exact: false })).toBeVisible()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,29 +29,21 @@ async function waitForKaiReply(page: import('@playwright/test').Page, partialTex
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('connection error (500)', () => {
-  test('shows "Having trouble connecting" alert and Retry button; drops optimistic bubble', async ({ page }) => {
-    // Translate & report mocks keep other routes clean; only chat is a 500.
+  test('shows the connection-error banner and keeps the user message', async ({ page }) => {
+    // Every /api/chat call (opening + user) returns 500.
     await mockChat(page, { status: 500 })
     await mockReport(page)
     await mockTranslate(page)
     await startGuestSession(page)
 
-    const log = page.getByRole('log', { name: /conversation with kai/i })
-
     await sendChatMessage(page, 'My stomach hurts')
 
-    // The optimistic user bubble must be dropped on failure.
-    await expect(log.getByText('My stomach hurts')).toBeHidden()
+    // The app does NOT drop the optimistic bubble on failure — it stays so the
+    // patient can see what they sent.
+    await expect(chatLog(page).getByText('My stomach hurts')).toBeVisible()
 
-    // The connection-error banner (div[role=alert] with bg-error-subtle) must appear.
-    // Note: ChatInput also emits a separate role="alert" ("Message failed to send")
-    // at the same time, so we target the banner by its unique text rather than via
-    // the shared appAlert() helper (which would fail strict-mode with 2 matches).
-    const errorBanner = page.locator('[role="alert"]').filter({ hasText: /having trouble connecting/i })
-    await expect(errorBanner).toBeVisible()
-
-    // A Retry button must be inside that banner.
-    await expect(errorBanner.getByRole('button', { name: /retry/i })).toBeVisible()
+    // The connection-error banner appears (this UI has no Retry button).
+    await expect(page.getByText(/something went wrong reaching kai/i)).toBeVisible()
   })
 })
 
@@ -68,10 +60,7 @@ test.describe('rate-limit (429)', () => {
 
     await sendChatMessage(page, 'I have a headache')
 
-    // Same situation as the 500 test: ChatInput's inline error also has role="alert",
-    // so we filter to the rate-limit banner by its unique text.
-    const banner = page.locator('[role="alert"]').filter({ hasText: /you've sent a lot of messages/i })
-    await expect(banner).toBeVisible()
+    await expect(page.getByText(/sending messages too quickly/i)).toBeVisible()
   })
 })
 
@@ -80,49 +69,27 @@ test.describe('rate-limit (429)', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('severity quick-reply', () => {
-  test('SeverityPicker renders after a "scale of 1" reply and selection sends a follow-up', async ({ page }) => {
-    // First call returns a severity-triggering reply; subsequent calls (from picker
-    // selection) return the default PREPARE_REPORT_REPLY so the test ends cleanly.
-    let callCount = 0
-    await page.route('**/api/chat', async (route) => {
-      callCount++
-      if (callCount === 1) {
-        const body = `data: ${JSON.stringify({ text: 'On a scale of 1 to 10, how bad is the pain?' })}\ndata: [DONE]\n`
-        await route.fulfill({
-          status: 200,
-          headers: { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' },
-          body,
-        })
-      } else {
-        const body = `data: ${JSON.stringify({ text: 'Thank you for sharing that. Shall I prepare your report now?' })}\ndata: [DONE]\n`
-        await route.fulfill({
-          status: 200,
-          headers: { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' },
-          body,
-        })
-      }
-    })
+  test('SeverityPicker renders after a "scale of 1" reply and a selection sends a follow-up', async ({ page }) => {
+    // The opening message streams a neutral greeting; every user message gets a
+    // reply carrying the invisible [[PICKER:SEVERITY]] signal (stripped from the
+    // visible text) that drives the severity picker.
+    await mockChat(page, { reply: 'On a scale of 1 to 10, how bad is the pain? [[PICKER:SEVERITY]]' })
     await mockReport(page)
     await mockTranslate(page)
     await startGuestSession(page)
 
     await sendChatMessage(page, 'I have back pain')
-
-    // Wait for the severity reply to stream in.
     await waitForKaiReply(page, 'scale of 1 to 10')
 
-    // SeverityPicker should now be visible in the input area.
-    // Buttons render the label text ("1–3", "4–6", "7–8", "9–10").
-    const inputArea = page.locator('.mx-auto.w-full.max-w-2xl').last()
-    const severityBtn = inputArea.getByRole('button', { name: /1.{1,2}3/i }).first()
+    // SeverityPicker is a role="group" (aria-label "Select severity level") with
+    // buttons aria-labelled "Severity 1–3 – Mild", etc.
+    const picker = page.getByRole('group', { name: /select severity level/i })
+    const severityBtn = picker.getByRole('button', { name: /1.{1,2}3/i }).first()
     await expect(severityBtn).toBeVisible()
 
-    // Selecting an option should send a follow-up message (chat input fires again).
+    // Selecting an option sends it as a follow-up message.
     await severityBtn.click()
-
-    // The selected value should appear as a user bubble in the log.
-    const log = page.getByRole('log', { name: /conversation with kai/i })
-    await expect(log.getByText('1\u20133')).toBeVisible()
+    await expect(chatLog(page).getByText('1–3')).toBeVisible()
   })
 })
 
@@ -132,26 +99,19 @@ test.describe('severity quick-reply', () => {
 
 test.describe('yes/no quick-reply', () => {
   test('YesNoPicker renders after a "do you have" reply', async ({ page }) => {
-    const body = `data: ${JSON.stringify({ text: 'Do you have a fever right now?' })}\ndata: [DONE]\n`
-    await page.route('**/api/chat', async (route) => {
-      await route.fulfill({
-        status: 200,
-        headers: { 'content-type': 'text/event-stream', 'cache-control': 'no-cache' },
-        body,
-      })
-    })
+    // Reply carries the invisible [[PICKER:YESNO]] signal that drives the Yes/No picker.
+    await mockChat(page, { reply: 'Do you have a fever right now? [[PICKER:YESNO]]' })
     await mockReport(page)
     await mockTranslate(page)
     await startGuestSession(page)
 
     await sendChatMessage(page, 'I feel unwell')
-
     await waitForKaiReply(page, 'Do you have a fever')
 
-    // Both Yes and No buttons must be visible.
-    const inputArea = page.locator('.mx-auto.w-full.max-w-2xl').last()
-    await expect(inputArea.getByRole('button', { name: 'Yes', exact: true })).toBeVisible()
-    await expect(inputArea.getByRole('button', { name: 'No', exact: true })).toBeVisible()
+    // YesNoPicker is a role="group" (aria-label "Yes or No") with Yes/No buttons.
+    const picker = page.getByRole('group', { name: 'Yes or No' })
+    await expect(picker.getByRole('button', { name: 'Yes', exact: true })).toBeVisible()
+    await expect(picker.getByRole('button', { name: 'No', exact: true })).toBeVisible()
   })
 })
 
@@ -161,12 +121,19 @@ test.describe('yes/no quick-reply', () => {
 
 test.describe('multi-turn conversation', () => {
   test('two user messages and two Kai replies appear in the log', async ({ page }) => {
-    let callCount = 0
-    await page.route('**/api/chat', async (route) => {
-      callCount++
-      const reply = callCount === 1
-        ? 'Tell me more about the pain location.'
-        : 'Thank you for sharing that. Shall I prepare your report now?'
+    // Opening → greeting; first user message → follow-up; second → prepare-report.
+    let userTurns = 0
+    await page.route('**/api/chat', async (route: Route) => {
+      const isOpening = route.request().postDataJSON()?.isOpening === true
+      let reply: string
+      if (isOpening) {
+        reply = 'Hello, I am Kai. What is bothering you today?'
+      } else {
+        userTurns++
+        reply = userTurns === 1
+          ? 'Tell me more about the pain location.'
+          : 'Thank you for sharing that. Shall I prepare your report now?'
+      }
       const body = `data: ${JSON.stringify({ text: reply })}\ndata: [DONE]\n`
       await route.fulfill({
         status: 200,
@@ -178,19 +145,17 @@ test.describe('multi-turn conversation', () => {
     await mockTranslate(page)
     await startGuestSession(page)
 
-    const log = page.getByRole('log', { name: /conversation with kai/i })
+    const log = chatLog(page)
 
-    // First turn
     await sendChatMessage(page, 'I have a headache')
     await expect(log.getByText('I have a headache')).toBeVisible()
     await waitForKaiReply(page, 'Tell me more about the pain location')
 
-    // Second turn
     await sendChatMessage(page, 'It is in my temples')
     await expect(log.getByText('It is in my temples')).toBeVisible()
     await waitForKaiReply(page, 'Shall I prepare your report now')
 
-    // Both user bubbles must coexist in the log.
+    // Both user bubbles coexist in the log.
     await expect(log.getByText('I have a headache')).toBeVisible()
     await expect(log.getByText('It is in my temples')).toBeVisible()
   })
@@ -201,14 +166,21 @@ test.describe('multi-turn conversation', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('end session', () => {
-  test('clicking End redirects to /?ended=1', async ({ page }) => {
+  test('clicking End session signs out and redirects to /', async ({ page }) => {
     await installAIMocks(page)
+    // Stub the Supabase logout endpoint so the button still clears the client
+    // session and navigates, WITHOUT globally revoking the shared guest session
+    // (which would break later tests reusing the same storageState).
+    await page.route(/\/auth\/v1\/logout/, (route) =>
+      route.fulfill({ status: 204, body: '' }),
+    )
     await startGuestSession(page)
 
-    // The TopBar renders: aria-label="End session and clear data"
-    await page.getByRole('button', { name: /end session and clear data/i }).click()
+    // TopBar renders a button aria-label="End session and sign out"; it signs out
+    // and router.push('/').
+    await page.getByRole('button', { name: /end session and sign out/i }).click()
 
-    await page.waitForURL('**/?ended=1', { timeout: 10_000 })
-    await expect(page).toHaveURL(/\?ended=1/)
+    await page.waitForURL((url) => url.pathname === '/', { timeout: 10_000 })
+    await expect(page).toHaveURL(/\/$/)
   })
 })
