@@ -225,6 +225,9 @@ function ChatContent() {
   const [generatingReport, setGeneratingReport] = useState(false)
   const [preparedReport, setPreparedReport] = useState<Report | null>(restoredSession?.preparedReport ?? null)
   const [reportError, setReportError] = useState(false)
+  // Id of the Kai message currently streaming in — auto-speak must wait until it
+  // finishes, otherwise it speaks only the first token and marks it done.
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const isKaiSpeaking = useSpeechActive()
   const scrollRef = useRef<HTMLDivElement>(null)
   const kaiReplyInFlightRef = useRef(false)
@@ -235,7 +238,9 @@ function ChatContent() {
   const supabase = createClient()
 
   const kaiState: KaiState = generatingReport || isTyping ? 'thinking' : isKaiSpeaking ? 'talking' : 'idle'
-  const inputDisabled = isTyping || generatingReport || showProfileIntake
+  // Lock all patient input while Kai is speaking so nothing gets clicked/typed
+  // over the audio — patients must listen through before responding.
+  const inputDisabled = isTyping || generatingReport || showProfileIntake || isKaiSpeaking
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -279,10 +284,13 @@ function ChatContent() {
     if (isTyping) return
     const last = messages[messages.length - 1]
     if (!last || last.role !== 'kai' || !last.content) return
+    // Skip while this message is still streaming — otherwise we speak the first
+    // token and mark it spoken, so the rest of the reply is never voiced.
+    if (last.id === streamingMessageId) return
     if (spokenMessageIdsRef.current.has(last.id)) return
     spokenMessageIdsRef.current.add(last.id)
     if (!isSpeechActive()) speakText(last.content, langCode)
-  }, [messages, isTyping, langCode])
+  }, [messages, isTyping, langCode, streamingMessageId])
 
   const streamKaiReply = useCallback(
     async (history: ChatMessage[], isOpening: boolean) => {
@@ -349,6 +357,7 @@ function ChatContent() {
 
         setIsTyping(false)
         const kaiMessageId = crypto.randomUUID()
+        setStreamingMessageId(kaiMessageId)
         setMessages(prev => [
           ...prev,
           { id: kaiMessageId, role: 'kai', content: '', timestamp: new Date() },
@@ -394,6 +403,8 @@ function ChatContent() {
           }
         }
 
+        // Stream is complete — release the guard so the finished reply is spoken in full.
+        setStreamingMessageId(null)
         scrollToBottom()
 
         // Language-agnostic quick-reply signals: Kai appends an invisible
@@ -670,16 +681,18 @@ function ChatContent() {
                 <motion.button
                   type="button"
                   onClick={handlePrepareReport}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-ink py-3.5 font-semibold text-white"
-                  whileTap={{ scale: 0.97 }}
+                  disabled={isKaiSpeaking}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-ink py-3.5 font-semibold text-white disabled:opacity-50"
+                  whileTap={isKaiSpeaking ? {} : { scale: 0.97 }}
                 >
                   <FileText size={16} aria-hidden /> Yes, prepare my report
                 </motion.button>
                 <motion.button
                   type="button"
                   onClick={() => setShowPrepareReport(false)}
-                  className="w-full rounded-lg border border-border-subtle bg-surface py-3.5 text-sm font-semibold text-text-primary"
-                  whileTap={{ scale: 0.97 }}
+                  disabled={isKaiSpeaking}
+                  className="w-full rounded-lg border border-border-subtle bg-surface py-3.5 text-sm font-semibold text-text-primary disabled:opacity-50"
+                  whileTap={isKaiSpeaking ? {} : { scale: 0.97 }}
                 >
                   I have more to add
                 </motion.button>
