@@ -1,8 +1,3 @@
-The core bug is in function 2: the comment says "Lock the matching rows" but the query has no `FOR UPDATE` locking, so the race condition (H-1) is not actually fixed. The `SELECT COUNT(*)` from an aggregate also can't use `FOR UPDATE` directly — the correct pattern is to lock a sentinel/counter row or use an advisory lock. The standard approach here is `pg_advisory_xact_lock` to serialize calls per user+endpoint key, which gives true atomicity without requiring a separate counter table.
-
-Also: `REVOKE … FROM PUBLIC, anon` — `REVOKE` doesn't accept a comma-separated list of roles; it needs two separate statements.
-
-```sql
 -- Migration 006: Security fixes from audit 2026-06-17
 --
 -- 1. RLS UPDATE policy for reports table
@@ -15,7 +10,7 @@ Also: `REVOKE … FROM PUBLIC, anon` — `REVOKE` doesn't accept a comma-separat
 --    Replaces the read-then-write race condition in checkRateLimit (H-1).
 --    Two concurrent requests could both read count=N, both pass, and both
 --    insert — exceeding the limit. A single SQL function using an advisory
---    lock makes the check-and-insert atomic.
+--    lock makes the check-and-insert atomic (no separate counter table needed).
 --
 -- 3. contact_attempts table
 --    Replaces the in-memory Map in /api/contact that resets on every Vercel
@@ -92,4 +87,3 @@ CREATE INDEX IF NOT EXISTS contact_attempts_ip_hash_created_at_idx
 ALTER TABLE public.contact_attempts DISABLE ROW LEVEL SECURITY;
 GRANT INSERT, SELECT ON public.contact_attempts TO anon;
 GRANT INSERT, SELECT ON public.contact_attempts TO authenticated;
-```
