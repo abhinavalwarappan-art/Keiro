@@ -12,7 +12,6 @@ import { LiveConsultMode } from '@/components/consult/LiveConsultMode'
 import { pageVariants } from '@/lib/motion'
 import { createClient } from '@/lib/supabase/client'
 import { Report, ReportData, PatientProfile, ConsultMessage } from '@/types'
-import { generateReportPDF } from '@/lib/pdf'
 import { speakText } from '@/lib/speech'
 import { PATIENT_PROFILE_SESSION_KEY } from '@/lib/chatSession'
 import { formatPatientSex } from '@/lib/patientProfile'
@@ -300,10 +299,13 @@ function ReportContent() {
   }, [report, physicianNotes, persistReportUpdates])
 
   const handlePdf = useCallback(
-    (action: 'open' | 'download' | 'print') => {
+    async (action: 'open' | 'download' | 'print') => {
       if (!report) return
       setPdfAction(action)
       try {
+        // Lazy-load jsPDF (~350kb) — it only needs to exist the moment a user
+        // exports, so it stays out of the report page's initial bundle.
+        const { generateReportPDF } = await import('@/lib/pdf')
         const pdf = generateReportPDF(
           reportToReportData(report),
           report.report_id,

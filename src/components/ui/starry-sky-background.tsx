@@ -245,12 +245,41 @@ export function StarrySkyBackground({
 
       drawCursorGlow(w, h)
 
+      if (running) frameRef.current = requestAnimationFrame(animate)
+    }
+
+    // Only burn a rAF loop while the canvas is actually on screen and the tab is
+    // visible — a full-page star field that has scrolled out of view (or a
+    // backgrounded tab) redrawing 2200 stars per frame is pure wasted main-thread.
+    let running = false
+    let onScreen = true
+
+    const startLoop = () => {
+      if (running) return
+      running = true
       frameRef.current = requestAnimationFrame(animate)
     }
+    const stopLoop = () => {
+      running = false
+      cancelAnimationFrame(frameRef.current)
+    }
+    const syncLoop = () => {
+      if (onScreen && !document.hidden) startLoop()
+      else stopLoop()
+    }
+
+    const visibility = new IntersectionObserver(
+      (entries) => {
+        onScreen = entries[0]?.isIntersecting ?? true
+        syncLoop()
+      },
+      { rootMargin: '200px' },
+    )
 
     const dispose = () => {
       ac.abort()
-      cancelAnimationFrame(frameRef.current)
+      visibility.disconnect()
+      stopLoop()
     }
 
     const handleResize = () => {
@@ -267,7 +296,9 @@ export function StarrySkyBackground({
       window.addEventListener('resize', handleResize, listenerOpts)
       window.addEventListener('pointermove', onMove, listenerOpts)
       window.addEventListener('pointerleave', onLeave, listenerOpts)
-      animate()
+      document.addEventListener('visibilitychange', syncLoop, listenerOpts)
+      visibility.observe(canvas)
+      syncLoop()
     } else {
       paintStatic()
       window.addEventListener('resize', handleResize, listenerOpts)
