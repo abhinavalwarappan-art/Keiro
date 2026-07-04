@@ -144,8 +144,19 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
     }
 
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      if (userError) throw userError
+      // A guest may reach intake without a session (e.g. "Continue to chat" or
+      // "Start without an account"). getUser() then returns AuthSessionMissingError,
+      // so treat any lookup failure as "no user" rather than aborting the save.
+      const { data: { user: existingUser } } = await supabase.auth.getUser()
+
+      // No session yet — establish an anonymous one so the profile, session, and
+      // downstream report can persist. If anonymous sign-in is unavailable, fall
+      // through to a local-only completion instead of surfacing an error.
+      let user = existingUser
+      if (!user) {
+        const { data: anonData } = await supabase.auth.signInAnonymously()
+        user = anonData?.user ?? null
+      }
 
       if (user) {
         const { error: upsertError } = await supabase.from('profiles').upsert({
@@ -210,6 +221,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        data-lenis-prevent
         className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-black/40 p-4 backdrop-blur-sm sm:items-center"
         role="dialog"
         aria-modal="true"

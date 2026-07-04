@@ -141,7 +141,7 @@ function ConsultPanel({
         <h3 className="text-sm font-semibold text-text-primary">{label}</h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div data-lenis-prevent className="flex-1 overflow-y-auto px-4 py-4">
         {panelMessages.length === 0 ? (
           <p className="text-center text-sm text-text-tertiary py-8">
             {side === 'doctor' ? 'Type or speak in English' : 'Patient speaks in their language'}
