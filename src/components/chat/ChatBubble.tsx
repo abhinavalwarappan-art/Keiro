@@ -225,12 +225,12 @@ export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleP
         <button
           onClick={speak}
           disabled={listenDisabled}
-          className={`mt-1.5 -ml-2 flex min-h-[36px] items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${
+          className={`mt-3 flex min-h-11 items-center gap-2.5 rounded-full border px-5 py-2.5 text-base font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${
             localSpeaking
-              ? 'bg-brand-subtle text-brand-ink'
-              : 'text-text-tertiary hover:bg-sunken hover:text-text-secondary'
+              ? 'border-brand bg-brand text-white'
+              : 'border-brand-border bg-brand-subtle text-brand-ink hover:bg-brand-muted'
           }`}
-          aria-label={localSpeaking ? 'Stop reading' : 'Listen to Kai'}
+          aria-label={localSpeaking ? 'Stop reading aloud' : 'Listen to this message aloud'}
         >
           {localSpeaking ? (
             <>
@@ -239,7 +239,7 @@ export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleP
             </>
           ) : (
             <>
-              <Volume2 size={13} aria-hidden />
+              <Volume2 size={20} aria-hidden />
               <span>Listen</span>
             </>
           )}
@@ -255,8 +255,8 @@ function SoundWave({ reduceMotion }: { reduceMotion: boolean }) {
       {[1, 2, 3, 2, 1].map((h, i) => (
         <motion.div
           key={i}
-          className="w-0.5 rounded-full bg-brand"
-          style={{ height: h * 4 }}
+          className="w-0.75 rounded-full bg-white"
+          style={{ height: h * 5 }}
           animate={reduceMotion ? false : { scaleY: [1, 1.8, 1] }}
           transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.08, ease: 'easeInOut' }}
         />

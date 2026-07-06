@@ -6,10 +6,17 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/Input'
 import { DateInput } from '@/components/ui/DateInput'
-import { ageFromDateOfBirth } from '@/lib/patientProfile'
+import { ageFromDateOfBirth, isRealCalendarDate } from '@/lib/patientProfile'
 import { getLanguageByCode } from '@/lib/languages'
 import { useTranslations, type MessageKey, type TranslateFn } from '@/i18n/useTranslations'
-import type { BiologicalSex, PatientLifestyle, PatientProfile } from '@/types'
+import type {
+  BiologicalSex,
+  LifestyleFrequency,
+  PatientLifestyle,
+  PatientProfile,
+  TravelRecency,
+  TripLength,
+} from '@/types'
 import { cn } from '@/lib/utils'
 
 interface PatientProfileIntakeProps {
@@ -24,11 +31,92 @@ const SEX_OPTIONS: { value: BiologicalSex; labelKey: MessageKey }[] = [
   { value: 'other', labelKey: 'intake.sexOther' },
 ]
 
-const LIFESTYLE_OPTIONS: { key: keyof PatientLifestyle; labelKey: MessageKey }[] = [
+const LIFESTYLE_OPTIONS: { key: 'smoker' | 'alcohol' | 'recentTravel'; labelKey: MessageKey }[] = [
   { key: 'smoker', labelKey: 'intake.lifestyleSmoker' },
   { key: 'alcohol', labelKey: 'intake.lifestyleAlcohol' },
   { key: 'recentTravel', labelKey: 'intake.lifestyleTravel' },
 ]
+
+// COPPA and equivalent children's-privacy laws require users to be at least 13.
+// Anyone younger is blocked from creating a session at intake.
+const MINIMUM_AGE = 13
+
+// Follow-up options revealed after a lifestyle factor is ticked. Frequency is
+// shared by the smoking and drinking questions; travel has its own two scales.
+const FREQUENCY_OPTIONS: { value: LifestyleFrequency; labelKey: MessageKey }[] = [
+  { value: 'rarely', labelKey: 'intake.freqRarely' },
+  { value: 'sometimes', labelKey: 'intake.freqSometimes' },
+  { value: 'often', labelKey: 'intake.freqOften' },
+]
+
+const TRAVEL_WHEN_OPTIONS: { value: TravelRecency; labelKey: MessageKey }[] = [
+  { value: 'past_week', labelKey: 'intake.travelPastWeek' },
+  { value: 'past_month', labelKey: 'intake.travelPastMonth' },
+  { value: 'past_6_months', labelKey: 'intake.travelPast6Months' },
+]
+
+const TRIP_LENGTH_OPTIONS: { value: TripLength; labelKey: MessageKey }[] = [
+  { value: 'over_2h', labelKey: 'intake.trip2h' },
+  { value: 'over_6h', labelKey: 'intake.trip6h' },
+  { value: 'over_12h', labelKey: 'intake.trip12h' },
+]
+
+/** A labelled row of single-select follow-up pills for a lifestyle factor. */
+function ChoiceRow<T extends string>({
+  label,
+  value,
+  options,
+  onSelect,
+  t,
+}: {
+  label: string
+  value: T | undefined
+  options: readonly { value: T; labelKey: MessageKey }[]
+  onSelect: (value: T) => void
+  t: TranslateFn
+}) {
+  return (
+    <div className="mt-3">
+      <p className="mb-1.5 text-xs font-medium text-text-secondary">{label}</p>
+      <div className="flex flex-wrap gap-2">
+        {options.map(opt => {
+          const selected = value === opt.value
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onSelect(opt.value)}
+              className={cn(
+                'min-h-[36px] rounded-md border px-3.5 py-1.5 text-sm font-medium transition-colors duration-150',
+                selected
+                  ? 'border-brand-strong bg-brand-subtle text-brand-ink'
+                  : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
+              )}
+            >
+              {t(opt.labelKey)}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/** Height-collapsing wrapper so a factor's follow-ups slide in when it's ticked. */
+function Reveal({ children }: { children: React.ReactNode }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+      className="overflow-hidden"
+    >
+      {children}
+    </motion.div>
+  )
+}
 
 /**
  * Render the consent sentence, splicing the Terms and Privacy links into the
@@ -86,6 +174,23 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
 
   const computedAge = dateOfBirth ? ageFromDateOfBirth(dateOfBirth) : null
 
+  // Toggle a lifestyle factor. Turning one off also drops its follow-up answers
+  // so a de-selected factor never leaves stale detail in the doctor's report.
+  const toggleLifestyle = (key: 'smoker' | 'alcohol' | 'recentTravel') => {
+    setLifestyle(prev => {
+      const next: PatientLifestyle = { ...prev, [key]: !prev[key] }
+      if (!next[key]) {
+        if (key === 'smoker') next.smokerFrequency = undefined
+        if (key === 'alcohol') next.alcoholFrequency = undefined
+        if (key === 'recentTravel') {
+          next.travelWhen = undefined
+          next.tripLength = undefined
+        }
+      }
+      return next
+    })
+  }
+
   useEffect(() => {
     let cancelled = false
 
@@ -126,8 +231,10 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
     const next: Record<string, string> = {}
     if (!fullName.trim()) next.fullName = t('intake.errFullName')
     if (!dateOfBirth) next.dateOfBirth = t('intake.errDobRequired')
+    else if (!isRealCalendarDate(dateOfBirth)) next.dateOfBirth = t('intake.errDobInvalid')
     else if (computedAge === null || computedAge < 0) next.dateOfBirth = t('intake.errDobInvalid')
     else if (computedAge > 120) next.dateOfBirth = t('intake.errDobInvalid')
+    else if (computedAge < MINIMUM_AGE) next.dateOfBirth = t('intake.errDobTooYoung', { age: MINIMUM_AGE })
     if (!biologicalSex) next.biologicalSex = t('intake.errSex')
     if (!primaryLanguage.trim()) next.primaryLanguage = t('intake.errPrimaryLanguage')
     if (!consentChecked) next.consent = t('intake.errConsent')
@@ -357,7 +464,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                         key={opt.key}
                         type="button"
                         aria-pressed={active}
-                        onClick={() => setLifestyle(prev => ({ ...prev, [opt.key]: !prev[opt.key] }))}
+                        onClick={() => toggleLifestyle(opt.key)}
                         className={cn(
                           'min-h-[40px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
                           active
@@ -370,6 +477,49 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                     )
                   })}
                 </div>
+
+                <AnimatePresence initial={false}>
+                  {lifestyle.smoker && (
+                    <Reveal key="smoker">
+                      <ChoiceRow
+                        label={t('intake.smokeFrequencyQuestion')}
+                        value={lifestyle.smokerFrequency}
+                        options={FREQUENCY_OPTIONS}
+                        onSelect={v => setLifestyle(prev => ({ ...prev, smokerFrequency: v }))}
+                        t={t}
+                      />
+                    </Reveal>
+                  )}
+                  {lifestyle.alcohol && (
+                    <Reveal key="alcohol">
+                      <ChoiceRow
+                        label={t('intake.alcoholFrequencyQuestion')}
+                        value={lifestyle.alcoholFrequency}
+                        options={FREQUENCY_OPTIONS}
+                        onSelect={v => setLifestyle(prev => ({ ...prev, alcoholFrequency: v }))}
+                        t={t}
+                      />
+                    </Reveal>
+                  )}
+                  {lifestyle.recentTravel && (
+                    <Reveal key="travel">
+                      <ChoiceRow
+                        label={t('intake.travelWhenQuestion')}
+                        value={lifestyle.travelWhen}
+                        options={TRAVEL_WHEN_OPTIONS}
+                        onSelect={v => setLifestyle(prev => ({ ...prev, travelWhen: v }))}
+                        t={t}
+                      />
+                      <ChoiceRow
+                        label={t('intake.tripLengthQuestion')}
+                        value={lifestyle.tripLength}
+                        options={TRIP_LENGTH_OPTIONS}
+                        onSelect={v => setLifestyle(prev => ({ ...prev, tripLength: v }))}
+                        t={t}
+                      />
+                    </Reveal>
+                  )}
+                </AnimatePresence>
               </fieldset>
 
               <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border-subtle bg-sunken/50 p-3">

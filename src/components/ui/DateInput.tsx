@@ -36,6 +36,63 @@ const displayToIso = (digits: string): string => {
   return `${digits.slice(4, 8)}-${digits.slice(0, 2)}-${digits.slice(2, 4)}`
 }
 
+/**
+ * Normalize raw DOB digits into a valid MMDDYYYY sequence as the user types.
+ * A leading digit that can only be a single-digit month or day is auto-zeroed
+ * (typing "3" for March yields "03"), and any digit that could only form an
+ * impossible month (>12) or day (>31) is dropped. The month therefore stays
+ * valid by construction, so a DD/MM slip can never enter a bogus month.
+ * Idempotent: re-running it on already-normalized digits returns them unchanged.
+ */
+const maskDobDigits = (raw: string): string => {
+  const s = raw.replace(/\D/g, '')
+  let i = 0
+  let out = ''
+
+  // Month → 01–12
+  if (i < s.length) {
+    const a = s[i]
+    if (a >= '2') {
+      out += `0${a}` // 2–9 can only be a single-digit month
+      i += 1
+    } else {
+      out += a // 0 or 1 → wait for the ones digit
+      i += 1
+      if (i < s.length) {
+        const b = s[i]
+        const ok = a === '0' ? b !== '0' : b <= '2' // 01–09 or 10–12
+        i += 1
+        if (ok) out += b
+      }
+    }
+  }
+
+  // Day → 01–31, only once the month is complete
+  if (out.length === 2 && i < s.length) {
+    const a = s[i]
+    if (a >= '4') {
+      out += `0${a}` // 4–9 can only be a single-digit day
+      i += 1
+    } else {
+      out += a
+      i += 1
+      if (i < s.length) {
+        const b = s[i]
+        const ok = a === '0' ? b !== '0' : a === '3' ? b <= '1' : true // 01–09, 10–29, 30–31
+        i += 1
+        if (ok) out += b
+      }
+    }
+  }
+
+  // Year → up to 4 digits, passed through untouched
+  if (out.length === 4) {
+    out += s.slice(i, i + 4)
+  }
+
+  return out.slice(0, 8)
+}
+
 export function DateInput({
   label,
   value,
@@ -66,7 +123,7 @@ export function DateInput({
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = e.target.value.replace(/\D/g, '').slice(0, 8)
+    const digits = maskDobDigits(e.target.value)
     setDisplay(formatDisplay(digits))
     onChange(displayToIso(digits))
   }
@@ -92,8 +149,8 @@ export function DateInput({
         aria-describedby={error ? errorId : helper ? helperId : undefined}
         className={cn(
           'h-10 w-full rounded-md border bg-surface px-3 text-base text-text-primary',
-          'transition-[border-color,box-shadow] duration-150',
-          'placeholder:text-text-placeholder',
+          'tabular-nums tracking-[0.02em] transition-[border-color,box-shadow] duration-150',
+          'placeholder:tracking-normal placeholder:text-text-placeholder',
           'focus:outline-none focus:border-brand-strong focus:ring-2 focus:ring-brand-strong/25',
           'disabled:cursor-not-allowed disabled:opacity-50',
           error ? 'border-error focus:border-error focus:ring-error/20' : 'border-border-subtle',

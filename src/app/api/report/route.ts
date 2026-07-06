@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { isAllowedChatLanguage } from '@/lib/languages'
+import { describeLifestyle } from '@/lib/patientProfile'
 import { logger } from '@/lib/logger'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -132,15 +133,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid language' }, { status: 400 })
     }
 
-    // Smoker / alcohol / recent-travel are now ticked on the intake form, so read
-    // them straight off the profile rather than hoping the chat surfaced them.
+    // Smoker / alcohol / recent-travel are now ticked on the intake form (with
+    // frequency / travel follow-ups), so read them straight off the profile
+    // rather than hoping the chat surfaced them.
     const lifestyleFlags = patientProfile && typeof patientProfile === 'object'
       && patientProfile.lifestyle && typeof patientProfile.lifestyle === 'object'
-      ? [
-          patientProfile.lifestyle.smoker ? 'smoker' : null,
-          patientProfile.lifestyle.alcohol ? 'drinks alcohol' : null,
-          patientProfile.lifestyle.recentTravel ? 'recent travel' : null,
-        ].filter(Boolean)
+      ? describeLifestyle(patientProfile.lifestyle)
       : null
 
     const patientContext = patientProfile && typeof patientProfile === 'object'

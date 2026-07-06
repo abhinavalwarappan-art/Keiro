@@ -16,7 +16,7 @@ import { PatientProfileIntake } from '@/components/chat/PatientProfileIntake'
 import ReportCard from '@/components/report/ReportCard'
 import { ChatMessage, PatientProfile, Report } from '@/types'
 import { getInputPlaceholder, getOpeningMessage } from '@/lib/languages'
-import { preloadSpeechVoices, speakText, isSpeechActive } from '@/lib/speech'
+import { preloadSpeechVoices } from '@/lib/speech'
 import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { trackAIQuerySent, trackConversationStarted, trackReportGenerated } from '@/lib/analytics'
 import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY, PATIENT_PROFILE_SESSION_KEY, SESSION_ID_KEY } from '@/lib/chatSession'
@@ -225,14 +225,10 @@ function ChatContent() {
   const [generatingReport, setGeneratingReport] = useState(false)
   const [preparedReport, setPreparedReport] = useState<Report | null>(restoredSession?.preparedReport ?? null)
   const [reportError, setReportError] = useState(false)
-  // Id of the Kai message currently streaming in — auto-speak must wait until it
-  // finishes, otherwise it speaks only the first token and marks it done.
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null)
   const isKaiSpeaking = useSpeechActive()
   const scrollRef = useRef<HTMLDivElement>(null)
   const kaiReplyInFlightRef = useRef(false)
   const chatAbortRef = useRef<AbortController | null>(null)
-  const spokenMessageIdsRef = useRef<Set<string>>(new Set())
   const openingRequestedRef = useRef(restoredHasMessages)
 
   const supabase = createClient()
@@ -274,23 +270,11 @@ function ChatContent() {
     }
   }, [messages, langCode, langName, langNative, roman, quickReply, showPrepareReport, preparedReport, patientProfile])
 
-  // Preload TTS voices once so the first spoken reply has a voice ready.
+  // Preload TTS voices once so the first Listen press has a voice ready. Kai never
+  // speaks on its own — a patient opts in with the Listen button on each message.
   useEffect(() => {
     preloadSpeechVoices()
   }, [])
-
-  // Auto-speak each newly completed Kai message exactly once.
-  useEffect(() => {
-    if (isTyping) return
-    const last = messages[messages.length - 1]
-    if (!last || last.role !== 'kai' || !last.content) return
-    // Skip while this message is still streaming — otherwise we speak the first
-    // token and mark it spoken, so the rest of the reply is never voiced.
-    if (last.id === streamingMessageId) return
-    if (spokenMessageIdsRef.current.has(last.id)) return
-    spokenMessageIdsRef.current.add(last.id)
-    if (!isSpeechActive()) speakText(last.content, langCode)
-  }, [messages, isTyping, langCode, streamingMessageId])
 
   const streamKaiReply = useCallback(
     async (history: ChatMessage[], isOpening: boolean) => {
@@ -357,7 +341,6 @@ function ChatContent() {
 
         setIsTyping(false)
         const kaiMessageId = crypto.randomUUID()
-        setStreamingMessageId(kaiMessageId)
         setMessages(prev => [
           ...prev,
           { id: kaiMessageId, role: 'kai', content: '', timestamp: new Date() },
@@ -403,8 +386,6 @@ function ChatContent() {
           }
         }
 
-        // Stream is complete — release the guard so the finished reply is spoken in full.
-        setStreamingMessageId(null)
         scrollToBottom()
 
         // Language-agnostic quick-reply signals: Kai appends an invisible

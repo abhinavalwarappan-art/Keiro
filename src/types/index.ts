@@ -24,11 +24,27 @@ export interface PatientProfile {
   consentAt: string
 }
 
-/** Lifestyle factors collected up front — the chat no longer asks these, to save turns. */
+/** How often a patient-reported habit (smoking, drinking) occurs. */
+export type LifestyleFrequency = 'rarely' | 'sometimes' | 'often'
+
+/** How recently the patient last travelled. */
+export type TravelRecency = 'past_week' | 'past_month' | 'past_6_months'
+
+/** Duration of the patient's most recent trip (relevant to clot / exposure risk). */
+export type TripLength = 'over_2h' | 'over_6h' | 'over_12h'
+
+/**
+ * Lifestyle factors collected up front — the chat no longer asks these, to save
+ * turns. Each flag can carry an optional follow-up detail the patient taps in.
+ */
 export interface PatientLifestyle {
   smoker: boolean
+  smokerFrequency?: LifestyleFrequency
   alcohol: boolean
+  alcoholFrequency?: LifestyleFrequency
   recentTravel: boolean
+  travelWhen?: TravelRecency
+  tripLength?: TripLength
 }
 
 export interface ConsultMessage {
