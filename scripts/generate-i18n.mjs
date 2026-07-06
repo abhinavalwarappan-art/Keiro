@@ -58,6 +58,26 @@ for (const line of readFileSync(langPath, 'utf8').split('\n')) {
 const placeholders = str => str.match(/\{\w+\}/g) ?? []
 const normalizeBraces = str => str.replace(/\{\s*(\w+)\s*\}/g, '{$1}')
 
+// Google Translate happily translates the *word* inside {terms} → {términos},
+// which breaks runtime interpolation. Swap each named placeholder for a numbered
+// token ({0}, {1}, …) that has no translatable word, then restore it afterward.
+function protectPlaceholders(str) {
+  const names = []
+  const protectedStr = str.replace(/\{(\w+)\}/g, (_, name) => {
+    const index = names.length
+    names.push(name)
+    return `{${index}}`
+  })
+  return { protectedStr, names }
+}
+
+function restorePlaceholders(str, names) {
+  return str.replace(/\{\s*(\d+)\s*\}/g, (match, digits) => {
+    const name = names[Number(digits)]
+    return name ? `{${name}}` : match
+  })
+}
+
 async function translateBatch(texts, target) {
   const params = new URLSearchParams({ key: GOOGLE_KEY, target, source: 'en', format: 'text' })
   for (const text of texts) params.append('q', text)
@@ -85,13 +105,14 @@ for (const lang of languages) {
   if (lang.google === 'en') continue
 
   try {
-    const translated = await translateBatch(keys.map(k => source[k]), lang.google)
+    const shielded = keys.map(k => protectPlaceholders(source[k]))
+    const translated = await translateBatch(shielded.map(s => s.protectedStr), lang.google)
     const dict = {}
     let repaired = 0
 
     keys.forEach((key, i) => {
       const original = source[key]
-      const candidate = normalizeBraces(translated[i])
+      const candidate = normalizeBraces(restorePlaceholders(translated[i], shielded[i].names))
       const wanted = placeholders(original)
       const kept = new Set(placeholders(candidate))
       const placeholdersOk = wanted.every(p => kept.has(p))
