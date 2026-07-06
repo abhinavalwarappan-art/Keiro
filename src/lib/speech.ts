@@ -1,5 +1,7 @@
 /** Shared browser TTS helpers — tuned for clearer, less muffled playback. */
 
+import { stripMarkdownAndEmoji } from './text'
+
 const QUALITY_HINTS = [
   'premium',
   'enhanced',
@@ -107,7 +109,9 @@ export function subscribeSpeechState(listener: SpeechStateListener): () => void 
 export function speakText(text: string, langCode: string, options?: SpeakOptions): boolean {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false
 
-  if (!text || text.trim().length === 0) {
+  // Never read markdown markers or emoji aloud — strip them before speaking.
+  const spoken = stripMarkdownAndEmoji(text)
+  if (!spoken || spoken.trim().length === 0) {
     options?.onError?.()
     return false
   }
@@ -121,7 +125,7 @@ export function speakText(text: string, langCode: string, options?: SpeakOptions
     return false
   }
 
-  const chunks = splitForSpeech(text)
+  const chunks = splitForSpeech(spoken)
   if (chunks.length === 0) {
     options?.onError?.()
     return false

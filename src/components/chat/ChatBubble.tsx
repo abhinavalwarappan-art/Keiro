@@ -6,6 +6,7 @@ import { Volume2 } from 'lucide-react'
 import { ChatMessage } from '@/types'
 import KaiAvatar from '@/components/kai/KaiAvatar'
 import { speakText, stopSpeech } from '@/lib/speech'
+import { stripMarkdownAndEmoji } from '@/lib/text'
 import { useSpeechActive } from '@/hooks/useSpeechActive'
 
 const REPORT_KEYS = ['chief_complaint', 'condition', 'reasoning', 'symptoms', 'emergency', 'possible_conditions']
@@ -146,7 +147,8 @@ function cleanChatContent(raw: string): string {
   const reportJsonPattern = new RegExp(`\\{[^{}]*"(?:${REPORT_KEYS.join('|')})"[\\s\\S]*?\\}`, 'g')
   text = text.replace(reportJsonPattern, '').trim()
 
-  return text
+  // Drop markdown markers and emoji so the bubble matches what Kai speaks aloud
+  return stripMarkdownAndEmoji(text)
 }
 
 interface ChatBubbleProps {

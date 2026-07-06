@@ -46,6 +46,11 @@ ${romanization ? `- ROMANIZATION IS ON — write every word using ONLY the Engli
 - Accents and native characters are fine when they belong in that language`}
 - Use simple, everyday words — not formal or medical terms
 
+FORMATTING (critical — your reply is read aloud to the patient):
+- Write plain, conversational sentences only.
+- Never use markdown: no asterisks, bold, italics, bullet points, numbered lists, headings, or backticks.
+- Never use emojis or decorative symbols.
+
 STRICTLY PROHIBITED — never do these under any circumstances:
 - Diagnose any condition
 - Recommend any medication or dosage
