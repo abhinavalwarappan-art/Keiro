@@ -590,7 +590,7 @@ function ChatContent() {
     return (
       <div className="flex h-dvh flex-col bg-transparent">
         <TopBar kaiState="idle" language={langName} langNative={langNative} />
-        <div className="flex-1 overflow-y-auto">
+        <div data-lenis-prevent className="flex-1 overflow-y-auto">
           <PatientProfileIntake
             langCode={langCode}
             langName={langName}
@@ -624,7 +624,7 @@ function ChatContent() {
         }
       />
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} data-lenis-prevent className="flex-1 overflow-y-auto">
         <div
           role="log"
           aria-label="Conversation with Kai"
