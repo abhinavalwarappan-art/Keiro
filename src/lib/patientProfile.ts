@@ -39,6 +39,14 @@ export function buildPatientContextBlock(profile: PatientProfile): string {
   if (profile.chronicConditions?.trim()) {
     lines.push(`Known Chronic Conditions / Allergies: ${profile.chronicConditions.trim()}`)
   }
+  if (profile.lifestyle) {
+    const flags = [
+      profile.lifestyle.smoker ? 'smoker' : null,
+      profile.lifestyle.alcohol ? 'drinks alcohol' : null,
+      profile.lifestyle.recentTravel ? 'recent travel' : null,
+    ].filter(Boolean)
+    lines.push(`Lifestyle (patient-reported): ${flags.length ? flags.join(', ') : 'none reported'}`)
+  }
   return lines.filter(Boolean).join('\n')
 }
 

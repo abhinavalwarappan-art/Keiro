@@ -9,7 +9,7 @@ import { DateInput } from '@/components/ui/DateInput'
 import { ageFromDateOfBirth } from '@/lib/patientProfile'
 import { getLanguageByCode } from '@/lib/languages'
 import { useTranslations, type MessageKey, type TranslateFn } from '@/i18n/useTranslations'
-import type { BiologicalSex, PatientProfile } from '@/types'
+import type { BiologicalSex, PatientLifestyle, PatientProfile } from '@/types'
 import { cn } from '@/lib/utils'
 
 interface PatientProfileIntakeProps {
@@ -22,6 +22,12 @@ const SEX_OPTIONS: { value: BiologicalSex; labelKey: MessageKey }[] = [
   { value: 'male', labelKey: 'intake.sexMale' },
   { value: 'female', labelKey: 'intake.sexFemale' },
   { value: 'other', labelKey: 'intake.sexOther' },
+]
+
+const LIFESTYLE_OPTIONS: { key: keyof PatientLifestyle; labelKey: MessageKey }[] = [
+  { key: 'smoker', labelKey: 'intake.lifestyleSmoker' },
+  { key: 'alcohol', labelKey: 'intake.lifestyleAlcohol' },
+  { key: 'recentTravel', labelKey: 'intake.lifestyleTravel' },
 ]
 
 /**
@@ -67,6 +73,11 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
   const [primaryLanguage, setPrimaryLanguage] = useState(langName)
   const [primaryLanguageCode, setPrimaryLanguageCode] = useState(langCode)
   const [chronicConditions, setChronicConditions] = useState('')
+  const [lifestyle, setLifestyle] = useState<PatientLifestyle>({
+    smoker: false,
+    alcohol: false,
+    recentTravel: false,
+  })
   const [consentChecked, setConsentChecked] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -140,6 +151,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
       primaryLanguage: primaryLanguage.trim(),
       primaryLanguageCode,
       chronicConditions: chronicConditions.trim() || undefined,
+      lifestyle,
       consentAt,
     }
 
@@ -331,6 +343,34 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                   className="w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-base text-text-primary placeholder:text-text-placeholder focus:border-brand-strong focus:outline-none focus:ring-2 focus:ring-brand-strong/25"
                 />
               </div>
+
+              <fieldset>
+                <legend className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-text-secondary">
+                  {t('intake.lifestyle')} <span className="normal-case text-text-tertiary">{t('common.optional')}</span>
+                </legend>
+                <p className="mb-2 text-xs text-text-tertiary">{t('intake.lifestyleHelper')}</p>
+                <div className="flex flex-wrap gap-2">
+                  {LIFESTYLE_OPTIONS.map(opt => {
+                    const active = lifestyle[opt.key]
+                    return (
+                      <button
+                        key={opt.key}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => setLifestyle(prev => ({ ...prev, [opt.key]: !prev[opt.key] }))}
+                        className={cn(
+                          'min-h-[40px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
+                          active
+                            ? 'border-brand-strong bg-brand-subtle text-brand-ink'
+                            : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
+                        )}
+                      >
+                        {t(opt.labelKey)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
 
               <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-border-subtle bg-sunken/50 p-3">
                 <input

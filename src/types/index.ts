@@ -20,7 +20,15 @@ export interface PatientProfile {
   primaryLanguage: string
   primaryLanguageCode: string
   chronicConditions?: string
+  lifestyle?: PatientLifestyle
   consentAt: string
+}
+
+/** Lifestyle factors collected up front — the chat no longer asks these, to save turns. */
+export interface PatientLifestyle {
+  smoker: boolean
+  alcohol: boolean
+  recentTravel: boolean
 }
 
 export interface ConsultMessage {

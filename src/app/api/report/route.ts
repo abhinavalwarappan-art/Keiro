@@ -132,6 +132,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid language' }, { status: 400 })
     }
 
+    // Smoker / alcohol / recent-travel are now ticked on the intake form, so read
+    // them straight off the profile rather than hoping the chat surfaced them.
+    const lifestyleFlags = patientProfile && typeof patientProfile === 'object'
+      && patientProfile.lifestyle && typeof patientProfile.lifestyle === 'object'
+      ? [
+          patientProfile.lifestyle.smoker ? 'smoker' : null,
+          patientProfile.lifestyle.alcohol ? 'drinks alcohol' : null,
+          patientProfile.lifestyle.recentTravel ? 'recent travel' : null,
+        ].filter(Boolean)
+      : null
+
     const patientContext = patientProfile && typeof patientProfile === 'object'
       ? `
 Patient profile (include in report context):
@@ -140,6 +151,7 @@ Patient profile (include in report context):
 - Age: ${patientProfile.age ?? 'derive from DOB'}
 - Sex: ${String(patientProfile.biologicalSex || 'Not provided')}
 - Known conditions/allergies: ${String(patientProfile.chronicConditions || 'None reported').slice(0, 500)}
+- Lifestyle (patient-reported): ${lifestyleFlags ? (lifestyleFlags.length ? lifestyleFlags.join(', ') : 'none reported') : 'Not collected'}
 `
       : ''
 
@@ -184,6 +196,18 @@ ${REPORT_SCHEMA}`
 
     const profile = patientProfile && typeof patientProfile === 'object' ? patientProfile : null
 
+    // Trust the patient's ticked lifestyle answers over anything Claude inferred.
+    const report = lifestyleFlags
+      ? {
+          ...reportData,
+          lifestyle: {
+            smoker: Boolean(profile?.lifestyle?.smoker),
+            alcohol: Boolean(profile?.lifestyle?.alcohol),
+            recent_travel: Boolean(profile?.lifestyle?.recentTravel),
+          },
+        }
+      : reportData
+
     const { error: insertError } = await supabase.from('reports').insert({
       session_id: sessionId || null,
       user_id: user.id,
@@ -194,17 +218,17 @@ ${REPORT_SCHEMA}`
       patient_sex: profile?.biologicalSex ? String(profile.biologicalSex) : null,
       language_used: sanitizedLanguage,
       visit_type: 'symptom_intake',
-      chief_complaint: reportData.chief_complaint,
-      clinical_symptoms_summary: reportData.clinical_symptoms_summary,
-      symptoms_json: reportData.symptoms,
-      associated_symptoms_json: reportData.associated_symptoms,
-      lifestyle_json: reportData.lifestyle,
-      medications_json: reportData.medications,
-      conditions_json: reportData.conditions,
-      family_history_json: reportData.family_history || reportData.history || null,
-      allergies_json: reportData.allergies,
-      possible_conditions_json: reportData.possible_conditions,
-      additional_notes: reportData.additional_notes,
+      chief_complaint: report.chief_complaint,
+      clinical_symptoms_summary: report.clinical_symptoms_summary,
+      symptoms_json: report.symptoms,
+      associated_symptoms_json: report.associated_symptoms,
+      lifestyle_json: report.lifestyle,
+      medications_json: report.medications,
+      conditions_json: report.conditions,
+      family_history_json: report.family_history || report.history || null,
+      allergies_json: report.allergies,
+      possible_conditions_json: report.possible_conditions,
+      additional_notes: report.additional_notes,
     })
 
     if (insertError) {
@@ -220,7 +244,7 @@ ${REPORT_SCHEMA}`
 
     return NextResponse.json({
       reportId,
-      reportData,
+      reportData: report,
       savedToDb: !insertError,
       patientProfile: profile,
     })
