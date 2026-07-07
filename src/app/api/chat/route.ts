@@ -196,17 +196,45 @@ export async function POST(request: NextRequest) {
     })
 
     const encoder = new TextEncoder()
+    // Kai emits a bare {"emergency": true} object when it detects a red-flag
+    // situation. That marker arrives split across streamed tokens, so it has to
+    // be matched against the accumulated (whitespace-stripped) buffer — a
+    // per-token check almost never sees the whole marker in one chunk. While the
+    // buffer is still a prefix of that object we withhold streaming so a partial
+    // emergency payload never reaches the patient; once the text diverges into
+    // normal prose we flush whatever was held back and stream from there.
+    const EMERGENCY_MARKER = '{"emergency":true}'
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const text of deltas) {
-            if (text.includes('"emergency": true') || text.includes('"emergency":true')) {
+          let full = ''
+          let emitted = 0
+          for await (const delta of deltas) {
+            full += delta
+            const compact = full.replace(/\s/g, '')
+
+            if (compact.includes('"emergency":true')) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ emergency: true })}\n\n`))
               controller.close()
               return
             }
 
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+            // Still possibly the bare emergency object — hold back partial JSON.
+            if (EMERGENCY_MARKER.startsWith(compact)) {
+              continue
+            }
+
+            const pending = full.slice(emitted)
+            if (pending) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: pending })}\n\n`))
+              emitted = full.length
+            }
+          }
+          // Flush anything still withheld (e.g. a partial object that never
+          // completed the marker) before signalling the end of the stream.
+          const remaining = full.slice(emitted)
+          if (remaining) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: remaining })}\n\n`))
           }
           controller.enqueue(encoder.encode('data: [DONE]\n\n'))
           controller.close()

@@ -13,7 +13,7 @@ const ENDPOINT_CONFIGS: Record<string, RateLimitConfig> = {
   report:       { limit: 3,  windowMs: 2 * 60 * 60 * 1000 }, // 3 PDF generations per session
   translate:    { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 translations per hour
   report_patch: { limit: 20, windowMs: 60 * 60 * 1000 },      // 20 note saves per hour
-  transcribe:   { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 Whisper transcriptions per hour (paid OpenAI call)
+  transcribe:   { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 Whisper transcriptions per hour (Groq API call)
 }
 
 const DEFAULT_CONFIG: RateLimitConfig = { limit: 20, windowMs: 60 * 1000 }
