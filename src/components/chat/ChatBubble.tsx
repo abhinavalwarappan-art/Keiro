@@ -126,7 +126,7 @@ function SmoothKaiText({ text, shouldAnimate }: { text: string; shouldAnimate: b
 
 /**
  * Strip raw JSON blocks and code fences from Kai's response before showing to patient.
- * Claude occasionally leaks JSON (e.g. {"condition":...}) or code fences into the stream.
+ * The model occasionally leaks JSON (e.g. {"condition":...}) or code fences into the stream.
  */
 function cleanChatContent(raw: string): string {
   // Unwrap code fences before checking for JSON so fenced report payloads

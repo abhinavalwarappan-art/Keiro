@@ -1,15 +1,13 @@
 // API key loaded from environment — never hardcode
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { buildKaiSystemPrompt, buildOpeningUserPrompt, buildConsultSystemPrompt, buildConsultUserPrompt } from '@/lib/claude'
+import { deepseekChat, deepseekChatStream } from '@/lib/deepseek'
 import { isAllowedChatLanguage } from '@/lib/languages'
 import { logger } from '@/lib/logger'
 import type { PatientProfile } from '@/types'
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const EMERGENCY_KEYWORDS = [
   // English
@@ -115,29 +113,23 @@ export async function POST(request: NextRequest) {
       const systemPrompt = buildConsultSystemPrompt(sanitizedLanguage, langCode, romanization === true)
       const userPrompt = buildConsultUserPrompt(consultSide as 'doctor' | 'patient', consultText, langCode)
 
-      const response = await anthropic.messages.create({
-        model: 'claude-haiku-4-5',
-        max_tokens: 500,
-        temperature: 0.3,
+      const text = await deepseekChat({
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
+        maxTokens: 500,
+        temperature: 0.3,
       })
 
-      const content = response.content[0]
-      if (content.type !== 'text') {
-        return NextResponse.json({ error: 'Unexpected response' }, { status: 500 })
-      }
-
-      const jsonMatch = content.text.match(/\{[\s\S]*\}/)
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
-        return NextResponse.json({ translation: content.text.trim() })
+        return NextResponse.json({ translation: text.trim() })
       }
 
       try {
         const parsed = JSON.parse(jsonMatch[0]) as { translation?: string }
-        return NextResponse.json({ translation: parsed.translation || content.text.trim() })
+        return NextResponse.json({ translation: parsed.translation || text.trim() })
       } catch {
-        return NextResponse.json({ translation: content.text.trim() })
+        return NextResponse.json({ translation: text.trim() })
       }
     }
 
@@ -196,30 +188,25 @@ export async function POST(request: NextRequest) {
     // Log message count only — never log message content or patient input
     logger.info('message_sent', '/api/chat', user.id, { messageCount: Array.isArray(messages) ? messages.length : 0 })
 
-    const stream = await anthropic.messages.stream({
-      model: 'claude-haiku-4-5',
-      max_tokens: 1000,
-      temperature: 0.7,
+    const deltas = deepseekChatStream({
       system: systemPrompt,
       messages: apiMessages,
+      maxTokens: 1000,
+      temperature: 0.7,
     })
 
     const encoder = new TextEncoder()
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of stream) {
-            if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-              const text = chunk.delta.text
-
-              if (text.includes('"emergency": true') || text.includes('"emergency":true')) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ emergency: true })}\n\n`))
-                controller.close()
-                return
-              }
-
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+          for await (const text of deltas) {
+            if (text.includes('"emergency": true') || text.includes('"emergency":true')) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ emergency: true })}\n\n`))
+              controller.close()
+              return
             }
+
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
           }
           controller.enqueue(encoder.encode('data: [DONE]\n\n'))
           controller.close()

@@ -32,7 +32,7 @@ Required keys:
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | [supabase.com](https://supabase.com) → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as above |
-| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) |
+| `DEEPSEEK_API_KEY` | [platform.deepseek.com](https://platform.deepseek.com) |
 | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com) (for Whisper voice) |
 | `DEEPL_API_KEY` | [deepl.com/pro-api](https://www.deepl.com/pro-api) (optional) |
 | `GOOGLE_TRANSLATE_KEY` | [console.cloud.google.com](https://console.cloud.google.com) (optional, fallback) |
@@ -126,7 +126,7 @@ src/
 - **Styling:** Tailwind CSS + custom CSS variables
 - **Animations:** Framer Motion
 - **Database:** Supabase (PostgreSQL + Auth)
-- **AI:** Anthropic Claude (Kai conversation + report generation)
+- **AI:** DeepSeek (`deepseek-chat`) — Kai conversation + report generation
 - **Voice:** OpenAI Whisper (transcription) + Web Speech API (playback)
 - **Translation:** DeepL (primary) + Google Translate (fallback)
 - **PDF:** jsPDF
