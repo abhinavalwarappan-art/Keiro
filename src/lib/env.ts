@@ -11,10 +11,12 @@ import { z } from 'zod'
 const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-  ANTHROPIC_API_KEY: z.string().min(1),
+  DEEPSEEK_API_KEY: z.string().min(1),
 
   // Optional integrations
-  OPENAI_API_KEY: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(), // voice transcription (Whisper on Groq)
+  ANTHROPIC_API_KEY: z.string().optional(), // legacy — no longer used by Kai
+  OPENAI_API_KEY: z.string().optional(), // legacy — transcription moved to Groq
   DEEPL_API_KEY: z.string().optional(),
   GOOGLE_TRANSLATE_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),

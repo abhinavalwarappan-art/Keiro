@@ -1,15 +1,13 @@
 // API key loaded from environment — never hardcode
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { isAllowedChatLanguage } from '@/lib/languages'
 import { describeLifestyle } from '@/lib/patientProfile'
+import { deepseekChat } from '@/lib/deepseek'
 import { logger } from '@/lib/logger'
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const REPORT_SCHEMA = `{
   "chief_complaint": "short English summary of the main reason for visit",
@@ -112,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     const { messages, language, sessionId, patientProfile } = await request.json()
 
-    // Guard the conversation payload before it reaches Claude / .map()
+    // Guard the conversation payload before it reaches DeepSeek / .map()
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'No conversation to summarize' }, { status: 400 })
     }
@@ -166,9 +164,7 @@ Maximum 4 possible conditions.`
     const reportPrompt = `Generate the complete patient intake report in English using exactly this JSON shape:
 ${REPORT_SCHEMA}`
 
-    const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5',
-      max_tokens: 2000,
+    const text = await deepseekChat({
       system: systemPrompt,
       messages: [
         ...messages.map((m: { role: string; content: string }) => ({
@@ -177,14 +173,10 @@ ${REPORT_SCHEMA}`
         })),
         { role: 'user' as const, content: reportPrompt },
       ],
+      maxTokens: 2000,
     })
 
-    const content = response.content[0]
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type')
-    }
-
-    const jsonMatch = content.text.match(/\{[\s\S]*\}/)
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       throw new Error('No JSON found in response')
     }
@@ -194,7 +186,7 @@ ${REPORT_SCHEMA}`
 
     const profile = patientProfile && typeof patientProfile === 'object' ? patientProfile : null
 
-    // Trust the patient's ticked lifestyle answers over anything Claude inferred.
+    // Trust the patient's ticked lifestyle answers over anything the model inferred.
     const report = lifestyleFlags
       ? {
           ...reportData,

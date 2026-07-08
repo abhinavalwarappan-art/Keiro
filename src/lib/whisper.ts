@@ -1,11 +1,16 @@
 // API key loaded from environment — never hardcode
+//
+// Transcription runs on Groq's OpenAI-compatible Whisper endpoint
+// (`whisper-large-v3-turbo`) — same Whisper multilingual coverage as OpenAI, far
+// cheaper (~$0.04/hr), with a generous free tier. The request/response shape is
+// identical to OpenAI's, so this stays a plain multipart POST.
 export async function transcribeAudio(
   audioBlob: Blob,
   languageCode: string
 ): Promise<{ text: string; detectedLanguage?: string }> {
-  const apiKey = process.env.OPENAI_API_KEY
+  const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY environment variable is not set')
+    throw new Error('GROQ_API_KEY environment variable is not set')
   }
 
   const formData = new FormData()
@@ -14,10 +19,10 @@ export async function transcribeAudio(
               audioBlob.type.includes('ogg') ? 'audio.ogg' :
               audioBlob.type.includes('wav') ? 'audio.wav' : 'audio.webm'
   formData.append('file', audioBlob, ext)
-  formData.append('model', 'whisper-1')
+  formData.append('model', 'whisper-large-v3-turbo')
   formData.append('language', languageCode.split('-')[0])
 
-  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+  const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,

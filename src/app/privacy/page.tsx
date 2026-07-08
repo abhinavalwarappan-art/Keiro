@@ -195,12 +195,13 @@ export default function PrivacyPage() {
         <Section title="Third-party services we use">
           <ul>
             <li>
-              <strong>Anthropic (Claude AI)</strong> — processes your messages during your session
-              to create Kai&apos;s responses and your report. Anthropic&apos;s commercial terms
-              prohibit using your messages to train their models.
+              <strong>DeepSeek</strong> — processes your messages during your session to create
+              Kai&apos;s responses and your report. DeepSeek is operated from China and processes
+              your messages on servers located there; under its privacy policy it may retain inputs
+              and use them to improve its services and models.
             </li>
             <li>
-              <strong>OpenAI (Whisper)</strong> — if you use voice input, your audio clip is
+              <strong>Groq (Whisper)</strong> — if you use voice input, your audio clip is
               transcribed and immediately discarded.
             </li>
             <li>

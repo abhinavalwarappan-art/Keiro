@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Mic, MicOff, ArrowUp, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { AIVoiceInput } from '@/components/ui/ai-voice-input'
-import { stopSpeech } from '@/lib/speech'
+import { useVoiceInput } from '@/hooks/useVoiceInput'
 
 const DRAFT_KEY = 'keiro_chat_draft'
 
@@ -15,7 +15,7 @@ const STOP_RECORDING_LABEL_BY_PREFIX: Record<string, string> = {
   en: 'Stop recording',
   es: 'Detener grabación',
   fa: 'توقف ضبط',
-  fr: 'Arrêter l\u2019enregistrement',
+  fr: 'Arrêter l’enregistrement',
   gu: 'રેકોર્ડિંગ બંધ કરો',
   hi: 'रिकॉर्डिंग रोकें',
   id: 'Hentikan rekaman',
@@ -64,26 +64,6 @@ function getStopRecordingLabel(langCode: string): string {
   )
 }
 
-function getSpeechErrorMessage(error: string): string | null {
-  switch (error) {
-    case 'aborted':
-      return null
-    case 'audio-capture':
-      return 'No microphone was found. Please check your microphone and try again.'
-    case 'language-not-supported':
-      return 'Voice input is not available for this language in your browser. Please type your message instead.'
-    case 'network':
-      return 'Voice input needs an internet connection. Please type your message instead.'
-    case 'no-speech':
-      return null
-    case 'not-allowed':
-    case 'service-not-allowed':
-      return 'Microphone access is blocked. Please allow microphone access in your browser settings and try again.'
-    default:
-      return 'Voice input failed in this browser. Please type your message instead.'
-  }
-}
-
 interface ChatInputProps {
   onSend: (text: string) => Promise<boolean>
   disabled: boolean
@@ -98,15 +78,17 @@ export default function ChatInput({ onSend, disabled, placeholder, langCode }: C
     }
     return ''
   })
-  const [recording, setRecording] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState(false)
-  const [voiceError, setVoiceError] = useState<string | null>(null)
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const latestTranscriptRef = useRef('')
-  const userStoppedRecordingRef = useRef(false)
-  const safariAccumulatedRef = useRef('')
+
+  const { recording, transcribing, error: voiceError, toggle, stop } = useVoiceInput({
+    langCode,
+    onTranscript: setText,
+    onFinal: () => setTimeout(() => inputRef.current?.focus(), 50),
+  })
+
+  const capturing = recording || transcribing
 
   // Persist draft on every keystroke
   useEffect(() => {
@@ -119,23 +101,14 @@ export default function ChatInput({ onSend, disabled, placeholder, langCode }: C
     }
   }, [text])
 
-  useEffect(() => {
-    return () => {
-      userStoppedRecordingRef.current = true
-      recognitionRef.current?.abort()
-    }
-  }, [])
-
   // Stop voice capture if Kai starts speaking or the input is otherwise locked.
   useEffect(() => {
-    if (!disabled || !recording) return
-    userStoppedRecordingRef.current = true
-    recognitionRef.current?.stop()
-  }, [disabled, recording])
+    if (disabled && recording) stop()
+  }, [disabled, recording, stop])
 
   const handleSend = async () => {
     const trimmed = text.trim()
-    if (!trimmed || disabled || sending || recording) return
+    if (!trimmed || disabled || sending || capturing) return
 
     setSending(true)
     setSendError(false)
@@ -162,97 +135,8 @@ export default function ChatInput({ onSend, disabled, placeholder, langCode }: C
     }
   }
 
-  const handleMicToggle = () => {
-    if (disabled || sending) return
-
-    if (recording) {
-      userStoppedRecordingRef.current = true
-      recognitionRef.current?.stop()
-      return
-    }
-
-    const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition
-
-    if (!SpeechRecognitionCtor) {
-      setVoiceError('Voice input is not supported in this browser. Please use Chrome.')
-      return
-    }
-
-    stopSpeech()
-    setVoiceError(null)
-    latestTranscriptRef.current = ''
-    safariAccumulatedRef.current = ''
-    userStoppedRecordingRef.current = false
-
-    // Safari doesn't support continuous mode — it fires onend after each utterance pause.
-    // We detect it and restart manually, accumulating transcripts across sessions.
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-
-    const startRecognition = () => {
-      const recognition = new SpeechRecognitionCtor()
-      recognition.lang = langCode
-      recognition.continuous = !isSafari
-      recognition.interimResults = !isSafari
-
-      recognition.onstart = () => setRecording(true)
-
-      recognition.onresult = (e: SpeechRecognitionEvent) => {
-        const parts: string[] = []
-        for (let i = 0; i < e.results.length; i++) {
-          parts.push(e.results[i][0].transcript)
-        }
-        const sessionText = parts.join('').trim()
-        const fullText =
-          isSafari && safariAccumulatedRef.current
-            ? `${safariAccumulatedRef.current} ${sessionText}`
-            : sessionText
-        latestTranscriptRef.current = fullText
-        setText(fullText)
-      }
-
-      recognition.onend = () => {
-        if (isSafari && !userStoppedRecordingRef.current) {
-          safariAccumulatedRef.current = latestTranscriptRef.current
-          try {
-            startRecognition()
-          } catch {
-            setRecording(false)
-            recognitionRef.current = null
-            userStoppedRecordingRef.current = false
-          }
-          return
-        }
-        setRecording(false)
-        recognitionRef.current = null
-        if (userStoppedRecordingRef.current && latestTranscriptRef.current.trim()) {
-          setTimeout(() => inputRef.current?.focus(), 50)
-        }
-        userStoppedRecordingRef.current = false
-      }
-
-      recognition.onerror = (e: SpeechRecognitionErrorEvent) => {
-        userStoppedRecordingRef.current = false
-        setRecording(false)
-        const message = getSpeechErrorMessage(e.error)
-        if (message) setVoiceError(message)
-      }
-
-      recognitionRef.current = recognition
-      try {
-        recognition.start()
-      } catch {
-        userStoppedRecordingRef.current = false
-        recognitionRef.current = null
-        setRecording(false)
-        setVoiceError('Voice input could not start. Please wait a moment and try again.')
-      }
-    }
-
-    startRecognition()
-  }
-
   const isPending = disabled || sending
-  const canSend = text.trim() && !isPending && !recording
+  const canSend = text.trim() && !isPending && !capturing
   const stopRecordingLabel = getStopRecordingLabel(langCode)
 
   return (
@@ -288,16 +172,32 @@ export default function ChatInput({ onSend, disabled, placeholder, langCode }: C
             rows={2}
             className={`min-h-[72px] w-full resize-none rounded-lg border bg-sunken px-4 py-3 text-base leading-relaxed text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-border-default focus:shadow-xs focus:outline-none disabled:opacity-60 ${
               sendError ? 'border-error' : 'border-border-subtle'
-            } ${recording ? 'pointer-events-none opacity-0' : ''}`}
+            } ${capturing ? 'pointer-events-none opacity-0' : ''}`}
             aria-label="Message input"
           />
-          {recording && (
-            <div className="absolute inset-0 flex items-center overflow-hidden rounded-lg border border-brand bg-brand-subtle">
-              <AIVoiceInput
-                isRecording={true}
-                visualizerBars={36}
-                className="py-0 flex-1"
-              />
+          {capturing && (
+            <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg border border-brand bg-brand-subtle">
+              {recording ? (
+                <AIVoiceInput
+                  isRecording={true}
+                  visualizerBars={36}
+                  className="py-0 flex-1"
+                />
+              ) : (
+                <span
+                  className="flex items-center gap-1.5 text-brand-ink"
+                  role="status"
+                  aria-live="polite"
+                  aria-label="Transcribing"
+                >
+                  <Loader2 size={18} className="animate-spin" aria-hidden />
+                  <span className="flex gap-1" aria-hidden>
+                    <span className="size-1.5 animate-pulse rounded-full bg-brand-ink [animation-delay:0ms]" />
+                    <span className="size-1.5 animate-pulse rounded-full bg-brand-ink [animation-delay:150ms]" />
+                    <span className="size-1.5 animate-pulse rounded-full bg-brand-ink [animation-delay:300ms]" />
+                  </span>
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -315,8 +215,8 @@ export default function ChatInput({ onSend, disabled, placeholder, langCode }: C
             </div>
           )}
           <motion.button
-            onClick={handleMicToggle}
-            disabled={disabled || sending}
+            onClick={toggle}
+            disabled={disabled || sending || transcribing}
             className={`flex size-12 min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-lg border transition-colors duration-150 disabled:opacity-50 ${
               recording
                 ? 'border-error bg-error text-white'
@@ -328,7 +228,13 @@ export default function ChatInput({ onSend, disabled, placeholder, langCode }: C
             aria-label={recording ? stopRecordingLabel : 'Start voice input'}
             aria-pressed={recording}
           >
-            {recording ? <MicOff size={18} aria-hidden /> : <Mic size={18} aria-hidden />}
+            {transcribing ? (
+              <Loader2 size={18} className="animate-spin" aria-hidden />
+            ) : recording ? (
+              <MicOff size={18} aria-hidden />
+            ) : (
+              <Mic size={18} aria-hidden />
+            )}
           </motion.button>
         </div>
 

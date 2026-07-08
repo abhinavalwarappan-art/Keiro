@@ -1,15 +1,13 @@
 // API key loaded from environment — never hardcode
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { buildKaiSystemPrompt, buildOpeningUserPrompt, buildConsultSystemPrompt, buildConsultUserPrompt } from '@/lib/claude'
+import { deepseekChat, deepseekChatStream } from '@/lib/deepseek'
 import { isAllowedChatLanguage } from '@/lib/languages'
 import { logger } from '@/lib/logger'
 import type { PatientProfile } from '@/types'
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const EMERGENCY_KEYWORDS = [
   // English
@@ -115,29 +113,23 @@ export async function POST(request: NextRequest) {
       const systemPrompt = buildConsultSystemPrompt(sanitizedLanguage, langCode, romanization === true)
       const userPrompt = buildConsultUserPrompt(consultSide as 'doctor' | 'patient', consultText, langCode)
 
-      const response = await anthropic.messages.create({
-        model: 'claude-haiku-4-5',
-        max_tokens: 500,
-        temperature: 0.3,
+      const text = await deepseekChat({
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
+        maxTokens: 500,
+        temperature: 0.3,
       })
 
-      const content = response.content[0]
-      if (content.type !== 'text') {
-        return NextResponse.json({ error: 'Unexpected response' }, { status: 500 })
-      }
-
-      const jsonMatch = content.text.match(/\{[\s\S]*\}/)
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
       if (!jsonMatch) {
-        return NextResponse.json({ translation: content.text.trim() })
+        return NextResponse.json({ translation: text.trim() })
       }
 
       try {
         const parsed = JSON.parse(jsonMatch[0]) as { translation?: string }
-        return NextResponse.json({ translation: parsed.translation || content.text.trim() })
+        return NextResponse.json({ translation: parsed.translation || text.trim() })
       } catch {
-        return NextResponse.json({ translation: content.text.trim() })
+        return NextResponse.json({ translation: text.trim() })
       }
     }
 
@@ -196,30 +188,53 @@ export async function POST(request: NextRequest) {
     // Log message count only — never log message content or patient input
     logger.info('message_sent', '/api/chat', user.id, { messageCount: Array.isArray(messages) ? messages.length : 0 })
 
-    const stream = await anthropic.messages.stream({
-      model: 'claude-haiku-4-5',
-      max_tokens: 1000,
-      temperature: 0.7,
+    const deltas = deepseekChatStream({
       system: systemPrompt,
       messages: apiMessages,
+      maxTokens: 1000,
+      temperature: 0.7,
     })
 
     const encoder = new TextEncoder()
+    // Kai emits a bare {"emergency": true} object when it detects a red-flag
+    // situation. That marker arrives split across streamed tokens, so it has to
+    // be matched against the accumulated (whitespace-stripped) buffer — a
+    // per-token check almost never sees the whole marker in one chunk. While the
+    // buffer is still a prefix of that object we withhold streaming so a partial
+    // emergency payload never reaches the patient; once the text diverges into
+    // normal prose we flush whatever was held back and stream from there.
+    const EMERGENCY_MARKER = '{"emergency":true}'
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of stream) {
-            if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
-              const text = chunk.delta.text
+          let full = ''
+          let emitted = 0
+          for await (const delta of deltas) {
+            full += delta
+            const compact = full.replace(/\s/g, '')
 
-              if (text.includes('"emergency": true') || text.includes('"emergency":true')) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ emergency: true })}\n\n`))
-                controller.close()
-                return
-              }
-
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`))
+            if (compact.includes('"emergency":true')) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ emergency: true })}\n\n`))
+              controller.close()
+              return
             }
+
+            // Still possibly the bare emergency object — hold back partial JSON.
+            if (EMERGENCY_MARKER.startsWith(compact)) {
+              continue
+            }
+
+            const pending = full.slice(emitted)
+            if (pending) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: pending })}\n\n`))
+              emitted = full.length
+            }
+          }
+          // Flush anything still withheld (e.g. a partial object that never
+          // completed the marker) before signalling the end of the stream.
+          const remaining = full.slice(emitted)
+          if (remaining) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text: remaining })}\n\n`))
           }
           controller.enqueue(encoder.encode('data: [DONE]\n\n'))
           controller.close()
