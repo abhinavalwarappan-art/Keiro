@@ -137,11 +137,41 @@ export function speakText(text: string, langCode: string, options?: SpeakOptions
 
   let index = 0
   let started = false
+  let watchdog: number | null = null
+
+  const stopWatchdog = () => {
+    if (watchdog !== null) {
+      window.clearInterval(watchdog)
+      watchdog = null
+    }
+  }
 
   const finish = (handler?: () => void) => {
+    stopWatchdog()
     if (generation !== speechGeneration) return
     notifySpeechState(false)
     handler?.()
+  }
+
+  // Chrome intermittently drops utterance `onend`/`onerror` events (long text,
+  // tab blur, the ~15s synthesis watchdog). When that happens the speak() queue
+  // has drained but our onEnd never fires, so `speechActive` — and everything
+  // gated on it (mic button, report buttons, quick-reply pickers) — sticks
+  // "true" forever. Poll the real engine state as a backstop: once it is neither
+  // speaking nor pending, treat playback as finished.
+  const startWatchdog = () => {
+    if (watchdog !== null) return
+    watchdog = window.setInterval(() => {
+      if (generation !== speechGeneration) {
+        stopWatchdog()
+        return
+      }
+      if (!started) return
+      if (!window.speechSynthesis.speaking && !window.speechSynthesis.pending) {
+        index = chunks.length
+        finish(options?.onEnd)
+      }
+    }, 500)
   }
 
   const speakNext = () => {
@@ -182,6 +212,7 @@ export function speakText(text: string, langCode: string, options?: SpeakOptions
   }
 
   speakNext()
+  startWatchdog()
   return true
 }
 
