@@ -82,7 +82,6 @@ function SpiralLanguageCard({ lang, index, radius, smoothProgress, onPick }: Spi
   const z = useTransform(orbit, (o) => o.z)
   const scale = useTransform(orbit, (o) => o.scale)
   const opacity = useTransform(orbit, (o) => o.opacity)
-  const filter = useTransform(orbit, (o) => `blur(${o.blur}px)`)
   const rotateY = useTransform(orbit, (o) => o.rotateY)
   const rotateX = useTransform(orbit, (o) => o.rotateX)
   const pointerEvents = useTransform(orbit, (o) => (o.opacity > 0.15 ? 'auto' : 'none'))
@@ -102,14 +101,13 @@ function SpiralLanguageCard({ lang, index, radius, smoothProgress, onPick }: Spi
         opacity,
         rotateY,
         rotateX,
-        filter,
         pointerEvents,
       }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
       aria-label={`Choose ${lang.en}`}
     >
-      <div className="spiral-lang-card__inner flex h-full flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-white/18 px-3 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.55)] backdrop-blur-2xl sm:gap-1.5 sm:px-3.5 sm:py-3">
+      <div className="spiral-lang-card__inner flex h-full flex-col items-center justify-center gap-1 overflow-hidden rounded-2xl border border-white/18 bg-[#0a0e1a]/85 px-3 py-2.5 text-center shadow-[0_20px_50px_rgba(0,0,0,0.55)] sm:gap-1.5 sm:px-3.5 sm:py-3">
         <div
           className="pointer-events-none absolute inset-0 opacity-90"
           style={{

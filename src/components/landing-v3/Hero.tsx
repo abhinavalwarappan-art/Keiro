@@ -54,7 +54,9 @@ export function Hero() {
   // scroll he grows toward you, blurs, and dissolves — handing the frame to the
   // headline that resolves in his place.
   const robotScale = useTransform(scrollYProgress, [0, 0.4], [1, 1.5])
-  const robotBlur = useTransform(scrollYProgress, [0.1, 0.4], [0, 28])
+  // Animating a big blur radius on scroll is GPU-costly; cap it lower — the
+  // opacity fade to 0 does most of the "dissolve", so a smaller blur still reads.
+  const robotBlur = useTransform(scrollYProgress, [0.1, 0.4], [0, 14])
   const robotOpacity = useTransform(scrollYProgress, [0.08, 0.4], [1, 0])
   const robotFilter = useTransform(robotBlur, (b) => `blur(${b}px)`)
 
