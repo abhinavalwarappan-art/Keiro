@@ -735,6 +735,7 @@ function ChatContent() {
           <ChatInput
             onSend={sendMessage}
             disabled={inputDisabled}
+            speaking={isKaiSpeaking}
             placeholder={getInputPlaceholder(langCode)}
             langCode={langCode}
           />

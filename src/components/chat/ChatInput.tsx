@@ -67,11 +67,13 @@ function getStopRecordingLabel(langCode: string): string {
 interface ChatInputProps {
   onSend: (text: string) => Promise<boolean>
   disabled: boolean
+  /** Kai's TTS is playing. Typing/sending stay locked, but the mic can interrupt it. */
+  speaking?: boolean
   placeholder: string
   langCode: string
 }
 
-export default function ChatInput({ onSend, disabled, placeholder, langCode }: ChatInputProps) {
+export default function ChatInput({ onSend, disabled, speaking = false, placeholder, langCode }: ChatInputProps) {
   const [text, setText] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(DRAFT_KEY) ?? ''
@@ -101,10 +103,13 @@ export default function ChatInput({ onSend, disabled, placeholder, langCode }: C
     }
   }, [text])
 
-  // Stop voice capture if Kai starts speaking or the input is otherwise locked.
+  // Stop voice capture only when the input HARD-locks (Kai generating a reply, a
+  // report being prepared, profile intake). Kai's TTS alone must NOT stop capture
+  // — tapping the mic interrupts Kai (useVoiceInput.toggle calls stopSpeech) and
+  // takes over, so an in-flight recording always wins over playback.
   useEffect(() => {
-    if (disabled && recording) stop()
-  }, [disabled, recording, stop])
+    if (disabled && !speaking && recording) stop()
+  }, [disabled, speaking, recording, stop])
 
   const handleSend = async () => {
     const trimmed = text.trim()
@@ -216,7 +221,7 @@ export default function ChatInput({ onSend, disabled, placeholder, langCode }: C
           )}
           <motion.button
             onClick={toggle}
-            disabled={disabled || sending || transcribing}
+            disabled={(disabled && !speaking) || sending || transcribing}
             className={`flex size-12 min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-lg border transition-colors duration-150 disabled:opacity-50 ${
               recording
                 ? 'border-error bg-error text-white'
