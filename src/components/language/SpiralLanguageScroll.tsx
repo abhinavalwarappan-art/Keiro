@@ -71,20 +71,21 @@ interface SpiralCardProps {
 }
 
 function SpiralLanguageCard({ lang, index, radius, smoothProgress, onPick }: SpiralCardProps) {
-  const x = useTransform(smoothProgress, (v) => orbitTransform(index, v, radius).x)
-  const y = useTransform(smoothProgress, (v) => orbitTransform(index, v, radius).y)
-  const z = useTransform(smoothProgress, (v) => orbitTransform(index, v, radius).z)
-  const scale = useTransform(smoothProgress, (v) => orbitTransform(index, v, radius).scale)
-  const opacity = useTransform(smoothProgress, (v) => orbitTransform(index, v, radius).opacity)
-  const filter = useTransform(
-    smoothProgress,
-    (v) => `blur(${orbitTransform(index, v, radius).blur}px)`,
-  )
-  const rotateY = useTransform(smoothProgress, (v) => orbitTransform(index, v, radius).rotateY)
-  const rotateX = useTransform(smoothProgress, (v) => orbitTransform(index, v, radius).rotateX)
-  const pointerEvents = useTransform(smoothProgress, (v) =>
-    orbitTransform(index, v, radius).opacity > 0.15 ? 'auto' : 'none',
-  )
+  // Compute the full orbit position ONCE per frame, then derive each animated
+  // channel from that. Previously every channel ran its own useTransform that
+  // re-called the trig-heavy orbitTransform — ~9× the work per card, per frame,
+  // across every language card. Deriving from a single source keeps the exact
+  // same output for a fraction of the per-frame cost.
+  const orbit = useTransform(smoothProgress, (v) => orbitTransform(index, v, radius))
+  const x = useTransform(orbit, (o) => o.x)
+  const y = useTransform(orbit, (o) => o.y)
+  const z = useTransform(orbit, (o) => o.z)
+  const scale = useTransform(orbit, (o) => o.scale)
+  const opacity = useTransform(orbit, (o) => o.opacity)
+  const filter = useTransform(orbit, (o) => `blur(${o.blur}px)`)
+  const rotateY = useTransform(orbit, (o) => o.rotateY)
+  const rotateX = useTransform(orbit, (o) => o.rotateX)
+  const pointerEvents = useTransform(orbit, (o) => (o.opacity > 0.15 ? 'auto' : 'none'))
 
   const hue = (index * 47) % 360
 

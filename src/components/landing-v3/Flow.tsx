@@ -26,6 +26,8 @@ import { StarrySkyBackground } from '@/components/ui/starry-sky-background'
 import { smoothScrollTo } from '@/components/ui/SmoothScroll'
 
 const ACCENT = '#00c896'
+/** Half the marker dot's height (h-3.5 = 14px) — used to centre it on its point. */
+const MARKER_HALF = 7
 
 export function Flow() {
   const sectionRef = useRef<HTMLElement | null>(null)
@@ -42,8 +44,28 @@ export function Flow() {
     setActive((current) => (current === next ? current : next))
   })
 
-  const railFill = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
-  const markerTop = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
+  // Rail fill + travelling marker are driven purely by transform (scaleY / translateY)
+  // rather than height / top, so scrolling this pinned section never triggers
+  // per-frame layout — only compositor-friendly work. The marker travel needs the
+  // rail's pixel height, so measure it (and keep it fresh through resizes).
+  const railRef = useRef<HTMLDivElement | null>(null)
+  const [railHeight, setRailHeight] = useState(0)
+  useEffect(() => {
+    const el = railRef.current
+    if (!el) return
+    const measure = () => setRailHeight(el.clientHeight)
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const railScaleY = useTransform(scrollYProgress, [0, 1], [0, 1])
+  const markerY = useTransform(
+    scrollYProgress,
+    [0, 1],
+    [-MARKER_HALF, Math.max(0, railHeight - MARKER_HALF)],
+  )
 
   // Phone reads as one continuous Serve-Robotics shot: a slow scroll-linked dolly
   // (scale) plus a gentle parallax drift, layered over the per-step flip below.
@@ -103,11 +125,11 @@ export function Flow() {
             {/* ── left: green bar + step copy ── */}
             <div className="grid grid-cols-[auto_1fr] gap-6 md:gap-8">
               {/* the bar */}
-              <div className="relative w-[3px] rounded-full bg-white/[0.08]">
+              <div ref={railRef} className="relative w-[3px] rounded-full bg-white/[0.08]">
                 {/* fill (lg uses scroll; smaller screens fill to the active step) */}
                 <motion.div
-                  className="absolute inset-x-0 top-0 hidden rounded-full lg:block"
-                  style={{ height: railFill, background: ACCENT, boxShadow: '0 0 14px #00c896aa' }}
+                  className="absolute inset-x-0 top-0 hidden h-full origin-top rounded-full lg:block"
+                  style={{ scaleY: railScaleY, background: ACCENT, boxShadow: '0 0 14px #00c896aa' }}
                 />
                 <div
                   className="absolute inset-x-0 top-0 rounded-full lg:hidden"
@@ -120,8 +142,8 @@ export function Flow() {
 
                 {/* travelling Kai marker (lg) */}
                 <motion.div
-                  className="absolute left-1/2 hidden h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full lg:flex"
-                  style={{ top: markerTop, background: ACCENT, boxShadow: '0 0 18px 4px #00c896aa' }}
+                  className="absolute left-1/2 top-0 hidden h-3.5 w-3.5 items-center justify-center rounded-full lg:flex"
+                  style={{ x: '-50%', y: markerY, background: ACCENT, boxShadow: '0 0 18px 4px #00c896aa' }}
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-[#04130d]" />
                 </motion.div>
