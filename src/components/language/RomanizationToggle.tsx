@@ -34,8 +34,8 @@ export default function RomanizationToggle({ enabled, onToggle }: RomanizationTo
           aria-hidden
         >
           <motion.div
-            className="absolute top-0.5 size-3 rounded-full bg-white shadow-xs"
-            animate={{ left: enabled ? '14px' : '2px' }}
+            className="absolute left-0.5 top-0.5 size-3 rounded-full bg-white shadow-xs"
+            animate={{ x: enabled ? 12 : 0 }}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
           />
         </div>

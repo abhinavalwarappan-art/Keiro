@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import { useEffect, useRef } from 'react'
 
 export type KaiSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -71,17 +70,9 @@ export function Kai({
       role="img"
     >
       {animated ? (
-        <motion.div
-          animate={{ y: [0, -14, 0] }}
-          transition={{
-            duration: 3.2,
-            ease: 'easeInOut',
-            repeat: Infinity,
-            repeatType: 'loop',
-          }}
-        >
+        <div style={{ animation: 'kai-float 3.2s ease-in-out infinite', willChange: 'transform' }}>
           {svg}
-        </motion.div>
+        </div>
       ) : (
         <div>{svg}</div>
       )}

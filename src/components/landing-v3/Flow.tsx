@@ -132,11 +132,11 @@ export function Flow() {
                   style={{ scaleY: railScaleY, background: ACCENT, boxShadow: '0 0 14px #00c896aa' }}
                 />
                 <div
-                  className="absolute inset-x-0 top-0 rounded-full lg:hidden"
+                  className="absolute inset-x-0 top-0 h-full origin-top rounded-full lg:hidden"
                   style={{
-                    height: `${((active + 1) / steps.length) * 100}%`,
+                    transform: `scaleY(${(active + 1) / steps.length})`,
                     background: ACCENT,
-                    transition: 'height 0.4s ease',
+                    transition: 'transform 0.4s ease',
                   }}
                 />
 

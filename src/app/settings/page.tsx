@@ -295,17 +295,19 @@ export default function SettingsPage() {
               <AnimatePresence>
                 {showVoicePicker && profile && (
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
+                    initial={{ gridTemplateRows: '0fr', opacity: 0 }}
+                    animate={{ gridTemplateRows: '1fr', opacity: 1 }}
+                    exit={{ gridTemplateRows: '0fr', opacity: 0 }}
+                    style={{ display: 'grid' }}
                   >
-                    <div className="px-4 pb-4">
-                      <VoicePicker
-                        langCode={profile.language_code}
-                        selected={profile.preferred_voice}
-                        onSelect={handleVoiceSelect}
-                      />
+                    <div className="min-h-0 overflow-hidden">
+                      <div className="px-4 pb-4">
+                        <VoicePicker
+                          langCode={profile.language_code}
+                          selected={profile.preferred_voice}
+                          onSelect={handleVoiceSelect}
+                        />
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -329,8 +331,8 @@ export default function SettingsPage() {
                     style={{ background: profile.romanization_enabled ? C.brand : C.border, transition: 'background 0.2s' }}
                   >
                     <motion.span
-                      className="absolute top-1 w-5 h-5 rounded-full bg-white shadow"
-                      animate={{ left: profile.romanization_enabled ? '26px' : '4px' }}
+                      className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow"
+                      animate={{ x: profile.romanization_enabled ? 22 : 0 }}
                       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     />
                   </button>
@@ -354,8 +356,8 @@ export default function SettingsPage() {
                   style={{ background: analyticsOn ? C.brand : C.border, transition: 'background 0.2s' }}
                 >
                   <motion.span
-                    className="absolute top-1 w-5 h-5 rounded-full bg-white shadow"
-                    animate={{ left: analyticsOn ? '26px' : '4px' }}
+                    className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow"
+                    animate={{ x: analyticsOn ? 22 : 0 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                   />
                 </button>

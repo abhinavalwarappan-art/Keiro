@@ -107,13 +107,13 @@ function ChoiceRow<T extends string>({
 function Reveal({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: 'auto' }}
-      exit={{ opacity: 0, height: 0 }}
+      initial={{ opacity: 0, gridTemplateRows: '0fr' }}
+      animate={{ opacity: 1, gridTemplateRows: '1fr' }}
+      exit={{ opacity: 0, gridTemplateRows: '0fr' }}
       transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-      className="overflow-hidden"
+      style={{ display: 'grid' }}
     >
-      {children}
+      <div className="min-h-0 overflow-hidden">{children}</div>
     </motion.div>
   )
 }

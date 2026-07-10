@@ -22,8 +22,8 @@ export default function ProgressBar({ step, total }: ProgressBarProps) {
         aria-label={`Step ${step} of ${total}`}
       >
         <motion.div
-          className="h-full rounded-full bg-brand"
-          animate={{ width: `${pct}%` }}
+          className="h-full w-full origin-left rounded-full bg-brand"
+          animate={{ scaleX: pct / 100 }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         />
       </div>
