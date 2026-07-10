@@ -242,6 +242,19 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       }
 
       recognition.onerror = (e: SpeechRecognitionErrorEvent) => {
+        // A trailing error that arrives AFTER the user has already stopped, or
+        // after we've already captured speech, is teardown noise — not a "this
+        // engine can't do this language" signal. Android Chrome routinely fires a
+        // spurious 'network' error as recognition winds down after stop(), even
+        // when the dictation succeeded. Without this guard that benign error
+        // hijacks the finished session into a fresh Whisper recording, whose
+        // short clip then fails at /api/transcribe and surfaces a false
+        // "Voice input failed" — the exact regression seen only on real phones
+        // (desktop Chrome never emits the spurious error). Let onend finalize the
+        // transcript we already have.
+        if (userStoppedRef.current || latestTranscriptRef.current.trim()) {
+          return
+        }
         // The browser engine can't transcribe this language here — hand off to
         // server-side Whisper and remember the language for the rest of the
         // session. Browsers signal this inconsistently: Chrome tends to fire
