@@ -8,6 +8,9 @@ import { useVoiceInput } from '@/hooks/useVoiceInput'
 
 const DRAFT_KEY = 'keiro_chat_draft'
 
+/** Grow the input up to ~3 lines (leading-relaxed text-base + py-3), then scroll. */
+const MAX_INPUT_HEIGHT_PX = 104
+
 const STOP_RECORDING_LABEL_BY_PREFIX: Record<string, string> = {
   am: 'መቅረጽ አቁም',
   ar: 'إيقاف التسجيل',
@@ -87,7 +90,17 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
   const { recording, transcribing, error: voiceError, toggle, stop } = useVoiceInput({
     langCode,
     onTranscript: setText,
-    onFinal: () => setTimeout(() => inputRef.current?.focus(), 50),
+    // After transcription: size the box to the transcript and scroll to the newest
+    // words so the patient can verify the end of what they said, then focus.
+    onFinal: () =>
+      setTimeout(() => {
+        const ta = inputRef.current
+        if (!ta) return
+        ta.style.height = 'auto'
+        ta.style.height = `${Math.min(ta.scrollHeight, MAX_INPUT_HEIGHT_PX)}px`
+        ta.scrollTop = ta.scrollHeight
+        ta.focus()
+      }, 50),
   })
 
   const capturing = recording || transcribing
@@ -102,6 +115,16 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
       }
     }
   }, [text])
+
+  // Auto-grow the textarea up to 3 lines as text fills. Skip while capturing so the
+  // hidden textarea (opacity-0 but still driving container height) can't inflate the
+  // waveform overlay during recording.
+  useEffect(() => {
+    const ta = inputRef.current
+    if (!ta || capturing) return
+    ta.style.height = 'auto'
+    ta.style.height = `${Math.min(ta.scrollHeight, MAX_INPUT_HEIGHT_PX)}px`
+  }, [text, capturing])
 
   // Stop voice capture only when the input HARD-locks (Kai generating a reply, a
   // report being prepared, profile intake). Kai's TTS alone must NOT stop capture
@@ -175,7 +198,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
             placeholder={placeholder}
             disabled={isPending}
             rows={2}
-            className={`min-h-[72px] w-full resize-none rounded-lg border bg-sunken px-4 py-3 text-base leading-relaxed text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-border-default focus:shadow-xs focus:outline-none disabled:opacity-60 ${
+            className={`min-h-[72px] w-full resize-none overflow-y-auto rounded-lg border bg-sunken px-4 py-3 text-base leading-relaxed text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-border-default focus:shadow-xs focus:outline-none disabled:opacity-60 ${
               sendError ? 'border-error' : 'border-border-subtle'
             } ${capturing ? 'pointer-events-none opacity-0' : ''}`}
             aria-label="Message input"

@@ -510,12 +510,13 @@ function ChatContent() {
       trackReportGenerated(langCode)
 
       // Cache the generated report so the report page can render it without a round-trip.
+      // Keep the active chat session in storage so pressing back from the report
+      // restores the full conversation (restoreChatSession + the opening-message guard).
       try {
         sessionStorage.setItem(
           `report_${data.reportId}`,
           JSON.stringify(data.reportData ?? {}),
         )
-        sessionStorage.removeItem(ACTIVE_CHAT_SESSION_KEY)
       } catch {
         // Non-fatal.
       }

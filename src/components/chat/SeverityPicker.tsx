@@ -7,13 +7,14 @@ interface SeverityPickerProps {
   disabled?: boolean
 }
 
-/* The 1–10 pain scale keeps four clinically distinct steps; orange (7–8) is a
-   deliberate one-off between warning and error so the scale stays readable. */
+/* The 1–10 pain scale keeps four clinically distinct steps; orange (7–9) is a
+   deliberate one-off between warning and error so the scale stays readable. Tapping
+   a chip sends the word + range (e.g. "Mild (1–3)") so the report LLM gets both. */
 const SEVERITY_OPTIONS = [
-  { label: '1–3', desc: 'Mild', classes: 'bg-brand-subtle border-brand-muted text-brand-ink hover:border-brand' },
-  { label: '4–6', desc: 'Moderate', classes: 'bg-warning-subtle border-warning/20 text-warning-text hover:border-warning' },
-  { label: '7–8', desc: 'Severe', classes: 'bg-[#FFF7ED] border-[#FED7AA] text-[#9A3412] hover:border-[#EA580C]' },
-  { label: '9–10', desc: 'Critical', classes: 'bg-error-subtle border-error/20 text-error-text hover:border-error' },
+  { word: 'Mild', range: '1–3', classes: 'bg-brand-subtle border-brand-muted text-brand-ink hover:border-brand' },
+  { word: 'Moderate', range: '4–6', classes: 'bg-warning-subtle border-warning/20 text-warning-text hover:border-warning' },
+  { word: 'Severe', range: '7–9', classes: 'bg-[#FFF7ED] border-[#FED7AA] text-[#9A3412] hover:border-[#EA580C]' },
+  { word: 'Unbearable', range: '10', classes: 'bg-error-subtle border-error/20 text-error-text hover:border-error' },
 ]
 
 export function SeverityPicker({ onSelect, disabled = false }: SeverityPickerProps) {
@@ -25,11 +26,11 @@ export function SeverityPicker({ onSelect, disabled = false }: SeverityPickerPro
     >
       {SEVERITY_OPTIONS.map((opt, i) => (
         <motion.button
-          key={opt.label}
-          onClick={() => onSelect(opt.label)}
+          key={opt.word}
+          onClick={() => onSelect(`${opt.word} (${opt.range})`)}
           disabled={disabled}
           aria-disabled={disabled}
-          aria-label={`Severity ${opt.label} – ${opt.desc}`}
+          aria-label={`${opt.word}, pain level ${opt.range}`}
           type="button"
           className={`flex min-h-[64px] min-w-[72px] shrink-0 flex-col items-center rounded-lg border px-4 py-3 transition-colors duration-150 ${opt.classes}`}
           initial={{ opacity: 0, y: 8 }}
@@ -37,8 +38,8 @@ export function SeverityPicker({ onSelect, disabled = false }: SeverityPickerPro
           transition={{ delay: i * 0.05 }}
           whileTap={{ scale: 0.97 }}
         >
-          <span className="text-lg font-semibold leading-tight tabular-nums">{opt.label}</span>
-          <span className="mt-0.5 text-xs font-medium">{opt.desc}</span>
+          <span className="text-lg font-semibold leading-tight tabular-nums">{opt.range}</span>
+          <span className="mt-0.5 text-xs font-medium">{opt.word}</span>
         </motion.button>
       ))}
     </div>
