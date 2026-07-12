@@ -1,6 +1,19 @@
 import type { Metadata } from 'next'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { PageHero, Section, P, PullQuote, Facts, QA, CtaBand, A } from '@/components/landing-v3/PageBits'
+import { PageHero, CtaBand, A } from '@/components/landing-v3/PageBits'
+import {
+  Band,
+  BandHeading,
+  Accent,
+  Thesis,
+  IndexGrid,
+  ExpandableSteps,
+  Quote,
+  Prose,
+  Para,
+  Faq,
+  References,
+} from '@/components/landing-v3/Sections'
 
 export const metadata: Metadata = {
   title: 'Privacy & safety',
@@ -13,6 +26,9 @@ export const metadata: Metadata = {
   },
 }
 
+/* Spine: hero -> index grid of facts(cream) -> the uncomfortable part as a
+   QUOTE on a deep band -> expandable safeguards(cream) -> what we have NOT done
+   (mint) -> faq -> references. */
 export default function PrivacySafetyPage() {
   return (
     <SiteShell>
@@ -22,159 +38,209 @@ export default function PrivacySafetyPage() {
         lede="This is the plain-language version, written to be read rather than agreed to. The formal document is the privacy policy, and nothing here contradicts it."
       />
 
-      <Section title="The four things that matter most">
-        <Facts
-          items={[
-            {
-              label: 'Your conversation is not stored',
-              body: 'What you say to Kai is not saved to our servers. When the session ends, it is gone. If you use Keiro as a guest — the default — we store nothing about you at all.',
-            },
-            {
-              label: 'Kai never diagnoses',
-              body: 'Not carefully, not with a disclaimer. Kai has no ability to tell you what is wrong, how serious it is, or what to do about it. Those decisions belong to your doctor.',
-            },
-            {
-              label: 'Nothing is sold. Ever.',
-              body: 'Not to advertisers, not to data brokers, not to insurers. There is no business model here that requires knowing anything about your health, and there never will be.',
-            },
-            {
-              label: 'No account needed',
-              body: 'You can use the whole thing without telling us your name, your email or your phone number. The less we know about you, the less there is to protect.',
-            },
-          ]}
+      <Band palette="cream">
+        <BandHeading>
+          The four things <Accent>that matter most.</Accent>
+        </BandHeading>
+        <div className="mt-10">
+          <IndexGrid
+            items={[
+              {
+                n: '01',
+                label:
+                  'Your conversation is not stored. What you say to Kai is not saved to our servers. Use Keiro as a guest — the default — and we store nothing about you at all.',
+              },
+              {
+                n: '02',
+                label:
+                  'Kai never diagnoses. Not carefully, not with a disclaimer. It has no ability to tell you what is wrong or how serious it is.',
+              },
+              {
+                n: '03',
+                label:
+                  'Nothing is sold. Ever. Not to advertisers, not to data brokers, not to insurers. No business model here needs to know about your health.',
+              },
+              {
+                n: '04',
+                label:
+                  'No account needed. You can use the whole thing without telling us your name, email or phone number. The less we know, the less there is to protect.',
+              },
+            ]}
+          />
+        </div>
+      </Band>
+
+      <Band palette="deep">
+        <Quote attribution="Read this before you start" role="not after">
+          If you would not be comfortable with what is below,{' '}
+          <Accent>please do not tell Kai anything you would not want kept.</Accent> We would rather
+          lose your visit than mislead you into it.
+        </Quote>
+
+        <div className="mx-auto mt-10 max-w-3xl">
+          <Prose>
+            <Para>
+              Kai is not magic and it does not run on our laptop. To understand you and answer you,
+              your messages are sent to an AI company called <strong>DeepSeek</strong>, which does
+              the actual language work.
+            </Para>
+            <Para>
+              DeepSeek is operated from China and processes your messages on servers there. Under its
+              own privacy policy, it may keep what it receives and use it to improve its models
+              <sup>
+                <a href="#ref-1" className="lx-focus underline underline-offset-2">
+                  1
+                </a>
+              </sup>
+              . We do not control that, and we are not going to pretend otherwise.
+            </Para>
+            <Para>
+              This is the single most important thing on this page, which is why it is not in the
+              footnotes. The full list of every company that touches your data is in the{' '}
+              <A href="/privacy">privacy policy</A>.
+            </Para>
+          </Prose>
+        </div>
+      </Band>
+
+      <Band palette="cream">
+        <BandHeading lede="Safety here does not mean a warning banner. It means Kai is built without the ability to do the dangerous thing. Three layers, independent — so no single mistake gets through.">
+          The fence <Accent>around Kai.</Accent>
+        </BandHeading>
+
+        <div className="mt-10">
+          <ExpandableSteps
+            items={[
+              {
+                n: '01',
+                title: 'A narrow job',
+                summary: 'Kai is only allowed to do one thing.',
+                detail: (
+                  <p className="max-w-2xl leading-[1.85] text-[var(--band-muted)]">
+                    Kai is instructed to collect an intake history and nothing else. It is explicitly
+                    forbidden from diagnosing, giving a prognosis, recommending treatment, or
+                    claiming to be human. It is not a general-purpose chatbot that we pointed at
+                    medicine.
+                  </p>
+                ),
+              },
+              {
+                n: '02',
+                title: 'An emergency exit',
+                summary: 'If it cannot wait, Kai stops taking notes.',
+                detail: (
+                  <p className="max-w-2xl leading-[1.85] text-[var(--band-muted)]">
+                    If what you describe sounds like it cannot wait, Kai stops being an intake tool
+                    and tells you to seek emergency help immediately, rather than continuing to
+                    gather a tidy history while something serious is happening.
+                  </p>
+                ),
+              },
+              {
+                n: '03',
+                title: 'You have the last word',
+                summary: 'Nothing is sent until you send it.',
+                detail: (
+                  <p className="max-w-2xl leading-[1.85] text-[var(--band-muted)]">
+                    You read the summary before your doctor does. If Kai got you wrong, it goes no
+                    further. And every path through Keiro ends at a clinician — Kai is never the last
+                    thing between you and a decision about your body.
+                  </p>
+                ),
+              },
+            ]}
+          />
+        </div>
+      </Band>
+
+      <Band palette="mint">
+        <Thesis
+          statement={
+            <>
+              Keiro has not been reviewed or certified by a medical professional. No clinical
+              validation study, no FDA clearance,{' '}
+              <Accent>no safety certification.</Accent>
+            </>
+          }
+          body="It is a young project, and we are not going to dress it up as something it is not. Because Keiro does not store health information on its servers, it is also not a HIPAA-covered service — that is a statement about our architecture, not a claim of accreditation."
         />
-      </Section>
 
-      <Section title="The uncomfortable part, which we are telling you anyway" tinted>
-        <P>
-          Kai is not magic and it does not run on our laptop. To understand you and answer you, your
-          messages are sent to an AI company called DeepSeek, which does the actual language work.
-        </P>
-        <P>
-          DeepSeek is operated from China and processes your messages on servers there. Under its own
-          privacy policy, it may keep what it receives and use it to improve its models. We do not
-          control that, and we are not going to pretend otherwise.
-        </P>
+        <div className="mx-auto mt-8 max-w-3xl">
+          <Prose>
+            <Para>
+              Getting genuine clinical review is the next thing we want to do. If you are a clinician
+              who would help with that, it is the most useful thing anyone could offer this project.{' '}
+              <A href="/contact">Please get in touch.</A>
+            </Para>
+            <Para>
+              And if Kai says something it should not have, or behaves in a way that frightens you —
+              tell us bluntly. A real person reads those.
+            </Para>
+          </Prose>
+        </div>
+      </Band>
 
-        <PullQuote>
-          If you would not be comfortable with that, please do not tell Kai anything you would not
-          want kept. We would rather lose your visit than mislead you into it.
-        </PullQuote>
+      <Band palette="cream">
+        <BandHeading>
+          The questions <Accent>a sceptic would ask.</Accent>
+        </BandHeading>
+        <div className="mt-8">
+          <Faq
+            items={[
+              {
+                q: 'Is this HIPAA compliant?',
+                a: 'Keiro is not a HIPAA-covered entity, because it does not store health information on its servers — your conversation is never saved. That is an architectural answer, not a certification. If you are a clinic evaluating Keiro, read the section above before anything else.',
+              },
+              {
+                q: 'So an AI company in China sees what I tell Kai?',
+                a: 'Yes. Your messages are processed by DeepSeek, on servers in China, and under their policy they may retain and learn from what they receive. We put this in the middle of the page rather than the footnotes because you should decide with it in hand.',
+              },
+              {
+                q: 'Can Kai be tricked into diagnosing me?',
+                a: 'Kai is instructed never to, and it declines when asked. But it is a language model, and we will not claim it is impossible to push it off script. That is precisely why nothing Kai says is ever the final word, and why every path ends with a human clinician.',
+              },
+              {
+                q: 'Will you sell my data if you run out of money?',
+                a: 'No. There is no version of this where health conversations become a product. If Keiro cannot survive without doing that, Keiro should not survive.',
+              },
+              {
+                q: 'What if I want everything deleted?',
+                a: 'If you used Keiro as a guest, there is nothing to delete — we never had it. If you signed in, Settings → Delete all my data removes everything immediately, including your reports.',
+              },
+            ]}
+          />
+        </div>
+      </Band>
 
-        <P>
-          This is the single most important thing on this page, which is why it is not in the
-          footnotes. The full list of every company that touches your data — and what each one does
-          with it — is in the <A href="/privacy">privacy policy</A>.
-        </P>
-      </Section>
-
-      <Section title="What we keep, and for how long">
-        <P>
-          <strong>If you never sign in:</strong> nothing. No account, no record, no conversation. You
-          are a stranger who used a free tool, and you stay one.
-        </P>
-        <P>
-          <strong>If you do sign in:</strong> we keep your sign-in details and any reports you chose
-          to save — encrypted, visible only to your account, so you can find them again later. You
-          can download or delete all of it at any time from Settings, and deletion is immediate.
-        </P>
-        <P>
-          <strong>Your voice:</strong> if you speak instead of typing, the audio clip is transcribed
-          and discarded straight away. We do not keep recordings of your voice.
-        </P>
-        <P>
-          <strong>Anti-abuse counters:</strong> we keep a scrambled, one-way fingerprint of your
-          network address for a few days, purely so that nobody can flood the service. It cannot be
-          turned back into an address, and it is not linked to anything you said.
-        </P>
-      </Section>
-
-      <Section title="The safety fence around Kai" tinted>
-        <P>
-          Safety here does not mean a warning banner. It means Kai is built without the ability to do
-          the dangerous thing in the first place. There are three layers, and they are independent —
-          so no single mistake gets through.
-        </P>
-
-        <Facts
-          items={[
-            {
-              label: '01 — A narrow job',
-              body: 'Kai is instructed to do one thing: collect an intake history. It is explicitly forbidden from diagnosing, giving a prognosis, recommending treatment, or claiming to be human.',
-            },
-            {
-              label: '02 — An emergency exit',
-              body: 'If what you describe sounds like it cannot wait, Kai stops being an intake tool and tells you to seek emergency help immediately, rather than continuing to take notes.',
-            },
-            {
-              label: '03 — You have the last word',
-              body: 'You read the summary before your doctor does. Nothing is sent anywhere until you decide to send it. If Kai got you wrong, it goes no further.',
-            },
-            {
-              label: 'And a human at the end',
-              body: 'Every path through Keiro ends at a clinician. Kai is never the last thing between you and a decision about your body.',
-            },
-          ]}
-        />
-      </Section>
-
-      <Section title="What we have not done">
-        <P>
-          It matters that this list is short and honest, so here it is. Keiro has{' '}
-          <strong>not</strong> been reviewed or certified by a medical professional. It has no
-          clinical validation study, no FDA clearance, and no safety certification. It is a young
-          project built by one person, and we are not going to dress it up as something it is not.
-        </P>
-        <P>
-          Because Keiro does not store health information on its servers, it is not a HIPAA-covered
-          service. That is a statement about our architecture, not a claim of accreditation.
-        </P>
-        <P>
-          What we can tell you is exactly what Kai does and does not do, which is what this page is
-          for. Getting genuine clinical review is the next thing we want to do, and if you are a
-          clinician who would help with that, we would very much like to hear from you.{' '}
-          <A href="/contact">Please get in touch.</A>
-        </P>
-      </Section>
-
-      <Section title="If something goes wrong" tinted>
-        <P>
-          If Kai says something it should not have, misunderstands you in a way that matters, or
-          behaves in a way that frightens you — we want to know, and we would rather hear it bluntly.
-        </P>
-        <P>
-          <A href="/contact">Tell us what happened.</A> A real person reads these.
-        </P>
-      </Section>
-
-      <Section title="The questions a sceptic would ask">
-        <QA
-          items={[
-            {
-              q: 'Is this HIPAA compliant?',
-              a: 'Keiro is not a HIPAA-covered entity, because it does not store health information on its servers — your conversation is never saved. That is an architectural answer, not a certification. If you are a clinic evaluating Keiro, read the “what we have not done” section above before anything else.',
-            },
-            {
-              q: 'So an AI company in China sees what I tell Kai?',
-              a: 'Yes. Your messages are processed by DeepSeek, on servers in China, and under their policy they may retain and learn from what they receive. We have put this in the middle of the page rather than the footnotes because you should decide with it in hand.',
-            },
-            {
-              q: 'Can Kai be tricked into diagnosing me?',
-              a: 'Kai is instructed never to, and it declines when asked. But it is a language model, and we are not going to claim it is impossible to push it off script. That is precisely why nothing Kai says is ever the final word, and why every path ends with a human clinician.',
-            },
-            {
-              q: 'Will you sell my data if you run out of money?',
-              a: 'No. There is no version of this where health conversations become a product. If Keiro cannot survive without doing that, Keiro should not survive.',
-            },
-            {
-              q: 'What if I want everything deleted?',
-              a: 'If you used Keiro as a guest, there is nothing to delete — we never had it. If you signed in, Settings → Delete all my data removes everything immediately, including your reports.',
-            },
-          ]}
-        />
-      </Section>
+      <Band palette="mint">
+        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--band-muted)]">
+          References
+        </p>
+        <div className="mt-6">
+          <References
+            items={[
+              {
+                id: '1',
+                text: 'DeepSeek Privacy Policy — describes retention of user inputs and their use in service and model improvement.',
+                href: 'https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html',
+              },
+              {
+                id: '2',
+                text: 'HHS — Summary of the HIPAA Privacy Rule. Keiro is not a covered entity; it stores no health information on its servers.',
+                href: 'https://www.hhs.gov/hipaa/for-professionals/privacy/laws-regulations/index.html',
+              },
+              {
+                id: '3',
+                text: 'Section 1557 of the Affordable Care Act — language-access obligations for covered health programmes.',
+                href: 'https://www.hhs.gov/civil-rights/for-individuals/section-1557/index.html',
+              },
+            ]}
+          />
+        </div>
+      </Band>
 
       <CtaBand
+        palette="cream"
         title="Now that you know all that — whenever you’re ready."
         body="Free, no account, and you can stop at any point."
       />

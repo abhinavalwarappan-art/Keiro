@@ -2,19 +2,16 @@
 
 /* ============================================================================
    Keiro landing page
-   ----------------------------------------------------------------------------
-   Stack: Next.js + Tailwind + Framer Motion. No GSAP (never installed), no
-   WebGL, no scroll-position-linked motion of any kind.
 
-   Motion policy: every reveal is `whileInView` with `once: true` (see Reveal),
-   so nothing re-triggers on scroll-back and nothing is tied to scroll offset —
-   the old useScroll/useTransform rigs broke at different scroll speeds and on
-   short viewports. Ambient motion is CSS keyframes only.
+   Motion policy: no scroll-position-linked animation anywhere. Reveals are
+   `whileInView` with `once: true`; ambient motion (marquee, Kai's breathing) is
+   CSS keyframes; the step disclosures animate grid-template-rows. All of it is
+   disabled under prefers-reduced-motion.
 
-   Reduced motion: <MotionConfig reducedMotion="user"> plus a @media guard in
-   landing.css.
-
-   All visuals are scoped under `.lx` so the app's own tokens stay untouched.
+   Section spine — deliberately no archetype twice in a row, and the ground
+   changes underneath most of them:
+     hero -> marquee -> thesis(mint) -> expandable steps(cream)
+          -> split/mascot(mint) -> glass cards(DEEP) -> clinics(cream) -> cta(mint)
    ========================================================================== */
 
 import { Suspense } from 'react'
@@ -26,11 +23,15 @@ import '@/components/landing-v3/landing.css'
 import { fraunces } from '@/components/landing-v3/fonts'
 import { Nav } from '@/components/landing-v3/Nav'
 import { Hero } from '@/components/landing-v3/Hero'
-import { TrustLine } from '@/components/landing-v3/TrustLine'
-import { MeetKai } from '@/components/landing-v3/MeetKai'
-import { HowItWorks } from '@/components/landing-v3/HowItWorks'
-import { LanguagesGrid } from '@/components/landing-v3/LanguagesGrid'
-import { ForClinics } from '@/components/landing-v3/ForClinics'
+import {
+  LanguageStrip,
+  WhyBand,
+  StepsBand,
+  MeetKaiBand,
+  TrustBand,
+  ClinicsStrip,
+  HomeCta,
+} from '@/components/landing-v3/HomeSections'
 import { Footer } from '@/components/landing-v3/Footer'
 import { LandingScrollReset } from '@/components/landing-v3/LandingScrollReset'
 
@@ -72,11 +73,13 @@ export default function LandingPage() {
 
           <main className="relative z-[1]">
             <Hero />
-            <TrustLine />
-            <MeetKai />
-            <HowItWorks />
-            <LanguagesGrid />
-            <ForClinics />
+            <LanguageStrip />
+            <WhyBand />
+            <StepsBand />
+            <MeetKaiBand />
+            <TrustBand />
+            <ClinicsStrip />
+            <HomeCta />
           </main>
 
           <Footer />
