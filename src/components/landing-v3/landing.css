@@ -78,9 +78,133 @@
   border-radius: 12px;
 }
 
+/* ----------------------------------------------------------------------------
+   BAND PALETTES — the highest-leverage primitive on the site.
+
+   Borrowed from Kyndryl's component-palette system: a single class on a section
+   remaps surface / text / hairline, so alternating light-dark-tinted bands cost
+   one prop and text contrast can never accidentally break. Sections then differ
+   by *ground*, not just by layout.
+   -------------------------------------------------------------------------- */
+.lx-band {
+  background: var(--band-bg);
+  color: var(--band-body);
+}
+
+.lx-band-cream {
+  --band-bg: var(--lx-cream);
+  --band-ink: var(--lx-ink);
+  --band-body: var(--lx-body);
+  --band-muted: var(--lx-muted);
+  --band-line: var(--lx-line);
+  --band-card: #ffffff;
+}
+
+.lx-band-mint {
+  --band-bg: var(--lx-mint);
+  --band-ink: var(--lx-ink);
+  --band-body: var(--lx-body);
+  --band-muted: var(--lx-muted);
+  --band-line: var(--lx-line);
+  --band-card: #ffffff;
+}
+
+/* Deep band. Text is near-white and hairlines are white-alpha, so anything
+   dropped in here stays legible without per-element overrides. */
+.lx-band-deep {
+  --band-bg: var(--lx-ink);
+  --band-ink: #ffffff;
+  --band-body: rgba(255, 255, 255, 0.82);
+  --band-muted: rgba(255, 255, 255, 0.62);
+  --band-line: rgba(255, 255, 255, 0.16);
+  --band-card: rgba(255, 255, 255, 0.08);
+}
+
+/* Glass card — only legible over .lx-band-deep. */
+.lx-glass {
+  background: var(--band-card);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--band-line);
+}
+
+/* ----------------------------------------------------------------------------
+   ACCENT PHRASE — Tucuvi sets the emphasised phrase of every heading in italic
+   serif in the accent colour. One tiny component makes every heading on the site
+   read as authored rather than generated.
+   -------------------------------------------------------------------------- */
+.lx-accent {
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--lx-green);
+}
+
+.lx-band-deep .lx-accent {
+  color: var(--lx-sage);
+}
+
+/* ----------------------------------------------------------------------------
+   LANGUAGE MARQUEE — our answer to a client-logo strip. The proof isn't logos,
+   it's scripts. Masked at both edges so it fades rather than clips.
+   -------------------------------------------------------------------------- */
+.lx-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.lx-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: lx-scroll 60s linear infinite;
+}
+
+.lx-marquee:hover .lx-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes lx-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Chip scroller — 45 languages don't fit, so the list scrolls. Fade the bottom
+   edge so a half-visible row reads as "there is more" rather than as clipping. */
+.lx-fade-b {
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, #000 78%, transparent);
+}
+
+/* ----------------------------------------------------------------------------
+   DISCLOSURE — expand/collapse on grid-template-rows rather than max-height.
+   max-height animates a layout-bound property (and needs a magic number that
+   clips long content); 0fr -> 1fr animates cleanly and measures itself.
+   -------------------------------------------------------------------------- */
+.lx-reveal-grid {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lx-reveal-grid[data-open='true'] {
+  grid-template-rows: 1fr;
+}
+
+.lx-reveal-grid > * {
+  overflow: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .lx-breathe {
+  .lx-breathe,
+  .lx-marquee-track {
     animation: none;
     transform: none;
+  }
+  .lx-reveal-grid {
+    transition: none;
   }
 }
