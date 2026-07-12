@@ -7,10 +7,10 @@ import {
   BandHeading,
   Accent,
   LanguageMarquee,
-  GlassCards,
+  ContrastPair,
   Prose,
   Para,
-  Faq,
+  QaColumns,
 } from '@/components/landing-v3/Sections'
 import { LanguagePicker } from '@/components/landing-v3/LanguagePicker'
 import { LanguageDirectory } from '@/components/landing-v3/LanguageExplorer'
@@ -31,8 +31,9 @@ export const metadata: Metadata = {
           -> directory(cream) -> faq(mint) */
 export default function LanguagesPage() {
   return (
-    <SiteShell>
+    <SiteShell flow="languages">
       <PageHero
+        flow
         variant="centered"
         eyebrow="Languages"
         title="We speak your language."
@@ -52,24 +53,33 @@ export default function LanguagesPage() {
         <LanguageMarquee />
       </div>
 
-      <Band palette="deep">
-        <BandHeading lede="A lot of software claims to support your language when what it really means is that the buttons are translated. You still have to answer in English.">
+      {/* The lede sets up a contrast — "what it really means is that the buttons
+          are translated" — and the section used to answer it with three cards
+          describing only our own side. Now the claim is something you can see
+          rather than something you are asked to take on trust. */}
+      <Band palette="deep" flow="glow">
+        <BandHeading lede="A lot of software claims to support your language. What it usually means is that the buttons are translated — and you still have to answer in English.">
           What <Accent>“speaking your language”</Accent> actually means.
         </BandHeading>
-        <div className="mt-10">
-          <GlassCards
-            items={[
+        <div className="mt-12">
+          <ContrastPair
+            theirs="What most software means by it"
+            ours="What Kai means by it"
+            rows={[
               {
-                label: 'The conversation, not the menu',
-                body: 'You describe the pain in your language. Kai asks its follow-up questions in your language. Only the summary, the part your doctor reads, comes out in English.',
+                theirs:
+                  'The menu is translated. The questions are translated. You are still expected to describe your chest pain in English.',
+                ours: 'You describe the pain in your language, and Kai asks its follow-up questions in your language too. Only the summary — the part your doctor reads — comes out in English.',
               },
               {
-                label: 'Right-to-left, properly',
-                body: 'Arabic, Urdu and Farsi are laid out right-to-left, the way they are meant to be read. Not a Latin layout with the words swapped.',
+                theirs:
+                  'Arabic, Urdu and Farsi are poured into a left-to-right layout with the words swapped round, so the page reads backwards.',
+                ours: 'Right-to-left, properly: the layout itself flips, the way those languages are actually meant to be read.',
               },
               {
-                label: 'Scripts that actually render',
-                body: 'Devanagari, Bengali, Tamil, Telugu, Gujarati, Malayalam, Amharic, Chinese, Japanese and Korean are drawn with fonts that contain those characters, not a fallback face.',
+                theirs:
+                  'Your script falls back to whatever font the device had lying around, and half the characters come out as boxes.',
+                ours: `Devanagari, Bengali, Tamil, Telugu, Gujarati, Malayalam, Amharic, Chinese, Japanese and Korean are drawn with fonts that actually contain those characters.`,
               },
             ]}
           />
@@ -87,8 +97,8 @@ export default function LanguagesPage() {
         <BandHeading>
           Questions about <Accent>language.</Accent>
         </BandHeading>
-        <div className="mt-8">
-          <Faq
+        <div className="mt-10">
+          <QaColumns
             items={[
               {
                 q: 'Do not see yours?',

@@ -7,11 +7,11 @@ import {
   Accent,
   Thesis,
   NumberedSteps,
-  GlassCards,
+  LandscapeRows,
   Split,
   Prose,
   Para,
-  Faq,
+  QaColumns,
 } from '@/components/landing-v3/Sections'
 import { ChatMock, ReportMock, VoiceMock, ChipRow, SpecList } from '@/components/landing-v3/ChatMock'
 
@@ -30,8 +30,9 @@ export const metadata: Metadata = {
           -> glass "what exists today"(DEEP) -> split/tech(mint) -> faq(cream) */
 export default function HowItWorksPage() {
   return (
-    <SiteShell>
+    <SiteShell flow="how">
       <PageHero
+        flow
         eyebrow="How it works"
         title="You should not have to find the English word for your own pain."
         lede="Keiro sits in the twenty minutes before your appointment, the part where you are rehearsing, in a language you are still learning, how to explain what is wrong."
@@ -81,37 +82,53 @@ export default function HowItWorksPage() {
         </div>
       </Band>
 
-      <Band palette="deep">
+      {/* Not cards. Every one of these options genuinely gives the patient
+          something, and every one runs out somewhere — and the whole argument of
+          the section is the gap between those two facts. A card collapses them
+          into one grey paragraph; facing columns keep them in tension. */}
+      <Band palette="deep" flow="glow">
         <BandHeading lede="None of this is because clinics do not care. It is because the tools available to them are thin.">
           The help that exists, <Accent>and where it runs out.</Accent>
         </BandHeading>
 
-        <div className="mt-10">
-          <GlassCards
-            items={[
+        <div className="mt-12">
+          <LandscapeRows
+            rows={[
               {
-                label: 'Professional interpreters',
-                body: 'The right answer, when you can get one. Expensive, booked out, and rarely standing in the room at the moment you actually need to say something.',
+                option: 'A professional interpreter',
+                gives: 'The right answer, when you can get one. A trained person who carries your meaning, not just your words.',
+                runsOut:
+                  'Expensive, booked out, and rarely standing in the room at the moment you actually need to say something.',
               },
               {
-                label: 'The phone line',
-                body: 'You are handed a receiver and put on hold. By the time someone picks up, the doctor has moved on and you are explaining your body to a stranger you cannot see.',
+                option: 'The phone line',
+                gives: 'Someone qualified, eventually, without anyone having to travel to you.',
+                runsOut:
+                  'You are handed a receiver and put on hold. By the time someone picks up, the doctor has moved on.',
               },
               {
-                label: 'A family member',
-                body: 'Often a child. A ten-year-old should not be the one asked to say the word for “bleeding”, or to hear a diagnosis first and pass it on.',
+                option: 'A family member',
+                gives: 'Somebody who is already there, already trusted, and free.',
+                runsOut:
+                  'Often a child. A ten-year-old should not be asked to say the word for “bleeding”, or to hear a diagnosis first and pass it on.',
               },
               {
-                label: 'A translation app',
-                body: 'It converts words. It does not know that “my chest is heavy” is worth three more questions, and it hands your doctor nothing they can read.',
+                option: 'A translation app',
+                gives: 'Instant, free, and in your pocket. It will convert the words you type.',
+                runsOut:
+                  'It does not know that “my chest is heavy” is worth three more questions, and it hands your doctor nothing they can read.',
               },
               {
-                label: 'Filling in a form',
-                body: 'Forms assume you already know the medical word for what you feel. That assumption is the entire problem, restated as a text field.',
+                option: 'Filling in a form',
+                gives: 'Something written down, in the order a clinic wants to read it.',
+                runsOut:
+                  'Forms assume you already know the medical word for what you feel. That assumption is the entire problem, restated as a text field.',
               },
               {
-                label: 'Hoping for the best',
-                body: 'The most common one, and the one that ends with people not coming in at all.',
+                option: 'Hoping for the best',
+                gives: 'Nothing. It is what most people fall back on anyway.',
+                runsOut:
+                  'It ends with people not coming in at all — and that is the outcome nobody records.',
               },
             ]}
           />
@@ -162,12 +179,16 @@ export default function HowItWorksPage() {
         </Split>
       </Band>
 
-      <Band palette="cream">
+      {/* Open, not an accordion. These are not objections a sceptic is scanning
+          for — they are the four things nobody bothers to tell you. Hiding them
+          behind a chevron on a page whose entire job is explanation would be
+          absurd. See QaColumns in Sections.tsx. */}
+      <Band palette="cream" rails>
         <BandHeading>
           The part nobody explains: <Accent>what happens after.</Accent>
         </BandHeading>
-        <div className="mt-8">
-          <Faq
+        <div className="mt-10">
+          <QaColumns
             items={[
               {
                 q: 'What do I actually walk away with?',

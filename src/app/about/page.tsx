@@ -28,16 +28,21 @@ export const metadata: Metadata = {
 }
 
 /* Spine: opens on a THESIS with no page hero at all — deliberately the only page
-   that does — then stats -> quote(deep) -> split -> index grid -> cta. */
+   that does — then stats -> quote(deep, glowing) -> split -> index grid.
+
+   Register: this page uses <Accent> (italic serif, green) and never <GradWord>.
+   /accessibility does the opposite. Holding one emphasis register per page is
+   what stops every heading on the site reading as the same heading. */
 export default function AboutPage() {
   return (
-    <SiteShell>
-      <Band palette="cream" className="!border-t-0 pt-16 md:pt-24">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--lx-ink)]">
+    <SiteShell flow="mission">
+      <Band palette="cream" flow="hero" className="!border-t-0 pt-16 md:pt-24">
+        <p className="lx-label text-xs text-[var(--lx-ink)]">
           Our mission
         </p>
         <div className="mt-6">
           <Thesis
+            serif
             as="h1"
             statement={
               <>
@@ -51,7 +56,7 @@ export default function AboutPage() {
         </div>
       </Band>
 
-      <Band palette="mint">
+      <Band palette="mint" rails>
         <BandHeading lede="These are not marketing numbers. They are the reason the project exists.">
           The gap, <Accent>in figures.</Accent>
         </BandHeading>
@@ -86,7 +91,10 @@ export default function AboutPage() {
         </div>
       </Band>
 
-      <Band palette="deep">
+      {/* The one dark, colour-flooded section on the page, at the emotional peak.
+          Stripe's whole homepage is near-white with exactly one of these, and that
+          restraint is the entire effect — the green is saved up and spent once. */}
+      <Band palette="deep" flow="glow">
         <Quote attribution="The whole thesis" role="in one sentence">
           The gap is not between languages. It is between what a person can feel and{' '}
           <Accent>what they are able to say to the one person who could help.</Accent>

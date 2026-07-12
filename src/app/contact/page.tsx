@@ -6,7 +6,6 @@ import {
   BandHeading,
   Accent,
   ExpandableSteps,
-  Thesis,
   ArrowLink,
 } from '@/components/landing-v3/Sections'
 import { ContactForm } from '@/components/landing-v3/ContactForm'
@@ -26,15 +25,21 @@ export const metadata: Metadata = {
    -> emergency thesis(DEEP). An audience router rather than a form-first page. */
 export default function ContactPage() {
   return (
-    <SiteShell>
+    <SiteShell flow="contact">
       <PageHero
+        flow
         variant="centered"
         eyebrow="Contact"
         title="Tell us who you are, and we will write back."
         lede="A real person reads these. There is no ticketing system and no autoresponder. Find yourself below first; it will usually save you an email."
       />
 
-      <Band palette="cream">
+      {/* The audience router is this page's signature — it is the only page that
+          answers you before you write anything, and for most people it removes the
+          need to write at all. It stays an accordion for the same reason /privacy
+          keeps one: you are scanning for yourself, and you want the other four out
+          of the way. */}
+      <Band palette="cream" rails>
         <BandHeading lede="Open the one that sounds like you.">
           Start <Accent>here.</Accent>
         </BandHeading>
@@ -144,19 +149,29 @@ export default function ContactPage() {
         </Reveal>
       </Band>
 
-      <Band palette="deep">
-        <Thesis
-          statement={
-            <>
-              If this is an emergency, <Accent>do not use this form.</Accent>
-            </>
-          }
-          body="Nobody is watching this inbox around the clock and we cannot help you quickly. If you are in danger right now, or the pain is severe, call your local emergency number."
-        />
-        <Reveal className="mt-6">
+      {/* Safety copy, set like safety copy.
+
+          This was a <Thesis>: an oversized italic serif statement, the same block
+          /about opens its manifesto with. That is the wrong register entirely —
+          a warning that someone might be dying should not be typeset like a line
+          of poetry. Sans, not serif. No decorative accent. A rule down the side,
+          the way a real notice is marked, and the exit is the first thing your eye
+          lands on rather than a link underneath a paragraph. */}
+      <Band palette="deep" flow="glow">
+        <Reveal className="max-w-3xl border-l-4 border-[var(--lx-sage)] pl-6 sm:pl-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--lx-sage)]">
+            If this is an emergency
+          </p>
+          <h2 className="mt-5 text-balance font-sans text-[clamp(1.5rem,3.4vw,2.1rem)] font-semibold leading-[1.25] tracking-[-0.01em] text-[var(--band-ink)]">
+            Do not use this form.
+          </h2>
+          <p className="mt-5 max-w-2xl text-lg leading-[1.8] text-[var(--band-body)]">
+            Nobody is watching this inbox around the clock, and we cannot help you quickly. If you
+            are in danger right now, or the pain is severe, call your local emergency number.
+          </p>
           <a
             href="/emergency"
-            className="lx-focus inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-sage)] px-6 font-semibold text-[var(--lx-ink)] transition-colors duration-200 hover:bg-white"
+            className="lx-focus mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-sage)] px-6 font-semibold text-[var(--lx-ink)] transition-colors duration-200 hover:bg-white"
           >
             Get emergency help
           </a>

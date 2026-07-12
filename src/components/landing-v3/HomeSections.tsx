@@ -13,7 +13,7 @@ import {
   Accent,
   Thesis,
   ExpandableSteps,
-  GlassCards,
+  PromiseLedger,
   LanguageMarquee,
   Split,
   ArrowLink,
@@ -177,7 +177,7 @@ export function MeetKaiBand() {
           ].map((item, i) => (
             <Reveal key={item.t} delay={i * 0.07}>
               <li>
-                <h3 className="lx-display font-semibold text-[var(--band-ink)]">{item.t}</h3>
+                <h3 className="lx-title text-[var(--band-ink)]">{item.t}</h3>
                 <p className="mt-1 leading-[1.75] text-[var(--band-muted)]">{item.b}</p>
               </li>
             </Reveal>
@@ -192,36 +192,42 @@ export function MeetKaiBand() {
   )
 }
 
-/* The deep band. Its job is to say the uncomfortable things, and to give the
-   page one moment of real tonal contrast. Glass over a deep field is the depth
-   treatment — no photograph required. */
+/* The deep band — this page's one chromatic section, and its emotional peak.
+
+   Its job is to say the uncomfortable things. It used to say them in three small
+   frosted cards, which is the same shape five other pages were using, and which
+   sized the most load-bearing promises on the site like a feature list.
+
+   They are not features. They are refusals, and refusals want scale: full-width
+   ruled rows, display type, and nothing else competing. The single-column form of
+   PromiseLedger exists for exactly this. */
 export function TrustBand() {
   return (
-    <Band palette="deep">
+    <Band palette="deep" flow="glow">
       <BandHeading lede="A tool that asks frightened people to say private things owes them a plain account of what it does with them. So here it is, before you start rather than after.">
         What Kai will <Accent>never</Accent> do.
       </BandHeading>
 
-      <div className="mt-10">
-        <GlassCards
-          items={[
+      <div className="mt-12">
+        <PromiseLedger
+          never={[
             {
-              label: 'Never diagnose you',
-              body: 'Not carefully, not with a disclaimer. Kai has no ability to tell you what is wrong or how serious it is. Your doctor does that.',
+              t: 'Never diagnose you.',
+              b: 'Not carefully, not with a disclaimer. Kai has no ability to tell you what is wrong or how serious it is. Your doctor does that.',
             },
             {
-              label: 'Never keep your conversation',
-              body: 'What you say to Kai is not saved to our servers. Use it as a guest, which is the default, and we store nothing about you at all.',
+              t: 'Never keep your conversation.',
+              b: 'What you say to Kai is not saved to our servers. Use it as a guest, which is the default, and we store nothing about you at all.',
             },
             {
-              label: 'Never sell anything you said',
-              body: 'Not to advertisers, not to data brokers, not to insurers. There is no business model here that requires knowing about your health.',
+              t: 'Never sell anything you said.',
+              b: 'Not to advertisers, not to data brokers, not to insurers. There is no business model here that requires knowing about your health.',
             },
           ]}
         />
       </div>
 
-      <Reveal className="mt-8">
+      <Reveal className="mt-10">
         <ArrowLink href="/privacy-safety">
           Read the whole thing, including what we have not done
         </ArrowLink>
@@ -234,12 +240,12 @@ export function TrustBand() {
 export function ClinicsStrip() {
   return (
     <Band palette="cream" id="for-clinics">
-      <div className="flex flex-col gap-6 rounded-[24px] border border-[var(--band-line)] bg-white p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-6 rounded-[16px] border border-[var(--band-line)] bg-white p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
         <div className="max-w-xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--lx-muted)]">
+          <p className="lx-label text-xs text-[var(--lx-muted)]">
             For clinics
           </p>
-          <h2 className="lx-display mt-3 text-xl font-semibold text-[var(--lx-ink)] sm:text-2xl">
+          <h2 className="lx-title mt-3 text-xl text-[var(--lx-ink)] sm:text-2xl">
             Your patient arrives <Accent>already understood.</Accent>
           </h2>
           <p className="mt-3 leading-[1.8] text-[var(--lx-muted)]">
@@ -264,7 +270,7 @@ export function HomeCta() {
     <Band palette="mint">
       <Reveal className="mx-auto flex max-w-2xl flex-col items-center gap-5 text-center">
         <Kai size="sm" state="waving" />
-        <h2 className="lx-display text-balance text-[clamp(1.6rem,4vw,2.4rem)] font-semibold leading-[1.2] text-[var(--lx-ink)]">
+        <h2 className="lx-heading text-balance text-[clamp(1.6rem,4vw,2.4rem)] text-[var(--lx-ink)]">
           Whenever you&apos;re ready. <Accent>There&apos;s no rush.</Accent>
         </h2>
         <p className="text-lg leading-[1.8] text-[var(--lx-muted)]">

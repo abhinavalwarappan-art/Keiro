@@ -1,14 +1,14 @@
 import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { A } from '@/components/landing-v3/PageBits'
+import { PageHero, A } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
-  Accent,
+  GradWord,
   Thesis,
-  StatRow,
-  IndexGrid,
+  SpecRows,
+  CheckList,
   GlassCards,
   Split,
   Quote,
@@ -30,22 +30,100 @@ export const metadata: Metadata = {
   },
 }
 
-/* Spine: opens on a QUOTE (the only page that does) -> thesis -> stats
-   -> index grid -> split/voice -> glass "still falling short"(DEEP)
-   -> faq -> references. */
+/* Spine: hero -> SPEC SHEET(cream) -> thesis(mint) -> checklist(cream)
+   -> split/voice(mint) -> quote + shortcomings(DEEP, glowing) -> faq -> refs.
+
+   This page used to be /about with different words: same eyebrow, same giant
+   serif opening with a green italic tail, same four-figure stat row, same
+   six-item numbered grid. Everything load-bearing here is now different.
+
+   Register: <GradWord> (upright, gradient-filled) and never <Accent>. /about is
+   the mirror image. */
 export default function AccessibilityPage() {
   return (
-    <SiteShell>
-      <Band palette="cream" className="!border-t-0 pt-16 md:pt-24">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--lx-ink)]">
-          Accessibility
-        </p>
-        <div className="mt-8">
-          <Quote asHeading attribution="The person we build for" role="every single time">
-            She is 72. Her phone is five years old and cracked in one corner. The clinic wi-fi is
-            slow, her eyes are not what they were, and she is already worried about the appointment.{' '}
-            <Accent>If it does not work for her, it does not work.</Accent>
-          </Quote>
+    <SiteShell flow="access">
+      <PageHero
+        flow
+        variant="editorial"
+        eyebrow="Accessibility"
+        title={
+          <>
+            Built for the person <GradWord>least likely</GradWord> to be comfortable using it.
+          </>
+        }
+        lede="Meeting the legal standard is the floor, not the achievement. We build to WCAG 2.2 AA as a baseline and then keep going — because she does not care what standard we met. She cares whether she can read it."
+      />
+
+      {/* A spec sheet that proves itself. Every row contains a live instance of the
+          thing it claims: the 44px row holds a real 44px target, the 18px row is
+          set at 18px. If we ever break the promise, the page breaks visibly —
+          which is worth more than a badge. */}
+      <Band palette="cream" rails>
+        <BandHeading lede="Not aspirations. Each of these is measurable, we measure it, and the demonstration beside it is live — rendered by the same stylesheet as the rest of the page.">
+          The numbers, and <GradWord>what they look like</GradWord>.
+        </BandHeading>
+        <div className="mt-12">
+          <SpecRows
+            specs={[
+              {
+                figure: '44px',
+                label: 'Minimum touch target',
+                note: 'Every button and every link. A hand that shakes should still be able to use this. The WCAG floor is 24px; we hold ourselves to 44.',
+                demo: (
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-sm font-bold text-white"
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                    <span className="text-sm text-[var(--band-muted)]">
+                      actual size,
+                      <br />
+                      44 × 44
+                    </span>
+                  </div>
+                ),
+              },
+              {
+                figure: '18px',
+                label: 'Minimum body text',
+                note: 'Never grey-on-grey, and pinch-zoom is never disabled. If you need it bigger, your browser is allowed to make it bigger.',
+                demo: (
+                  <p className="text-[18px] leading-[1.6] text-[var(--band-body)]">
+                    This sentence is set at 18px.
+                  </p>
+                ),
+              },
+              {
+                figure: String(LANGUAGES.length),
+                label: 'Languages, in their own script',
+                note: 'Including right-to-left, and romanised text where the script is unfamiliar. A font that breaks in Hindi is a bug, not a brand.',
+                demo: (
+                  <p
+                    className="lx-native text-lg leading-[1.7] text-[var(--band-body)]"
+                    lang="mul"
+                  >
+                    नमस्ते · مرحبا · 你好 · Xin chào
+                  </p>
+                ),
+              },
+              {
+                figure: '0',
+                label: 'Timers, anywhere',
+                note: 'Nothing counts down at you. Nothing flashes, nothing auto-plays, and nothing expires while you are thinking about how to say it.',
+                demo: (
+                  <p className="text-sm leading-[1.7] text-[var(--band-muted)]">
+                    <span className="line-through opacity-60">Session expires in 4:59</span>
+                    <br />
+                    <span className="font-semibold text-[var(--lx-green-ink)]">
+                      Take as long as you need.
+                    </span>
+                  </p>
+                ),
+              },
+            ]}
+          />
         </div>
       </Band>
 
@@ -54,93 +132,35 @@ export default function AccessibilityPage() {
           statement={
             <>
               The people most likely to need Keiro are the people least likely to be comfortable
-              using it. <Accent>Designing for anyone else would miss the point entirely.</Accent>
+              using it. <GradWord>Designing for anyone else would miss the point entirely.</GradWord>
             </>
           }
-          body="Meeting the legal standard is the floor, not the achievement. We build to WCAG 2.2 AA as a baseline and then keep going, because she does not care what standard we met. She cares whether she can read it."
+          body="So the target is not the confident user on a new phone. It is the person who has been quietly dreading this appointment for a week."
         />
       </Band>
 
-      <Band palette="cream">
-        <BandHeading lede="Not aspirations. These are measurable, and we measure them.">
-          What that means <Accent>in numbers.</Accent>
+      <Band palette="cream" rails>
+        <BandHeading lede="Six promises. None of them are interesting on their own, and all of them are load-bearing.">
+          The choices behind <GradWord>those numbers</GradWord>.
         </BandHeading>
         <div className="mt-10">
-          <StatRow
-            stats={[
-              {
-                value: 44,
-                suffix: 'px',
-                label: 'minimum touch target',
-                note: 'every button and link. A hand that shakes should still be able to use this.',
-              },
-              {
-                value: 18,
-                suffix: 'px',
-                label: 'minimum body text',
-                note: 'never grey-on-grey, and pinch-zoom is never disabled.',
-              },
-              {
-                value: LANGUAGES.length,
-                label: 'languages',
-                note: 'including right-to-left, and romanised text where the script is unfamiliar.',
-              },
-              {
-                value: 0,
-                label: 'timers, anywhere',
-                note: 'nothing counts down at you. Nothing flashes. Nothing auto-plays.',
-              },
+          <CheckList
+            items={[
+              'Every colour pairing on this site clears WCAG AA contrast, and the important ones clear AAA.',
+              'If your device asks for reduced motion, every animation here turns off. Not softened. Off.',
+              'You can reach everything by keyboard, every focused element is clearly outlined, and skip-to-content is the first thing you land on.',
+              'Headings are real headings and forms have real labels, so a screen reader reads a document rather than a soup of divs.',
+              'When Kai’s greeting changes language, it is announced, not silently swapped behind a screen-reader user’s back.',
+              'Scripts render in fonts that actually contain their characters. A gorgeous Latin face that breaks in Hindi is a bug, not a brand.',
             ]}
           />
         </div>
       </Band>
 
       <Band palette="mint">
-        <BandHeading>
-          The choices <Accent>behind those numbers.</Accent>
-        </BandHeading>
-        <div className="mt-10">
-          <IndexGrid
-            items={[
-              {
-                n: '01',
-                label:
-                  'Every colour pairing on this site clears WCAG AA contrast, and the important ones clear AAA.',
-              },
-              {
-                n: '02',
-                label:
-                  'If your device asks for reduced motion, every animation here turns off. Not softened. Off.',
-              },
-              {
-                n: '03',
-                label:
-                  'You can reach everything by keyboard, every focused element is clearly outlined, and skip-to-content is the first thing you land on.',
-              },
-              {
-                n: '04',
-                label:
-                  'Headings are real headings and forms have real labels, so a screen reader reads a document rather than a soup of divs.',
-              },
-              {
-                n: '05',
-                label:
-                  'When Kai’s greeting changes language, it is announced, not silently swapped behind a screen-reader user’s back.',
-              },
-              {
-                n: '06',
-                label:
-                  'Scripts render in fonts that actually contain their characters. A gorgeous Latin face that breaks in Hindi is a bug, not a brand.',
-              },
-            ]}
-          />
-        </div>
-      </Band>
-
-      <Band palette="cream">
-        <Split media={<VoiceMock />}>
+        <Split media={<VoiceMock />} flip>
           <BandHeading lede="Typing is a barrier we badly underestimate. It is hard on a cracked screen, hard with arthritis, hard in a script your keyboard barely supports, and hard when you are frightened.">
-            Speaking, <Accent>not typing.</Accent>
+            Speaking, not <GradWord>typing</GradWord>.
           </BandHeading>
           <Prose>
             <Para>
@@ -157,45 +177,58 @@ export default function AccessibilityPage() {
         </Split>
       </Band>
 
-      <Band palette="deep">
-        <BandHeading lede="It would be easy to end this page on the good part. Here is the honest state of it instead.">
-          Where we are <Accent>still falling short.</Accent>
-        </BandHeading>
-        <div className="mt-10">
-          <GlassCards
-            items={[
-              {
-                label: 'No formal audit',
-                body: 'Keiro has not been independently audited for accessibility. Our confidence comes from building carefully to a standard, not from a certificate.',
-              },
-              {
-                label: 'Not tested with the people it is for',
-                body: 'We have not sat with a panel of screen-reader users or older users and watched them use it. That is the single biggest gap, and we know which one it is.',
-              },
-              {
-                label: 'It still assumes you can read',
-                body: `Not every one of the ${LANGUAGES.length} languages has been checked by a native speaker yet, and the conversation still leaves out people who cannot read at all.`,
-              },
-            ]}
-          />
-        </div>
+      {/* The page's one dark section, and its emotional peak. The "she is 72" quote
+          used to open the page as a giant serif slab — which is exactly how /about
+          opens, and why the two felt identical. It is a far better piece of writing
+          landing here, in the dark, immediately before we admit what we have not
+          done for her yet. */}
+      <Band palette="deep" flow="glow">
+        <Quote serif attribution="The person we build for" role="every single time">
+          She is 72. Her phone is five years old and cracked in one corner. The clinic wi-fi is slow,
+          her eyes are not what they were, and she is already worried about the appointment.{' '}
+          <GradWord>If it does not work for her, it does not work.</GradWord>
+        </Quote>
 
-        <p className="mt-8 max-w-2xl leading-[1.85] text-[var(--band-muted)]">
-          If you use a screen reader, or you help older or disabled patients, and something here is
-          broken or patronising,{' '}
-          <a
-            href="/contact"
-            className="lx-focus font-semibold text-[var(--lx-sage)] underline underline-offset-4"
-          >
-            please tell us
-          </a>
-          . That kind of message is worth more to us than any audit.
-        </p>
+        <div className="mt-16">
+          <BandHeading lede="It would be easy to end this page on the good part. Here is the honest state of it instead.">
+            Where we are still <GradWord>falling short</GradWord>.
+          </BandHeading>
+          <div className="mt-10">
+            <GlassCards
+              items={[
+                {
+                  label: 'No formal audit',
+                  body: 'Keiro has not been independently audited for accessibility. Our confidence comes from building carefully to a standard, not from a certificate.',
+                },
+                {
+                  label: 'Not tested with the people it is for',
+                  body: 'We have not sat with a panel of screen-reader users or older users and watched them use it. That is the single biggest gap, and we know which one it is.',
+                },
+                {
+                  label: 'It still assumes you can read',
+                  body: `Not every one of the ${LANGUAGES.length} languages has been checked by a native speaker yet, and the conversation still leaves out people who cannot read at all.`,
+                },
+              ]}
+            />
+          </div>
+
+          <p className="mt-8 max-w-2xl leading-[1.85] text-[var(--band-muted)]">
+            If you use a screen reader, or you help older or disabled patients, and something here is
+            broken or patronising,{' '}
+            <a
+              href="/contact"
+              className="lx-focus font-semibold text-[var(--lx-sage)] underline underline-offset-4"
+            >
+              please tell us
+            </a>
+            . That kind of message is worth more to us than any audit.
+          </p>
+        </div>
       </Band>
 
       <Band palette="mint">
         <BandHeading>
-          Designing for fear, <Accent>not just for eyesight.</Accent>
+          Designing for fear, not just for <GradWord>eyesight</GradWord>.
         </BandHeading>
         <div className="mt-8">
           <Faq
@@ -233,7 +266,7 @@ export default function AccessibilityPage() {
       </Band>
 
       <Band palette="cream">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--band-muted)]">
+        <p className="lx-label text-xs text-[var(--band-muted)]">
           Standards we build to
         </p>
         <div className="mt-6">
@@ -258,7 +291,6 @@ export default function AccessibilityPage() {
           />
         </div>
       </Band>
-
     </SiteShell>
   )
 }
