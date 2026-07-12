@@ -51,29 +51,8 @@ export async function POST(request: NextRequest) {
   try {
     const ip = getClientIp(request)
     const ipHash = await hashIp(ip)
-    const windowStart = new Date(Date.now() - CONTACT_WINDOW_MS).toISOString()
 
     const supabase = await createClient()
-    const { count, error: countError } = await supabase
-      .from('contact_attempts')
-      .select('*', { count: 'exact', head: true })
-      .eq('ip_hash', ipHash)
-      .gte('created_at', windowStart)
-
-    if (countError) {
-      logger.error('rate_limit_check_failed', '/api/contact', undefined, {
-        message: countError.message,
-      })
-      return NextResponse.json({ error: 'Failed to send' }, { status: 500 })
-    }
-
-    if ((count ?? 0) >= CONTACT_LIMIT) {
-      logger.warn('rate_limit_hit', '/api/contact')
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      )
-    }
 
     let body: unknown
     try {
@@ -105,16 +84,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'One or more fields are too long' }, { status: 400 })
     }
 
-    // Record the attempt only after input validation passes
-    const { error: insertError } = await supabase
-      .from('contact_attempts')
-      .insert({ ip_hash: ipHash })
+    // Rate limit only after input validation passes, so a typo'd submission
+    // doesn't burn a slot. check_and_record_contact_attempt (migration 008) does
+    // the count-check and the insert atomically under an advisory lock, so
+    // concurrent submissions from one IP can't all read count=0 and slip through.
+    //
+    // It must be an RPC, not a direct table query: 008 revoked anon's SELECT and
+    // INSERT on contact_attempts and granted EXECUTE on this SECURITY DEFINER
+    // function instead. A direct .from('contact_attempts') call is denied for the
+    // anonymous visitors this public form actually serves.
+    const { data: allowed, error: rateLimitError } = await supabase.rpc(
+      'check_and_record_contact_attempt',
+      {
+        p_ip_hash: ipHash,
+        p_limit: CONTACT_LIMIT,
+        p_window_ms: CONTACT_WINDOW_MS,
+      }
+    )
 
-    if (insertError) {
-      logger.error('contact_attempt_insert_failed', '/api/contact', undefined, {
-        message: insertError.message,
+    if (rateLimitError) {
+      logger.error('rate_limit_check_failed', '/api/contact', undefined, {
+        message: rateLimitError.message,
       })
       return NextResponse.json({ error: 'Failed to send' }, { status: 500 })
+    }
+
+    if (!allowed) {
+      logger.warn('rate_limit_hit', '/api/contact')
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      )
     }
 
     const safeClinicName = escapeHtml(clinicName)
