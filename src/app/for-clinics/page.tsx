@@ -5,9 +5,9 @@ import { PageHero, A } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
-  Accent,
+  GradWord,
   Thesis,
-  StatRow,
+  StatCards,
   GlassCards,
   Faq,
   Prose,
@@ -33,8 +33,9 @@ export const metadata: Metadata = {
    NOT"(DEEP) -> thesis(mint) -> form(cream) -> faq(mint) */
 export default function ForClinicsPage() {
   return (
-    <SiteShell>
+    <SiteShell flow="clinics">
       <PageHero
+        flow
         variant="split"
         eyebrow="For clinics"
         title="Your patient arrives already understood."
@@ -45,7 +46,7 @@ export default function ForClinicsPage() {
       <Band palette="cream">
         <div className="max-w-3xl">
           <BandHeading lede="A patient talks to Kai before the appointment, in the waiting room, on the bus, or at home the night before.">
-            Not a transcript. <Accent>A summary.</Accent>
+            Not a transcript. <GradWord>A summary.</GradWord>
           </BandHeading>
           <Prose>
             <Para>
@@ -61,42 +62,48 @@ export default function ForClinicsPage() {
         </div>
       </Band>
 
-      <Band palette="mint">
-        <BandHeading>
-          What it changes, <Accent>concretely.</Accent>
+      {/* The zeros are the pitch — zero setup, zero cost — so they have to look
+          deliberate. As four huge bare numerals on hairlines they just read as a
+          row of nothing, or worse, as a figure that failed to load. On cards, with
+          the label carrying the claim and the currency sign making the price
+          legible as a price, the same numbers finally say what they mean. */}
+      <Band palette="mint" rails>
+        <BandHeading lede="No pilot agreement, no procurement cycle, no line item.">
+          What it changes, <GradWord>concretely</GradWord>.
         </BandHeading>
         <div className="mt-10">
-          <StatRow
+          <StatCards
             stats={[
               {
                 value: COUNT,
-                label: 'languages, no booking',
-                note: 'nothing to schedule and nobody to wait for at intake.',
-              },
-              {
-                value: 0,
-                label: 'setup for your staff',
-                note: 'no integration, no procurement, no accounts to provision.',
-              },
-              {
-                value: 0,
-                label: 'cost, to anyone',
-                note: 'free for patients permanently, and we are not charging clinics either.',
+                label: 'Languages, no booking',
+                note: 'Nothing to schedule and nobody to wait for at intake.',
               },
               {
                 value: 5,
                 suffix: ' min',
-                label: 'typical intake',
-                note: 'done before the patient sits down, not during your appointment slot.',
+                label: 'Typical intake',
+                note: 'Done before the patient sits down, not during your appointment slot.',
+              },
+              {
+                value: 0,
+                prefix: '$',
+                label: 'Cost, to anyone',
+                note: 'Free for patients permanently, and we are not charging clinics either.',
+              },
+              {
+                value: 0,
+                label: 'Setup for your staff',
+                note: 'No integration, no procurement, no accounts to provision.',
               },
             ]}
           />
         </div>
       </Band>
 
-      <Band palette="deep">
+      <Band palette="deep" flow="glow">
         <BandHeading lede="We would rather you hear the limits from us than discover them in a pilot.">
-          What Keiro <Accent>is not</Accent>, from your side of the desk.
+          What Keiro <GradWord>is not</GradWord>, from your side of the desk.
         </BandHeading>
         <div className="mt-10">
           <GlassCards
@@ -136,7 +143,7 @@ export default function ForClinicsPage() {
           statement={
             <>
               If you are a clinician who would be willing to review what Kai is allowed to say,{' '}
-              <Accent>that is the most useful thing anyone could offer this project.</Accent>
+              <GradWord>that is the most useful thing anyone could offer this project.</GradWord>
             </>
           }
           body="Not a pilot, not a purchase order. An hour of a clinician's judgement about where the guardrails should sit."
@@ -145,7 +152,7 @@ export default function ForClinicsPage() {
 
       <Band palette="cream" id="demo">
         <BandHeading lede="Tell us who you are and we will get back to you. If you want to pilot it, we will set that up with you directly.">
-          Talk to <Accent>us.</Accent>
+          Talk to <GradWord>us.</GradWord>
         </BandHeading>
         <Reveal>
           <div className="max-w-2xl">
@@ -156,7 +163,7 @@ export default function ForClinicsPage() {
 
       <Band palette="mint">
         <BandHeading>
-          Questions clinics <Accent>ask.</Accent>
+          Questions clinics <GradWord>ask.</GradWord>
         </BandHeading>
         <div className="mt-8">
           <Faq

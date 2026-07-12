@@ -37,7 +37,7 @@ export function LanguagePicker({
   const greeting = KAI_GREETINGS[active.code] ?? KAI_GREETINGS['en-US']
 
   return (
-    <div className="rounded-[28px] border border-[var(--lx-line)] bg-white/70 p-4 shadow-[0_24px_60px_-34px_rgba(26,61,43,0.4)] backdrop-blur sm:p-6">
+    <div className="rounded-[16px] border border-[var(--lx-line)] bg-white/70 p-4 shadow-[0_24px_60px_-34px_rgba(26,61,43,0.4)] backdrop-blur sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <label htmlFor="lang-search" className="font-semibold text-[var(--lx-ink)]">
           Which language do you speak?
@@ -101,7 +101,7 @@ export function LanguagePicker({
           <Kai size="xs" animated={false} />
         </span>
         <div
-          className="min-h-[7.5rem] flex-1 rounded-[20px] rounded-tl-md border border-[var(--lx-line)] bg-[var(--lx-mint)] p-4 sm:min-h-[6.5rem]"
+          className="min-h-[7.5rem] flex-1 rounded-[16px] rounded-tl-md border border-[var(--lx-line)] bg-[var(--lx-mint)] p-4 sm:min-h-[6.5rem]"
           aria-live="polite"
         >
           <AnimatePresence mode="wait">

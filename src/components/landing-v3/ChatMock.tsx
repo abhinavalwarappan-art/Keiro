@@ -17,7 +17,7 @@ import { Kai } from '@/components/kai/Kai'
 
 export function ChatMock() {
   return (
-    <div className="rounded-[24px] border border-[var(--band-line)] bg-white p-4 shadow-[0_30px_70px_-40px_rgba(26,61,43,0.5)] sm:p-5">
+    <div className="rounded-[16px] border border-[var(--band-line)] bg-white p-4 shadow-[0_30px_70px_-40px_rgba(26,61,43,0.5)] sm:p-5">
       <div className="flex items-center gap-2 border-b border-[var(--lx-line)] pb-3">
         <span className="h-2.5 w-2.5 rounded-full bg-[var(--lx-green)]" aria-hidden="true" />
         <span className="text-sm font-medium text-[var(--lx-muted)]">
@@ -33,7 +33,7 @@ export function ChatMock() {
           </span>
           <p
             lang="es"
-            className="lx-native max-w-[85%] rounded-[18px] rounded-bl-md bg-[var(--lx-mint)] px-4 py-3 leading-[1.6] text-[var(--lx-body)]"
+            className="lx-native max-w-[85%] rounded-[16px] rounded-bl-md bg-[var(--lx-mint)] px-4 py-3 leading-[1.6] text-[var(--lx-body)]"
           >
             Hola, soy Kai. Cuéntame qué te duele, con tus propias palabras.
           </p>
@@ -42,7 +42,7 @@ export function ChatMock() {
         {/* Patient */}
         <p
           lang="es"
-          className="lx-native ml-auto max-w-[85%] rounded-[18px] rounded-br-md bg-[var(--lx-ink)] px-4 py-3 leading-[1.6] text-white"
+          className="lx-native ml-auto max-w-[85%] rounded-[16px] rounded-br-md bg-[var(--lx-ink)] px-4 py-3 leading-[1.6] text-white"
         >
           Me duele el pecho cuando subo las escaleras. Empezó hace tres días.
         </p>
@@ -54,7 +54,7 @@ export function ChatMock() {
           </span>
           <p
             lang="es"
-            className="lx-native max-w-[85%] rounded-[18px] rounded-bl-md bg-[var(--lx-mint)] px-4 py-3 leading-[1.6] text-[var(--lx-body)]"
+            className="lx-native max-w-[85%] rounded-[16px] rounded-bl-md bg-[var(--lx-mint)] px-4 py-3 leading-[1.6] text-[var(--lx-body)]"
           >
             Gracias. ¿El dolor se va cuando descansas?
           </p>
@@ -80,9 +80,9 @@ export function ReportMock() {
   ]
 
   return (
-    <div className="rounded-[24px] border border-[var(--band-line)] bg-white p-5 shadow-[0_30px_70px_-40px_rgba(26,61,43,0.5)]">
+    <div className="rounded-[16px] border border-[var(--band-line)] bg-white p-5 shadow-[0_30px_70px_-40px_rgba(26,61,43,0.5)]">
       <div className="flex items-baseline justify-between gap-3 border-b border-[var(--lx-line)] pb-3">
-        <h4 className="lx-display font-semibold text-[var(--lx-ink)]">Intake summary</h4>
+        <h4 className="lx-title text-[var(--lx-ink)]">Intake summary</h4>
         <span className="text-sm text-[var(--lx-muted)]">English</span>
       </div>
 
@@ -112,7 +112,7 @@ export function VoiceMock() {
   const bars = [30, 55, 80, 45, 95, 60, 35, 70, 50, 85, 40, 65, 30, 75, 45]
 
   return (
-    <div className="rounded-[24px] border border-[var(--band-line)] bg-white p-5 shadow-[0_30px_70px_-40px_rgba(26,61,43,0.5)]">
+    <div className="rounded-[16px] border border-[var(--band-line)] bg-white p-5 shadow-[0_30px_70px_-40px_rgba(26,61,43,0.5)]">
       <div className="flex items-center gap-4">
         <span
           className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[var(--lx-ink)] text-lg text-white"

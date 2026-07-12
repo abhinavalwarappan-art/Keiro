@@ -27,7 +27,7 @@ export function Footer() {
               place, without the About grouping. */}
           <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-2 md:col-span-2 md:grid-cols-2">
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/50">
+              <h3 className="lx-label text-xs text-white/50">
                 Keiro
               </h3>
               <ul className="mt-5 space-y-1">
@@ -50,7 +50,7 @@ export function Footer() {
             </div>
 
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/50">
+              <h3 className="lx-label text-xs text-white/50">
                 Trust &amp; contact
               </h3>
               <ul className="mt-5 space-y-1">
@@ -76,7 +76,7 @@ export function Footer() {
           </nav>
 
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/50">
+            <h3 className="lx-label text-xs text-white/50">
               Please read this
             </h3>
             <p className="mt-5 leading-[1.8]">

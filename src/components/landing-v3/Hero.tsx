@@ -11,7 +11,7 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { LANGUAGES } from '@/lib/languages'
-import { LanguagePicker } from './LanguagePicker'
+import { KaiDemo } from './KaiDemo'
 import { MotionLink } from './MotionLink'
 import { Accent } from './Sections'
 
@@ -19,15 +19,22 @@ const ENTRANCE = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }
 
 export function Hero() {
   return (
-    <section id="hero" className="relative scroll-mt-28 px-5 pb-14 pt-12 sm:px-8 sm:pt-16 lg:px-16">
-      <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:gap-16">
+    <section
+      id="hero"
+      className="relative scroll-mt-28 overflow-hidden px-5 pb-14 pt-12 sm:px-8 sm:pt-16 lg:px-16"
+    >
+      {/* The brand light, falling from behind the nav and dissolving into the
+          cream before it reaches the language strip. See landing.css → THE FLOW. */}
+      <div className="lx-flow lx-flow-hero lx-flow-drift" aria-hidden="true" />
+
+      <div className="lx-above mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:gap-16">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={ENTRANCE}
           className="lg:col-start-1 lg:row-start-1"
         >
-          <h1 className="lx-display text-balance text-[clamp(2.1rem,5.4vw,3.5rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[var(--lx-ink)]">
+          <h1 className="lx-display text-balance text-[clamp(2.1rem,5.4vw,3.5rem)] text-[var(--lx-ink)]">
             I&apos;m Kai. Tell me what hurts, <Accent>in the language you think in.</Accent>
           </h1>
 
@@ -70,21 +77,30 @@ export function Hero() {
           </MotionLink>
         </motion.div>
 
-        {/* Grid placement (not source order) keeps the picker above the CTAs on a
-            phone — otherwise the one interaction that proves the product sits
-            below the fold at 375px. */}
+        {/* The hero artifact — Keiro's equivalent of the live checkout form Stripe
+            opens /payments on. It performs the entire product in fifteen seconds
+            and it is driveable: click a language and the whole thing re-runs in it.
+            See KaiDemo.tsx.
+
+            Grid placement (not source order) keeps it above the CTAs on a phone —
+            otherwise the one thing that actually proves the product sits below the
+            fold at 375px. */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...ENTRANCE, delay: 0.1 }}
           className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center"
         >
-          <LanguagePicker compact />
-          <p className="mt-4 text-center text-sm text-[var(--lx-muted)]">
-            All{' '}
+          <KaiDemo />
+          {/* One caption, not two. The demo used to carry its own ("pick a language
+              and watch it run") directly above this one, which stacked two lines of
+              grey explanatory text under the artifact and made the hero look
+              hedged. The instruction is folded in here instead. */}
+          <p className="mt-3 text-center text-sm leading-[1.7] text-[var(--lx-muted)]">
+            Pick a language and watch it run — the follow-up is in their language too. All{' '}
             <Link
               href="/languages"
-              className="lx-focus font-semibold text-[var(--lx-ink)] underline underline-offset-4"
+              className="lx-focus font-medium text-[var(--lx-ink)] underline underline-offset-4"
             >
               {LANGUAGES.length} languages
             </Link>{' '}

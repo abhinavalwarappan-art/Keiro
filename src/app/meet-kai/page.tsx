@@ -7,11 +7,10 @@ import {
   Accent,
   Thesis,
   Split,
-  IndexGrid,
-  GlassCards,
+  PromiseLedger,
   Prose,
   Para,
-  Faq,
+  QaColumns,
   ArrowLink,
 } from '@/components/landing-v3/Sections'
 import { ChatMock } from '@/components/landing-v3/ChatMock'
@@ -33,8 +32,9 @@ export const metadata: Metadata = {
           -> glass "what Kai is NOT"(DEEP) -> thesis(mint) -> faq(cream) */
 export default function MeetKaiPage() {
   return (
-    <SiteShell>
+    <SiteShell flow="kai">
       <PageHero
+        flow
         variant="split"
         eyebrow="Meet Kai"
         title="Kai will wait as long as you need."
@@ -64,72 +64,65 @@ export default function MeetKaiPage() {
         </Prose>
       </Band>
 
-      <Band palette="cream">
-        <BandHeading>
-          What Kai <Accent>promises you.</Accent>
+      {/* The promises and the limits, in one section and in facing columns.
+
+          They were two: a numbered grid of "I will…" on a cream band, then three
+          frosted cards of "Not a doctor / not a triage system" on a dark one —
+          both of them archetypes that four other pages were also running. But
+          they are two halves of a single bargain, and the promise only means
+          anything next to the refusal. Side by side, in Kai's own voice, this is
+          the section nobody else on the site can have. */}
+      <Band palette="deep" flow="glow">
+        <BandHeading lede="This is the whole bargain, and it is the most important thing on the page — which is why it is not in the footnotes.">
+          What Kai promises, <Accent>and what Kai refuses.</Accent>
         </BandHeading>
-        <div className="mt-10">
-          <IndexGrid
-            items={[
+
+        <div className="mt-12">
+          <PromiseLedger
+            will={[
               {
-                n: '01',
-                label:
-                  'I will wait. Take as long as you need. Say it twice, change your mind, start over. I will not rush you and I will not sigh.',
+                t: 'I will wait.',
+                b: 'Take as long as you need. Say it twice, change your mind, start over. I will not rush you and I will not sigh.',
               },
               {
-                n: '02',
-                label:
-                  'I will listen however you like. Speak out loud, or type if that is easier, and switch whenever you want.',
+                t: 'I will listen however you like.',
+                b: 'Speak out loud, or type if that is easier, and switch whenever you want.',
               },
               {
-                n: '03',
-                label:
-                  'I will ask, not assume. If something you said is unclear, I will ask about it rather than write down a confident guess.',
+                t: 'I will ask, not assume.',
+                b: 'If something you said is unclear, I will ask about it rather than write down a confident guess.',
               },
               {
-                n: '04',
-                label:
-                  'I will not judge you. Not about what you drink, what you smoke, how long you waited, or what you are frightened of.',
+                t: 'I will not judge you.',
+                b: 'Not about what you drink, what you smoke, how long you waited, or what you are frightened of.',
               },
               {
-                n: '05',
-                label:
-                  'I will not make you repeat yourself. Tell me once, and your doctor gets it in writing.',
+                t: 'I will not make you repeat yourself.',
+                b: 'Tell me once, and your doctor gets it in writing.',
               },
               {
-                n: '06',
-                label:
-                  'I will tell you I am an AI. Every time you ask. You have an absolute right to know who you are talking to.',
+                t: 'I will tell you I am an AI.',
+                b: 'Every time you ask. You have an absolute right to know who you are talking to.',
               },
             ]}
-          />
-        </div>
-      </Band>
-
-      <Band palette="deep">
-        <BandHeading lede="This is the most important section on the page, which is why it is not in the footnotes.">
-          And here is <Accent>what Kai is not.</Accent>
-        </BandHeading>
-        <div className="mt-10">
-          <GlassCards
-            items={[
+            never={[
               {
-                label: 'Not a doctor',
-                body: 'Kai will not diagnose you, will not prescribe anything, and will not decide a single thing about your care. It is built without the ability to.',
+                t: 'I will never diagnose you.',
+                b: 'Not carefully, not with a disclaimer. I will not prescribe anything and I will not decide a single thing about your care. I am built without the ability to.',
               },
               {
-                label: 'Not a triage system',
-                body: 'It does not score you, rank you or decide how urgent you are. Those are decisions that belong to a clinician who can examine you.',
+                t: 'I will never triage you.',
+                b: 'I do not score you, rank you, or decide how urgent you are. Those belong to a clinician who can examine you.',
               },
               {
-                label: 'Not a person',
-                body: 'Kai will always say so plainly if you ask. It will never claim to be a nurse, a doctor, or a human being.',
+                t: 'I will never claim to be a person.',
+                b: 'I will not say I am a nurse, a doctor, or a human being — and if you ask, I will say so plainly.',
               },
             ]}
           />
         </div>
 
-        <Reveal className="mt-8">
+        <Reveal className="mt-12">
           <p className="max-w-2xl leading-[1.85] text-[var(--band-muted)]">
             And if you are in danger right now, Kai is the wrong tool and will say so.{' '}
             <a
@@ -160,12 +153,12 @@ export default function MeetKaiPage() {
         </Split>
       </Band>
 
-      <Band palette="cream">
+      <Band palette="cream" rails>
         <BandHeading>
           Questions people <Accent>actually ask.</Accent>
         </BandHeading>
-        <div className="mt-8">
-          <Faq
+        <div className="mt-10">
+          <QaColumns
             items={[
               {
                 q: 'Is Kai a real person?',
@@ -192,8 +185,10 @@ export default function MeetKaiPage() {
         </div>
       </Band>
 
+      {/* Mint, not deep. The PromiseLedger band is now this page's one dark
+          section, and a second one would spend the contrast twice. */}
       <CtaBand
-        palette="deep"
+        palette="mint"
         title="Kai is ready when you are."
         body="Free, no account, and you can stop at any point."
       />

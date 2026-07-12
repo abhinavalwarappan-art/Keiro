@@ -29,32 +29,56 @@ export function PageHero({
   lede,
   variant = 'editorial',
   media,
+  /* Drops the page's gradient light-field behind the opening, ending on Stripe's
+     diagonal so the colour reads as passing *behind* the page rather than
+     stopping at the first section border. */
+  flow = false,
+  footer,
 }: {
   eyebrow: string
   title: ReactNode
   lede: ReactNode
   variant?: HeroVariant
   media?: ReactNode
+  flow?: boolean
+  footer?: ReactNode
 }) {
-  const shell = 'px-5 pt-12 sm:px-8 sm:pt-16 md:pt-20 lg:px-16'
+  const shell = 'relative px-5 pt-12 sm:px-8 sm:pt-16 md:pt-20 lg:px-16'
+  const field = flow ? (
+    <div className="lx-flow lx-flow-hero lx-flow-drift" aria-hidden="true" />
+  ) : null
 
   if (variant === 'document') {
-    /* Sans, not serif. A trust page should read like a document you can rely on,
-       not a magazine feature, and the typeface is the fastest way to say that. */
+    /* This variant used to be distinguished by being SANS while every other hero
+       was serif. Now that the whole site is a neo-grotesque, that distinction is
+       gone and it needs a new one.
+
+       So it earns it the way a real document masthead does: symmetric, ruled top
+       and bottom, tighter measure, and a HEAVIER weight than the display tier
+       (400 against 300). A trust page should read like something you can rely on
+       — dense and squared-off — not like a magazine feature that thins out as it
+       grows. Weight is the axis doing the work now, not typeface.
+
+       (It is also fully centred. It used to be a left-aligned column that was
+       itself centred on the page — the worst of both, with the text hanging off
+       to one side and a large dead margin beside it.) */
     return (
-      <header className={`${shell} pb-4`}>
-        <Reveal className="mx-auto max-w-2xl">
-          <div className="flex items-center gap-3">
+      <header className={`${shell} overflow-hidden pb-10 text-center`}>
+        {field}
+        <Reveal className="lx-above mx-auto max-w-3xl">
+          <div className="mx-auto flex max-w-md items-center gap-3">
             <span className="h-px flex-1 bg-[var(--lx-line)]" aria-hidden="true" />
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--lx-muted)]">
-              {eyebrow}
-            </p>
+            <p className="lx-label text-xs text-[var(--lx-muted)]">{eyebrow}</p>
             <span className="h-px flex-1 bg-[var(--lx-line)]" aria-hidden="true" />
           </div>
-          <h1 className="mt-7 text-balance font-sans text-[clamp(1.6rem,3.4vw,2.3rem)] font-semibold leading-[1.25] tracking-[-0.01em] text-[var(--lx-ink)]">
+          <h1 className="lx-display mx-auto mt-8 max-w-3xl text-balance text-[clamp(1.75rem,3.8vw,2.6rem)] font-normal leading-[1.2] text-[var(--lx-ink)]">
             {title}
           </h1>
-          <p className="mt-5 text-pretty leading-[1.9] text-[var(--lx-muted)]">{lede}</p>
+          <p className="mx-auto mt-6 max-w-xl text-pretty leading-[1.9] text-[var(--lx-muted)]">
+            {lede}
+          </p>
+          <span className="mx-auto mt-9 block h-px w-full max-w-md bg-[var(--lx-line)]" aria-hidden="true" />
+          {footer && <div className="mt-9">{footer}</div>}
         </Reveal>
       </header>
     )
@@ -62,12 +86,14 @@ export function PageHero({
 
   if (variant === 'centered') {
     return (
-      <header className={`${shell} pb-6 text-center`}>
-        <Reveal className="mx-auto max-w-4xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--lx-green)]">
+      <header className={`${shell} overflow-hidden pb-6 text-center`}>
+        {field}
+        <Reveal className="lx-above mx-auto max-w-4xl">
+          {/* Body-size text, so it takes the 4.5:1 token, not the fill green. */}
+          <p className="lx-label text-xs text-[var(--lx-green-ink)]">
             {eyebrow}
           </p>
-          <h1 className="lx-display mt-5 text-balance text-[clamp(2.4rem,7vw,4.5rem)] font-semibold leading-[1.05] tracking-[-0.03em] text-[var(--lx-ink)]">
+          <h1 className="lx-display mt-5 text-balance text-[clamp(2.4rem,7vw,4.5rem)] text-[var(--lx-ink)]">
             {title}
           </h1>
           <span
@@ -77,6 +103,7 @@ export function PageHero({
           <p className="mx-auto mt-7 max-w-2xl text-pretty text-lg leading-[1.8] text-[var(--lx-muted)] sm:text-xl">
             {lede}
           </p>
+          {footer && <div className="mt-9">{footer}</div>}
         </Reveal>
       </header>
     )
@@ -84,16 +111,18 @@ export function PageHero({
 
   if (variant === 'split') {
     return (
-      <header className={`${shell} pb-6`}>
-        <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+      <header className={`${shell} overflow-hidden pb-6`}>
+        {field}
+        <div className="lx-above mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
           <Reveal>
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--lx-ink)]">
+            <p className="lx-label text-xs text-[var(--lx-ink)]">
               {eyebrow}
             </p>
-            <h1 className="lx-display mt-4 text-balance text-[clamp(2rem,4.6vw,3rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[var(--lx-ink)]">
+            <h1 className="lx-display mt-4 text-balance text-[clamp(2rem,4.6vw,3rem)] text-[var(--lx-ink)]">
               {title}
             </h1>
             <p className="mt-6 text-pretty text-lg leading-[1.8] text-[var(--lx-muted)]">{lede}</p>
+            {footer && <div className="mt-8">{footer}</div>}
           </Reveal>
           <Reveal delay={0.1}>{media}</Reveal>
         </div>
@@ -103,17 +132,19 @@ export function PageHero({
 
   /* editorial */
   return (
-    <header className={`${shell} pb-6`}>
-      <Reveal className="mx-auto max-w-4xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--lx-ink)]">
+    <header className={`${shell} overflow-hidden pb-6`}>
+      {field}
+      <Reveal className="lx-above mx-auto max-w-4xl">
+        <p className="lx-label text-xs text-[var(--lx-ink)]">
           {eyebrow}
         </p>
-        <h1 className="lx-display mt-4 text-balance text-[clamp(2rem,5vw,3.3rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[var(--lx-ink)]">
+        <h1 className="lx-display mt-4 text-balance text-[clamp(2rem,5vw,3.3rem)] text-[var(--lx-ink)]">
           {title}
         </h1>
         <p className="mt-6 max-w-2xl text-pretty text-lg leading-[1.8] text-[var(--lx-muted)] sm:text-xl">
           {lede}
         </p>
+        {footer && <div className="mt-8">{footer}</div>}
       </Reveal>
     </header>
   )
@@ -140,7 +171,7 @@ export function CtaBand({
     >
       <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
         <Kai size="sm" state="waving" />
-        <h2 className="lx-display text-balance text-[clamp(1.5rem,3.6vw,2.2rem)] font-semibold leading-[1.2] text-[var(--band-ink)]">
+        <h2 className="lx-heading text-balance text-[clamp(1.5rem,3.6vw,2.2rem)] text-[var(--band-ink)]">
           {title}
         </h2>
         <p className="text-lg leading-[1.8] text-[var(--band-muted)]">{body}</p>

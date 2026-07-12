@@ -69,7 +69,7 @@ export function ContactForm() {
   if (status === 'sent') {
     return (
       <div
-        className="mt-8 rounded-[20px] border border-[var(--lx-line)] bg-[var(--lx-mint)] p-6 sm:p-8"
+        className="mt-8 rounded-[16px] border border-[var(--lx-line)] bg-[var(--lx-mint)] p-6 sm:p-8"
         role="status"
         aria-live="polite"
       >
@@ -85,7 +85,7 @@ export function ContactForm() {
   }
 
   const field =
-    'lx-focus mt-2 block min-h-12 w-full rounded-[14px] border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70'
+    'lx-focus mt-2 block min-h-12 w-full rounded-[12px] border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70'
   const label = 'block font-semibold text-[var(--lx-ink)]'
 
   return (

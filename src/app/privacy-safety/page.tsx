@@ -4,9 +4,9 @@ import { PageHero, A } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
-  Accent,
+  GradWord,
   Thesis,
-  IndexGrid,
+  NumberCards,
   ExpandableSteps,
   Quote,
   Prose,
@@ -31,8 +31,9 @@ export const metadata: Metadata = {
    (mint) -> faq -> references. */
 export default function PrivacySafetyPage() {
   return (
-    <SiteShell>
+    <SiteShell flow="privacy">
       <PageHero
+        flow
         variant="document"
         eyebrow="Privacy & safety"
         title="You are about to tell a computer something private. Here is exactly what happens to it."
@@ -40,41 +41,41 @@ export default function PrivacySafetyPage() {
       />
 
       <Band palette="cream">
-        <BandHeading>
-          The four things <Accent>that matter most.</Accent>
+        <BandHeading lede="If you read nothing else on this page, read these.">
+          The four things that <GradWord>matter most</GradWord>.
         </BandHeading>
         <div className="mt-10">
-          <IndexGrid
+          <NumberCards
             items={[
               {
                 n: '01',
-                label:
-                  'Your conversation is not stored. What you say to Kai is not saved to our servers. Use Keiro as a guest, which is the default, and we store nothing about you at all.',
+                title: 'Not stored',
+                body: 'What you say to Kai is not saved to our servers. Use Keiro as a guest, which is the default, and we store nothing about you at all.',
               },
               {
                 n: '02',
-                label:
-                  'Kai never diagnoses. Not carefully, not with a disclaimer. It has no ability to tell you what is wrong or how serious it is.',
+                title: 'Never diagnoses',
+                body: 'Not carefully, not with a disclaimer. Kai has no ability to tell you what is wrong, or how serious it is.',
               },
               {
                 n: '03',
-                label:
-                  'Nothing is sold. Ever. Not to advertisers, not to data brokers, not to insurers. No business model here needs to know about your health.',
+                title: 'Never sold',
+                body: 'Not to advertisers, not to data brokers, not to insurers. No business model here needs to know about your health.',
               },
               {
                 n: '04',
-                label:
-                  'No account needed. You can use the whole thing without telling us your name, email or phone number. The less we know, the less there is to protect.',
+                title: 'No account',
+                body: 'Use the whole thing without telling us your name, email or phone number. The less we know, the less there is to protect.',
               },
             ]}
           />
         </div>
       </Band>
 
-      <Band palette="deep">
+      <Band palette="deep" flow="glow">
         <Quote attribution="Read this before you start" role="not after">
           If you would not be comfortable with what is below,{' '}
-          <Accent>please do not tell Kai anything you would not want kept.</Accent> We would rather
+          <GradWord>please do not tell Kai anything you would not want kept.</GradWord> We would rather
           lose your visit than mislead you into it.
         </Quote>
 
@@ -106,7 +107,7 @@ export default function PrivacySafetyPage() {
 
       <Band palette="cream">
         <BandHeading lede="Safety here does not mean a warning banner. It means Kai is built without the ability to do the dangerous thing. Three layers, independent, so no single mistake gets through.">
-          The fence <Accent>around Kai.</Accent>
+          The fence <GradWord>around Kai.</GradWord>
         </BandHeading>
 
         <div className="mt-10">
@@ -160,7 +161,7 @@ export default function PrivacySafetyPage() {
             <>
               Keiro has not been reviewed or certified by a medical professional. No clinical
               validation study, no FDA clearance,{' '}
-              <Accent>no safety certification.</Accent>
+              <GradWord>no safety certification.</GradWord>
             </>
           }
           body="It is a young project, and we are not going to dress it up as something it is not. Because Keiro does not store health information on its servers, it is also not a HIPAA-covered service. That is a statement about our architecture, not a claim of accreditation."
@@ -183,7 +184,7 @@ export default function PrivacySafetyPage() {
 
       <Band palette="cream">
         <BandHeading>
-          The questions <Accent>a sceptic would ask.</Accent>
+          The questions <GradWord>a sceptic would ask.</GradWord>
         </BandHeading>
         <div className="mt-8">
           <Faq
@@ -214,7 +215,7 @@ export default function PrivacySafetyPage() {
       </Band>
 
       <Band palette="mint">
-        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--band-muted)]">
+        <p className="lx-label text-xs text-[var(--band-muted)]">
           References
         </p>
         <div className="mt-6">

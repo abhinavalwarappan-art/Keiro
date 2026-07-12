@@ -122,7 +122,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
                 </button>
 
                 {openAbout && (
-                  <ul className="absolute left-0 top-[calc(100%+0.5rem)] w-60 overflow-hidden rounded-[18px] border border-[var(--lx-line)] bg-white p-1.5 shadow-[0_24px_60px_-24px_rgba(26,61,43,0.35)]">
+                  <ul className="absolute left-0 top-[calc(100%+0.5rem)] w-60 overflow-hidden rounded-[16px] border border-[var(--lx-line)] bg-white p-1.5 shadow-[0_24px_60px_-24px_rgba(26,61,43,0.35)]">
                     {link.children.map((child) => (
                       <li key={child.href}>
                         <Link
@@ -205,7 +205,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
               ))}
             </ul>
 
-            <p className="pt-5 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--lx-muted)]">
+            <p className="pt-5 lx-label text-xs text-[var(--lx-muted)]">
               About
             </p>
             <ul className="flex flex-col">
