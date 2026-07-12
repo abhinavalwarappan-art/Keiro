@@ -5,6 +5,11 @@ import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { logger } from '@/lib/logger'
+import { UpstreamError } from '@/lib/upstream'
+
+// Uploading audio + a Groq round-trip can outrun Vercel's default cap; give the
+// route room so a slow mobile upload isn't killed by the platform mid-request.
+export const maxDuration = 60
 
 // Whisper's hard limit is 25 MB. Cap below that — a symptom description in
 // webm/opus is well under 1 MB, so anything large is either a long clip or abuse.
@@ -70,6 +75,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ text })
   } catch (err) {
+    // Never log err.message for upstream faults — it carries Groq's response body,
+    // which can echo the transcript (patient health information).
+    if (err instanceof UpstreamError) {
+      logger.error('upstream_error', '/api/transcribe', undefined, {
+        provider: err.provider,
+        kind: err.kind,
+        upstreamStatus: err.status,
+      })
+      return NextResponse.json({ error: 'Transcription failed' }, { status: err.clientStatus })
+    }
     logger.error('api_error', '/api/transcribe', undefined, {
       message: err instanceof Error ? err.message : 'unknown',
     })

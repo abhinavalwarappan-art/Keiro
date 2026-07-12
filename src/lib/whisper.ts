@@ -4,6 +4,12 @@
 // (`whisper-large-v3-turbo`) — same Whisper multilingual coverage as OpenAI, far
 // cheaper (~$0.04/hr), with a generous free tier. The request/response shape is
 // identical to OpenAI's, so this stays a plain multipart POST.
+import { fetchUpstream, UpstreamError } from '@/lib/upstream'
+
+// whisper-large-v3-turbo is fast (a few seconds for a symptom-length clip), but
+// the request also carries the audio upload, so allow for a slow mobile network.
+const GROQ_TIMEOUT_MS = 30_000
+
 export async function transcribeAudio(
   audioBlob: Blob,
   languageCode: string
@@ -22,23 +28,23 @@ export async function transcribeAudio(
   formData.append('model', 'whisper-large-v3-turbo')
   formData.append('language', languageCode.split('-')[0])
 
-  const response = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
+  const response = await fetchUpstream(
+    'groq',
+    'https://api.groq.com/openai/v1/audio/transcriptions',
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: formData,
     },
-    body: formData,
-  })
-
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => 'unknown error')
-    throw new Error(`Transcription failed: ${response.status} ${response.statusText} — ${errorBody}`)
-  }
+    GROQ_TIMEOUT_MS
+  )
 
   const data = await response.json()
 
   if (typeof data.text !== 'string') {
-    throw new Error('Unexpected response format from transcription API')
+    throw new UpstreamError('groq', 'bad_response', 'Groq returned an unexpected response shape')
   }
 
   return {

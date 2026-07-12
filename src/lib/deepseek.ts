@@ -6,8 +6,17 @@
 // 'deepseek-v4-flash' directly (same pricing, same non-thinking behaviour when
 // `thinking: { type: 'disabled' }` is sent).
 
+import { fetchUpstream, UpstreamError } from '@/lib/upstream'
+
 const DEEPSEEK_BASE_URL = 'https://api.deepseek.com'
 const DEEPSEEK_MODEL = 'deepseek-chat'
+
+// Non-streaming calls (report generation, consult translation) block the whole
+// response, so they get the tighter budget. Streaming has to cover the full
+// generation — the timeout bounds the body, not just the headers — so it gets a
+// longer one that still fires before the route's maxDuration cap.
+const DEEPSEEK_TIMEOUT_MS = 45_000
+const DEEPSEEK_STREAM_TIMEOUT_MS = 55_000
 
 export type DeepseekRole = 'user' | 'assistant'
 
@@ -50,14 +59,19 @@ function buildBody(params: DeepseekParams, stream: boolean) {
 }
 
 async function postChatCompletions(params: DeepseekParams, stream: boolean): Promise<Response> {
-  return fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${getApiKey()}`,
+  return fetchUpstream(
+    'deepseek',
+    `${DEEPSEEK_BASE_URL}/chat/completions`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getApiKey()}`,
+      },
+      body: JSON.stringify(buildBody(params, stream)),
     },
-    body: JSON.stringify(buildBody(params, stream)),
-  })
+    stream ? DEEPSEEK_STREAM_TIMEOUT_MS : DEEPSEEK_TIMEOUT_MS
+  )
 }
 
 /**
@@ -67,15 +81,10 @@ async function postChatCompletions(params: DeepseekParams, stream: boolean): Pro
 export async function deepseekChat(params: DeepseekParams): Promise<string> {
   const response = await postChatCompletions(params, false)
 
-  if (!response.ok) {
-    const errorBody = await response.text().catch(() => 'unknown error')
-    throw new Error(`DeepSeek request failed: ${response.status} ${response.statusText} — ${errorBody}`)
-  }
-
   const data = await response.json()
   const text = data?.choices?.[0]?.message?.content
   if (typeof text !== 'string') {
-    throw new Error('Unexpected response format from DeepSeek API')
+    throw new UpstreamError('deepseek', 'bad_response', 'DeepSeek returned an unexpected response shape')
   }
   return text
 }
@@ -88,9 +97,8 @@ export async function deepseekChat(params: DeepseekParams): Promise<string> {
 export async function* deepseekChatStream(params: DeepseekParams): AsyncGenerator<string> {
   const response = await postChatCompletions(params, true)
 
-  if (!response.ok || !response.body) {
-    const errorBody = await response.text().catch(() => 'unknown error')
-    throw new Error(`DeepSeek stream failed: ${response.status} ${response.statusText} — ${errorBody}`)
+  if (!response.body) {
+    throw new UpstreamError('deepseek', 'bad_response', 'DeepSeek stream returned no body')
   }
 
   const reader = response.body.getReader()
