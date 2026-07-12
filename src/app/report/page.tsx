@@ -15,45 +15,58 @@ import { Report, ReportData, PatientProfile, ConsultMessage } from '@/types'
 import { speakText } from '@/lib/speech'
 import { PATIENT_PROFILE_SESSION_KEY } from '@/lib/chatSession'
 import { formatPatientSex } from '@/lib/patientProfile'
+import { useTranslations } from '@/i18n/useTranslations'
 
+/**
+ * Shown and read aloud the moment the report loads — the patient has just finished
+ * describing something frightening in a language they don't speak, and this is the
+ * first thing they hear afterwards. Each string opens with thanks before the
+ * practical instruction.
+ *
+ * Translation note: these open with gratitude, never praise. "You did well" is a
+ * register violation toward an elder in several of these languages (notably ja, ko,
+ * hi, ta) and would read as condescending from a young-sounding assistant; thanks
+ * carries warmth safely in all of them. The instruction sentence in each string is
+ * the original verified translation and was left untouched.
+ */
 const COMPLETION_MESSAGES: Record<string, string> = {
-  ta: 'உங்கள் அறிக்கை தயாரானது. இதை உங்கள் மருத்துவரிடம் காட்டுங்கள்.',
-  hi: 'आपकी रिपोर्ट तैयार है। कृपया इसे अपने डॉक्टर को दिखाएं।',
-  es: 'Su informe está listo. Por favor muéstreselo a su médico.',
-  ar: 'تقريرك جاهز. أرجو إظهاره لطبيبك.',
-  zh: '您的报告已准备好。请将其出示给您的医生。',
-  fr: 'Votre rapport est prêt. Veuillez le montrer à votre médecin.',
-  vi: 'Báo cáo của bạn đã sẵn sàng. Vui lòng cho bác sĩ xem.',
-  ko: '보고서가 준비되었습니다. 의사에게 보여주세요.',
-  pt: 'Seu relatório está pronto. Por favor, mostre ao seu médico.',
-  ru: 'Ваш отчёт готов. Пожалуйста, покажите его врачу.',
-  ja: 'レポートができました。医師にお見せください。',
-  de: 'Ihr Bericht ist fertig. Bitte zeigen Sie ihn Ihrem Arzt.',
-  it: 'Il suo rapporto è pronto. Per favore lo mostri al suo medico.',
-  tr: 'Raporunuz hazır. Lütfen doktorunuza gösterin.',
-  pl: 'Twój raport jest gotowy. Proszę pokazać go lekarzowi.',
-  uk: 'Ваш звіт готовий. Будь ласка, покажіть його лікарю.',
-  bn: 'আপনার রিপোর্ট প্রস্তুত। অনুগ্রহ করে এটি আপনার ডাক্তারকে দেখান।',
-  ml: 'നിങ്ങളുടെ റിപ്പോർട്ട് തയ്യാറാണ്. ദയവായി ഇത് നിങ്ങളുടെ ഡോക്ടര്‍ക്ക് കാണിക്കുക.',
-  nl: 'Uw rapport is klaar. Toon het alstublieft aan uw arts.',
-  el: 'Η αναφορά σας είναι έτοιμη. Παρακαλώ δείξτε την στον γιατρό σας.',
-  cs: 'Vaše zpráva je připravena. Ukažte ji prosím svému lékaři.',
-  ro: 'Raportul dvs. este gata. Vă rugăm să îl arătați medicului.',
-  sv: 'Din rapport är klar. Visa den för din läkare.',
-  da: 'Din rapport er klar. Vis den venligst til din læge.',
-  fi: 'Raporttisi on valmis. Näytä se lääkärillesi.',
-  no: 'Rapporten din er klar. Vis den til legen din.',
-  hu: 'A jelentése elkészült. Kérjük, mutassa meg orvosának.',
-  bg: 'Вашият доклад е готов. Моля, покажете го на лекаря си.',
-  'zh-TW': '您的報告已準備好。請將其出示給您的醫生。',
-  sk: 'Vaša správa je pripravená. Ukážte ju prosím svojmu lekárovi.',
-  sl: 'Vaše poročilo je pripravljeno. Prosimo, pokažite ga zdravniku.',
-  et: 'Teie aruanne on valmis. Palun näidake seda arstile.',
-  lv: 'Jūsu pārskats ir gatavs. Lūdzu, parādiet to savam ārstam.',
-  lt: 'Jūsų ataskaita paruošta. Prašome parodyti ją gydytojui.',
-  id: 'Laporan Anda sudah siap. Silakan tunjukkan kepada dokter Anda.',
-  sw: 'Ripoti yako iko tayari. Tafadhali ionyeshe kwa daktari wako.',
-  en: 'Your report is ready. Please show this to your doctor.',
+  ta: 'எல்லாவற்றையும் பகிர்ந்து கொண்டதற்கு நன்றி. உங்கள் அறிக்கை தயாரானது. இதை உங்கள் மருத்துவரிடம் காட்டுங்கள்.',
+  hi: 'सब कुछ बताने के लिए धन्यवाद। आपकी रिपोर्ट तैयार है। कृपया इसे अपने डॉक्टर को दिखाएं।',
+  es: 'Gracias por contarme todo esto. Su informe está listo. Por favor muéstreselo a su médico.',
+  ar: 'شكرًا لك على مشاركة كل هذا. تقريرك جاهز. أرجو إظهاره لطبيبك.',
+  zh: '谢谢您告诉我这些。您的报告已准备好。请将其出示给您的医生。',
+  fr: 'Merci de m’avoir tout expliqué. Votre rapport est prêt. Veuillez le montrer à votre médecin.',
+  vi: 'Cảm ơn đã chia sẻ những điều này. Báo cáo của bạn đã sẵn sàng. Vui lòng cho bác sĩ xem.',
+  ko: '말씀해 주셔서 감사합니다. 보고서가 준비되었습니다. 의사에게 보여주세요.',
+  pt: 'Obrigado por me contar tudo isso. Seu relatório está pronto. Por favor, mostre ao seu médico.',
+  ru: 'Спасибо, что рассказали мне всё это. Ваш отчёт готов. Пожалуйста, покажите его врачу.',
+  ja: 'お話しくださり、ありがとうございました。レポートができました。医師にお見せください。',
+  de: 'Danke, dass Sie mir das alles erzählt haben. Ihr Bericht ist fertig. Bitte zeigen Sie ihn Ihrem Arzt.',
+  it: 'Grazie per avermi raccontato tutto questo. Il suo rapporto è pronto. Per favore lo mostri al suo medico.',
+  tr: 'Bunları benimle paylaştığınız için teşekkür ederim. Raporunuz hazır. Lütfen doktorunuza gösterin.',
+  pl: 'Dziękuję za podzielenie się tym wszystkim. Twój raport jest gotowy. Proszę pokazać go lekarzowi.',
+  uk: 'Дякую, що поділилися всім цим. Ваш звіт готовий. Будь ласка, покажіть його лікарю.',
+  bn: 'সব কিছু জানানোর জন্য ধন্যবাদ। আপনার রিপোর্ট প্রস্তুত। অনুগ্রহ করে এটি আপনার ডাক্তারকে দেখান।',
+  ml: 'എല്ലാം പങ്കുവെച്ചതിന് നന്ദി. നിങ്ങളുടെ റിപ്പോർട്ട് തയ്യാറാണ്. ദയവായി ഇത് നിങ്ങളുടെ ഡോക്ടര്‍ക്ക് കാണിക്കുക.',
+  nl: 'Dank u dat u me dit allemaal hebt verteld. Uw rapport is klaar. Toon het alstublieft aan uw arts.',
+  el: 'Σας ευχαριστώ που μου τα είπατε όλα αυτά. Η αναφορά σας είναι έτοιμη. Παρακαλώ δείξτε την στον γιατρό σας.',
+  cs: 'Děkuji vám za vaši otevřenost. Vaše zpráva je připravena. Ukažte ji prosím svému lékaři.',
+  ro: 'Vă mulțumesc că mi-ați spus toate acestea. Raportul dvs. este gata. Vă rugăm să îl arătați medicului.',
+  sv: 'Tack för att du berättade allt det här. Din rapport är klar. Visa den för din läkare.',
+  da: 'Tak fordi du fortalte mig alt det. Din rapport er klar. Vis den venligst til din læge.',
+  fi: 'Kiitos, että kerroit kaiken tämän. Raporttisi on valmis. Näytä se lääkärillesi.',
+  no: 'Takk for at du fortalte meg alt dette. Rapporten din er klar. Vis den til legen din.',
+  hu: 'Köszönöm, hogy mindezt elmondta. A jelentése elkészült. Kérjük, mutassa meg orvosának.',
+  bg: 'Благодаря, че споделихте всичко това. Вашият доклад е готов. Моля, покажете го на лекаря си.',
+  'zh-TW': '謝謝您告訴我這些。您的報告已準備好。請將其出示給您的醫生。',
+  sk: 'Ďakujem, že ste sa o to všetko podelili. Vaša správa je pripravená. Ukážte ju prosím svojmu lekárovi.',
+  sl: 'Hvala, ker ste mi vse to povedali. Vaše poročilo je pripravljeno. Prosimo, pokažite ga zdravniku.',
+  et: 'Aitäh, et te seda kõike jagasite. Teie aruanne on valmis. Palun näidake seda arstile.',
+  lv: 'Paldies, ka pastāstījāt man to visu. Jūsu pārskats ir gatavs. Lūdzu, parādiet to savam ārstam.',
+  lt: 'Ačiū, kad viską man papasakojote. Jūsų ataskaita paruošta. Prašome parodyti ją gydytojui.',
+  id: 'Terima kasih sudah menceritakan semuanya. Laporan Anda sudah siap. Silakan tunjukkan kepada dokter Anda.',
+  sw: 'Asante kwa kunieleza yote haya. Ripoti yako iko tayari. Tafadhali ionyeshe kwa daktari wako.',
+  en: 'Thank you for sharing all of that. Your report is ready. Please show this to your doctor.',
 }
 
 function getLang(map: Record<string, string>, langCode: string): string {
@@ -114,7 +127,10 @@ function ReportContent() {
   const searchParams = useSearchParams()
   const [report, setReport] = useState<Report | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Stored as a kind, not a translated string: `t` is a fresh closure on every
+  // render, so calling it inside loadReport would force it into the dep array and
+  // re-fire the load effect on every render. Translate at render time instead.
+  const [error, setError] = useState<'notFound' | 'loadFailed' | null>(null)
   const [pdfAction, setPdfAction] = useState<'open' | 'download' | 'print' | null>(null)
   const [physicianNotes, setPhysicianNotes] = useState('')
   const [consultMode, setConsultMode] = useState(false)
@@ -129,12 +145,13 @@ function ReportContent() {
   const langCode = searchParams.get('lang') || 'en-US'
   const startConsult = searchParams.get('consult') === '1'
 
+  const t = useTranslations(langCode)
   const supabase = useMemo(() => createClient(), [])
   const spokeCompletionRef = useRef(false)
 
   const loadReport = useCallback(async () => {
     if (!reportId) {
-      setError('Report not found')
+      setError('notFound')
       setLoading(false)
       return
     }
@@ -206,10 +223,10 @@ function ReportContent() {
           })
         }
       } else {
-        setError('Report not found')
+        setError('notFound')
       }
     } catch {
-      setError('Could not load report')
+      setError('loadFailed')
     }
 
     setLoading(false)
@@ -387,12 +404,14 @@ function ReportContent() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <Kai size="md" state="idle" interactive={false} />
-        <p className="mt-4 text-base font-semibold text-text-primary">{error || 'Report not found'}</p>
+        <p className="mt-4 text-base font-semibold text-text-primary">
+          {error === 'loadFailed' ? t('report.loadFailed') : t('report.notFound')}
+        </p>
         <button
           onClick={() => router.push('/history')}
           className="mt-6 min-h-[44px] rounded-md bg-brand-ink px-6 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover"
         >
-          View past visits
+          {t('report.viewPastVisits')}
         </button>
       </div>
     )
@@ -426,7 +445,7 @@ function ReportContent() {
         <button
           onClick={() => router.back()}
           className="flex size-9 min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
-          aria-label="Go back"
+          aria-label={t('common.goBack')}
         >
           <ArrowLeft size={16} aria-hidden />
         </button>
@@ -455,14 +474,14 @@ function ReportContent() {
             className="flex flex-1 items-center justify-center gap-2 rounded-md bg-brand-ink px-4 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover disabled:opacity-50"
             whileTap={{ scale: 0.98 }}
           >
-            <Download size={14} aria-hidden /> Download PDF
+            <Download size={14} aria-hidden /> {t('report.downloadPdf')}
           </motion.button>
           <motion.button
             onClick={() => handlePdf('open')}
             disabled={busy}
             className="flex items-center justify-center gap-2 rounded-md border border-border-subtle bg-surface px-4 py-2.5 text-sm font-medium text-text-primary transition-colors duration-150 hover:bg-sunken disabled:opacity-50"
             whileTap={{ scale: 0.98 }}
-            aria-label="Open PDF"
+            aria-label={t('report.openPdf')}
           >
             <ExternalLink size={14} aria-hidden />
           </motion.button>
@@ -471,7 +490,7 @@ function ReportContent() {
             disabled={busy}
             className="flex items-center justify-center gap-2 rounded-md border border-border-subtle bg-surface px-4 py-2.5 text-sm font-medium text-text-primary transition-colors duration-150 hover:bg-sunken disabled:opacity-50"
             whileTap={{ scale: 0.98 }}
-            aria-label="Print report"
+            aria-label={t('report.printReport')}
           >
             <Printer size={14} aria-hidden />
           </motion.button>
@@ -479,7 +498,7 @@ function ReportContent() {
             onClick={() => setShowQr(true)}
             className="flex items-center justify-center gap-2 rounded-md border border-border-subtle bg-surface px-4 py-2.5 text-sm font-medium text-text-primary transition-colors duration-150 hover:bg-sunken"
             whileTap={{ scale: 0.98 }}
-            aria-label="Share report link"
+            aria-label={t('report.shareLink')}
           >
             <Link2 size={14} aria-hidden />
           </motion.button>
@@ -492,7 +511,7 @@ function ReportContent() {
             className="mb-8 flex w-full items-center justify-center gap-2 rounded-md border border-brand-border bg-brand-subtle px-4 py-2.5 text-sm font-medium text-brand-ink transition-colors duration-150 hover:bg-brand-muted"
             whileTap={{ scale: 0.98 }}
           >
-            <Stethoscope size={14} aria-hidden /> Start live consult mode
+            <Stethoscope size={14} aria-hidden /> {t('report.startConsult')}
           </motion.button>
         )}
 
@@ -657,26 +676,26 @@ function ReportContent() {
           >
             <div className="mb-3 flex items-center gap-2">
               <QrCode size={16} className="text-brand-ink" aria-hidden />
-              <span className="text-sm font-semibold text-text-primary">Share this report</span>
+              <span className="text-sm font-semibold text-text-primary">{t('report.shareTitle')}</span>
             </div>
             <p className="mb-3 text-xs text-text-secondary">
-              Anyone with this link and access can open the report.
+              {t('report.shareNote')}
             </p>
             <div className="flex items-center gap-2 rounded-md border border-border-subtle bg-sunken px-3 py-2">
               <span className="flex-1 truncate font-mono text-xs text-text-secondary">{reportShareUrl}</span>
               <button
                 onClick={() => void copyShareLink()}
                 className="flex shrink-0 items-center gap-1 rounded-md bg-brand-ink px-2.5 py-1.5 text-xs font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover"
-                aria-label="Copy link"
+                aria-label={t('report.copyLink')}
               >
-                <Copy size={12} aria-hidden /> {linkCopied ? 'Copied' : 'Copy'}
+                <Copy size={12} aria-hidden /> {linkCopied ? t('report.copied') : t('report.copy')}
               </button>
             </div>
             <button
               onClick={() => setShowQr(false)}
               className="mt-4 w-full rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-text-primary transition-colors duration-150 hover:bg-sunken"
             >
-              Close
+              {t('common.close')}
             </button>
           </motion.div>
         </motion.div>

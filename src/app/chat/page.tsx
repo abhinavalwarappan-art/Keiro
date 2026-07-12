@@ -21,6 +21,7 @@ import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { trackAIQuerySent, trackConversationStarted, trackReportGenerated } from '@/lib/analytics'
 import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY, PATIENT_PROFILE_SESSION_KEY, SESSION_ID_KEY } from '@/lib/chatSession'
 import { isPatientProfileComplete } from '@/lib/patientProfile'
+import { useTranslations } from '@/i18n/useTranslations'
 
 type QuickReplyType = 'severity' | 'yesno' | null
 
@@ -28,6 +29,15 @@ type QuickReplyType = 'severity' | 'yesno' | null
 const SESSION_WARN_MS = 90 * 60 * 1000
 /** Hard-expire the session at 120 minutes — clears state and redirects to home. */
 const SESSION_EXPIRE_MS = 120 * 60 * 1000
+
+/**
+ * Floor for how long Kai's typing indicator stays up before a reply appears. A
+ * response that lands the instant a patient hits send reads as a machine returning
+ * a lookup; a short pause reads as someone taking in what was just said. This is a
+ * floor, not an added delay — when the model takes longer (the usual case) nothing
+ * is added. Never applied to the emergency or error paths, which must not be slowed.
+ */
+const MIN_TYPING_INDICATOR_MS = 600
 
 const COMPLETION_MESSAGES: Record<string, string> = {
   ta: 'உங்கள் அறிக்கை தயாரானது. இதை உங்கள் மருத்துவரிடம் காட்டுங்கள்.',
@@ -204,6 +214,7 @@ function ChatContent() {
   const langName = searchParams.get('langName') || 'English'
   const langNative = searchParams.get('langNative') || 'English'
   const roman = searchParams.get('roman') === '1'
+  const t = useTranslations(langCode)
   const [restoredSession] = useState(() => restoreChatSession(langCode, langName, langNative, roman))
   const [patientProfile, setPatientProfile] = useState<PatientProfile | null>(
     () => restoredSession?.patientProfile ?? loadStoredPatientProfile(),
@@ -290,6 +301,7 @@ function ChatContent() {
       setQuickReply(null)
       setIsTyping(true)
       scrollToBottom()
+      const typingStartedAt = Date.now()
 
       try {
         const res = await fetch('/api/chat', {
@@ -338,6 +350,14 @@ function ChatContent() {
           setChatError(true)
           return
         }
+
+        // Hold the indicator to its floor before the reply appears. A newer turn (or
+        // an unmount) can abort us mid-wait, so re-check before touching state.
+        const typingElapsed = Date.now() - typingStartedAt
+        if (typingElapsed < MIN_TYPING_INDICATOR_MS) {
+          await new Promise(resolve => setTimeout(resolve, MIN_TYPING_INDICATOR_MS - typingElapsed))
+        }
+        if (controller.signal.aborted) return
 
         setIsTyping(false)
         const kaiMessageId = crypto.randomUUID()
@@ -598,7 +618,7 @@ function ChatContent() {
           <button
             type="button"
             onClick={handleEndSession}
-            aria-label="End session and sign out"
+            aria-label={t('chat.endSession')}
             className="flex size-9 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
           >
             <LogOut size={18} aria-hidden />
@@ -609,7 +629,7 @@ function ChatContent() {
       <div ref={scrollRef} data-lenis-prevent className="flex-1 overflow-y-auto">
         <div
           role="log"
-          aria-label="Conversation with Kai"
+          aria-label={t('chat.log')}
           aria-live="polite"
           className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 md:px-8"
         >
@@ -624,31 +644,31 @@ function ChatContent() {
               animate={{ opacity: 1, y: 0 }}
             >
               <Kai size="xs" state="thinking" interactive={false} />
-              <span className="pt-2 text-sm text-text-tertiary">Kai is typing…</span>
+              <span className="pt-2 text-sm text-text-tertiary">{t('chat.typing')}</span>
             </motion.div>
           )}
 
           {sessionTimeoutWarning && (
             <div className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-text-secondary">
-              Your session will expire soon. Prepare your report before it ends.
+              {t('chat.sessionExpiring')}
             </div>
           )}
 
           {rateLimitError && (
             <div className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-text-secondary">
-              You&apos;re sending messages too quickly. Please wait a moment and try again.
+              {t('chat.errRateLimit')}
             </div>
           )}
 
           {chatError && (
             <div className="rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-text-secondary">
-              Something went wrong reaching Kai. Please try again.
+              {t('chat.errChat')}
             </div>
           )}
 
           {reportError && (
             <div className="rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-text-secondary">
-              We couldn&apos;t prepare your report. Please try again.
+              {t('chat.errReport')}
             </div>
           )}
 
@@ -667,7 +687,7 @@ function ChatContent() {
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-ink py-3.5 font-semibold text-white disabled:opacity-50"
                   whileTap={isKaiSpeaking ? {} : { scale: 0.97 }}
                 >
-                  <FileText size={16} aria-hidden /> Yes, prepare my report
+                  <FileText size={16} aria-hidden /> {t('chat.prepareReport')}
                 </motion.button>
                 <motion.button
                   type="button"
@@ -676,7 +696,7 @@ function ChatContent() {
                   className="w-full rounded-lg border border-border-subtle bg-surface py-3.5 text-sm font-semibold text-text-primary disabled:opacity-50"
                   whileTap={isKaiSpeaking ? {} : { scale: 0.97 }}
                 >
-                  I have more to add
+                  {t('chat.moreToAdd')}
                 </motion.button>
               </motion.div>
             )}
@@ -688,7 +708,7 @@ function ChatContent() {
                 className="flex flex-col items-center gap-3 py-8"
               >
                 <Kai size="sm" state="thinking" interactive={false} />
-                <p className="text-sm text-text-tertiary">Preparing your report…</p>
+                <p className="text-sm text-text-tertiary">{t('chat.preparingReport')}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -718,7 +738,7 @@ function ChatContent() {
             animate={{ opacity: 1, y: 0 }}
             className="mx-auto w-full max-w-2xl px-4 pt-3"
           >
-            <SeverityPicker onSelect={sendMessage} disabled={inputDisabled} />
+            <SeverityPicker onSelect={sendMessage} disabled={inputDisabled} langCode={langCode} />
           </motion.div>
         )}
 
@@ -728,7 +748,7 @@ function ChatContent() {
             animate={{ opacity: 1, y: 0 }}
             className="mx-auto w-full max-w-2xl px-4 pt-3"
           >
-            <YesNoPicker onSelect={sendMessage} disabled={inputDisabled} />
+            <YesNoPicker onSelect={sendMessage} disabled={inputDisabled} langCode={langCode} />
           </motion.div>
         )}
 

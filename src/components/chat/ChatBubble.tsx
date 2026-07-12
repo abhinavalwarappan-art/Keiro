@@ -8,6 +8,7 @@ import KaiAvatar from '@/components/kai/KaiAvatar'
 import { speakText, stopSpeech } from '@/lib/speech'
 import { stripMarkdownAndEmoji } from '@/lib/text'
 import { useSpeechActive } from '@/hooks/useSpeechActive'
+import { useTranslations } from '@/i18n/useTranslations'
 
 const REPORT_KEYS = ['chief_complaint', 'condition', 'reasoning', 'symptoms', 'emergency', 'possible_conditions']
 const DEFAULT_REVEAL_DELAY_MS = 18
@@ -160,6 +161,7 @@ interface ChatBubbleProps {
 /* Kai speaks without a bubble — brand mark + plain text on the canvas
    (the Claude/Perplexity pattern). Only the patient sits in a bubble. */
 export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleProps) {
+  const t = useTranslations(langCode)
   const [localSpeaking, setLocalSpeaking] = useState(false)
   const globalSpeaking = useSpeechActive()
   const listenDisabled = globalSpeaking && !localSpeaking
@@ -230,17 +232,17 @@ export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleP
               ? 'border-brand bg-brand text-white'
               : 'border-brand-border bg-brand-subtle text-brand-ink hover:bg-brand-muted'
           }`}
-          aria-label={localSpeaking ? 'Stop reading aloud' : 'Listen to this message aloud'}
+          aria-label={localSpeaking ? t('chat.stopReading') : t('chat.listenAloud')}
         >
           {localSpeaking ? (
             <>
               <SoundWave reduceMotion={Boolean(reduceMotion)} />
-              <span>Stop</span>
+              <span>{t('chat.stop')}</span>
             </>
           ) : (
             <>
               <Volume2 size={20} aria-hidden />
-              <span>Listen</span>
+              <span>{t('chat.listen')}</span>
             </>
           )}
         </button>
