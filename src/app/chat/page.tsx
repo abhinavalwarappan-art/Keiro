@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import ChatLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -661,13 +662,13 @@ function ChatContent() {
           )}
 
           {chatError && (
-            <div className="rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-text-secondary">
+            <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-text-secondary">
               {t('chat.errChat')}
             </div>
           )}
 
           {reportError && (
-            <div className="rounded-lg border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-text-secondary">
+            <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-text-secondary">
               {t('chat.errReport')}
             </div>
           )}
@@ -769,7 +770,7 @@ function ChatContent() {
 export default function ChatPage() {
   return (
     <ErrorBoundary>
-      <Suspense>
+      <Suspense fallback={<ChatLoading />}>
         <ChatContent />
       </Suspense>
     </ErrorBoundary>

@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useEffect } from 'react'
+import OnboardingLoading from './loading'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import AppLanguagePicker from '@/components/language/AppLanguagePicker'
@@ -52,7 +53,7 @@ function OnboardingContent() {
 export default function OnboardingPage() {
   return (
     <ErrorBoundary>
-      <Suspense>
+      <Suspense fallback={<OnboardingLoading />}>
         <OnboardingContent />
       </Suspense>
     </ErrorBoundary>

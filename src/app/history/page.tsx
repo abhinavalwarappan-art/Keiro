@@ -151,10 +151,10 @@ function HistoryInner() {
                   <button
                     onClick={() => handleDelete(report.id)}
                     disabled={deleting === report.id}
-                    className="absolute right-3 top-3 flex size-8 items-center justify-center rounded-md text-text-tertiary transition-colors duration-150 hover:bg-error-subtle hover:text-error disabled:opacity-50"
+                    className="absolute right-2 top-2 flex size-11 items-center justify-center rounded-md text-text-tertiary transition-colors duration-150 hover:bg-error-subtle hover:text-error active:scale-95 disabled:opacity-50"
                     aria-label="Delete report"
                   >
-                    <Trash2 size={14} aria-hidden />
+                    <Trash2 size={16} aria-hidden />
                   </button>
                 </motion.div>
               ))}

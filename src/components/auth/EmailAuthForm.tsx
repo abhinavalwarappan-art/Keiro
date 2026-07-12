@@ -226,14 +226,14 @@ export function EmailAuthForm({ onSuccess }: EmailAuthFormProps) {
         {mode === 'signup' ? (
           <>
             Already have an account?{' '}
-            <button type="button" onClick={() => switchMode('signin')} className="font-medium text-brand-ink underline underline-offset-2">
+            <button type="button" onClick={() => switchMode('signin')} className="inline-flex min-h-11 items-center rounded-sm px-1 font-medium text-brand-ink underline underline-offset-2 transition-colors hover:text-brand-ink-hover">
               Sign in
             </button>
           </>
         ) : (
           <>
             New to Keiro?{' '}
-            <button type="button" onClick={() => switchMode('signup')} className="font-medium text-brand-ink underline underline-offset-2">
+            <button type="button" onClick={() => switchMode('signup')} className="inline-flex min-h-11 items-center rounded-sm px-1 font-medium text-brand-ink underline underline-offset-2 transition-colors hover:text-brand-ink-hover">
               Create an account
             </button>
           </>
