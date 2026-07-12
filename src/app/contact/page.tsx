@@ -1,6 +1,14 @@
 import type { Metadata } from 'next'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { PageHero, Section, P, CtaBand, A } from '@/components/landing-v3/PageBits'
+import { PageHero, CtaBand } from '@/components/landing-v3/PageBits'
+import {
+  Band,
+  BandHeading,
+  Accent,
+  ExpandableSteps,
+  Thesis,
+  ArrowLink,
+} from '@/components/landing-v3/Sections'
 import { ContactForm } from '@/components/landing-v3/ContactForm'
 import { Reveal } from '@/components/landing-v3/Reveal'
 
@@ -14,88 +22,145 @@ export const metadata: Metadata = {
   },
 }
 
-/* Audience router. Each block says what this person probably wants and where it
-   is, so the single form below is the last resort rather than the first thing
-   you hit. (Serve Robotics' /contact does the same job with five inboxes; we
-   have one, so the routing has to happen in the copy.) */
-const AUDIENCES = [
-  {
-    who: 'If you are a patient',
-    body: 'You do not need to contact anyone to use Keiro. It is free, there is no account, and you can start right now. If something broke, or Kai said something that worried you, we would genuinely like to hear it — use the form below.',
-  },
-  {
-    who: 'If you are a clinic or hospital',
-    body: 'Start with the for-clinics page — it explains what your clinicians would actually receive, and it is honest about the limits, including the fact that Keiro has not been clinically validated.',
-    href: '/for-clinics',
-    linkLabel: 'Read: for clinics',
-  },
-  {
-    who: 'If you are a journalist',
-    body: 'The fastest way to understand Keiro is to use it — it takes five minutes and needs no account. Our mission page has the background and the numbers behind why it exists.',
-    href: '/about',
-    linkLabel: 'Read: our mission',
-  },
-  {
-    who: 'If you are an investor',
-    body: 'Please read privacy & safety before anything else, particularly the section on what we have not done. We would rather you find the gaps on our own page than in diligence.',
-    href: '/privacy-safety',
-    linkLabel: 'Read: privacy & safety',
-  },
-  {
-    who: 'If you are judging this project',
-    body: 'The five-minute version: open Keiro, choose a language you do not speak, and talk to Kai. That is the whole product. How it works explains the technology in plain words, and privacy & safety is where we are candid about the limits.',
-    href: '/how-it-works',
-    linkLabel: 'Read: how it works',
-  },
-]
-
+/* Spine: hero -> audience router as expandables(cream) -> form(mint)
+   -> emergency thesis(DEEP). An audience router rather than a form-first page. */
 export default function ContactPage() {
   return (
     <SiteShell>
       <PageHero
         eyebrow="Contact"
         title="Tell us who you are, and we will write back."
-        lede="A real person reads these — there is no ticketing system and no autoresponder. Start by finding yourself below; it will usually save you an email."
+        lede="A real person reads these — there is no ticketing system and no autoresponder. Find yourself below first; it will usually save you an email."
       />
 
-      <Section title="Start here">
-        <ul className="mt-2 grid gap-5 sm:grid-cols-2">
-          {AUDIENCES.map((audience, i) => (
-            <Reveal key={audience.who} delay={i * 0.06}>
-              <li className="h-full rounded-[20px] border border-[var(--lx-line)] bg-white p-5 sm:p-6">
-                <h3 className="lx-display text-lg font-semibold text-[var(--lx-ink)]">
-                  {audience.who}
-                </h3>
-                <p className="mt-2 leading-[1.8] text-[var(--lx-muted)]">{audience.body}</p>
-                {audience.href && (
-                  <p className="mt-3">
-                    <A href={audience.href}>{audience.linkLabel}</A>
-                  </p>
-                )}
-              </li>
-            </Reveal>
-          ))}
-        </ul>
-      </Section>
+      <Band palette="cream">
+        <BandHeading lede="Open the one that sounds like you.">
+          Start <Accent>here.</Accent>
+        </BandHeading>
 
-      <Section title="Write to us" tinted id="form">
-        <P>
-          If none of that covered it, this reaches us directly. We usually reply within a few days.
-        </P>
+        <div className="mt-10">
+          <ExpandableSteps
+            items={[
+              {
+                n: '01',
+                title: 'I am a patient',
+                summary: 'You almost certainly do not need to contact anyone.',
+                detail: (
+                  <div className="max-w-2xl">
+                    <p className="leading-[1.85] text-[var(--band-muted)]">
+                      Keiro is free, there is no account, and you can start right now — there is
+                      nothing to request and nobody to ask. If something broke, or Kai said something
+                      that worried you, we do want to hear that. Use the form below and be blunt.
+                    </p>
+                    <div className="mt-4">
+                      <ArrowLink href="/onboarding?fresh=1">Just start talking to Kai</ArrowLink>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                n: '02',
+                title: 'I am a clinic or hospital',
+                summary: 'Read the honest version before you write to us.',
+                detail: (
+                  <div className="max-w-2xl">
+                    <p className="leading-[1.85] text-[var(--band-muted)]">
+                      The for-clinics page explains what your clinicians would actually receive, and
+                      it is candid about the limits — including that Keiro has not been clinically
+                      validated. Read that first; it will make the conversation shorter.
+                    </p>
+                    <div className="mt-4">
+                      <ArrowLink href="/for-clinics">Read: for clinics</ArrowLink>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                n: '03',
+                title: 'I am a journalist',
+                summary: 'The fastest way to understand Keiro is to use it.',
+                detail: (
+                  <div className="max-w-2xl">
+                    <p className="leading-[1.85] text-[var(--band-muted)]">
+                      It takes five minutes and needs no account. Choose a language you do not speak
+                      and talk to Kai — that is the entire product. The mission page has the
+                      background and the numbers behind why it exists.
+                    </p>
+                    <div className="mt-4">
+                      <ArrowLink href="/about">Read: our mission</ArrowLink>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                n: '04',
+                title: 'I am an investor',
+                summary: 'Start with what we have not done.',
+                detail: (
+                  <div className="max-w-2xl">
+                    <p className="leading-[1.85] text-[var(--band-muted)]">
+                      Please read privacy &amp; safety before anything else, particularly the section
+                      on what we have not done and the part about where messages are processed. We
+                      would rather you find the gaps on our own page than in diligence.
+                    </p>
+                    <div className="mt-4">
+                      <ArrowLink href="/privacy-safety">Read: privacy &amp; safety</ArrowLink>
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                n: '05',
+                title: 'I am judging this project',
+                summary: 'The five-minute version.',
+                detail: (
+                  <div className="max-w-2xl">
+                    <p className="leading-[1.85] text-[var(--band-muted)]">
+                      Open Keiro, choose a language you do not speak, and talk to Kai. That is the
+                      whole product, and it needs no account. How it works explains the technology in
+                      plain words; privacy &amp; safety is where we are candid about the limits —
+                      including the ones that are not flattering.
+                    </p>
+                    <div className="mt-4">
+                      <ArrowLink href="/how-it-works">Read: how it works</ArrowLink>
+                    </div>
+                  </div>
+                ),
+              },
+            ]}
+          />
+        </div>
+      </Band>
+
+      <Band palette="mint" id="form">
+        <BandHeading lede="If none of that covered it, this reaches us directly. We usually reply within a few days.">
+          Write to <Accent>us.</Accent>
+        </BandHeading>
         <Reveal>
-          <ContactForm />
+          <div className="max-w-2xl">
+            <ContactForm />
+          </div>
         </Reveal>
-      </Section>
+      </Band>
 
-      <Section title="If this is an emergency, do not use this form">
-        <P>
-          Nobody is watching this inbox around the clock, and we cannot help you quickly. If you are
-          in danger right now, or the pain is severe, call your local emergency number.
-        </P>
-        <P>
-          <A href="/emergency">Get emergency help</A>
-        </P>
-      </Section>
+      <Band palette="deep">
+        <Thesis
+          statement={
+            <>
+              If this is an emergency, <Accent>do not use this form.</Accent>
+            </>
+          }
+          body="Nobody is watching this inbox around the clock and we cannot help you quickly. If you are in danger right now, or the pain is severe, call your local emergency number."
+        />
+        <Reveal className="mt-6">
+          <a
+            href="/emergency"
+            className="lx-focus inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-sage)] px-6 font-semibold text-[var(--lx-ink)] transition-colors duration-200 hover:bg-white"
+          >
+            Get emergency help
+          </a>
+        </Reveal>
+      </Band>
 
       <CtaBand />
     </SiteShell>

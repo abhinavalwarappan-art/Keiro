@@ -13,6 +13,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Kai } from '@/components/kai/Kai'
 
 type NavLink = { href: string; label: string; children?: { href: string; label: string }[] }
 
@@ -81,10 +82,19 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
       }`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-16">
+        {/* Kai is the logo — he's the product's face, so he leads the wordmark.
+            His SVG is 56×75 at `xs`, taller than the 64px bar, so he's absolutely
+            positioned inside a fixed box and scaled down; otherwise his layout
+            box pushes the header height out. */}
         <Link
           href="/"
-          className="lx-focus lx-display inline-flex min-h-11 shrink-0 items-center text-xl font-semibold tracking-[-0.02em] text-[var(--lx-ink)]"
+          className="lx-focus lx-display group inline-flex min-h-11 shrink-0 items-center gap-2.5 text-xl font-semibold tracking-[-0.02em] text-[var(--lx-ink)]"
         >
+          <span className="relative block h-9 w-8 shrink-0" aria-hidden="true">
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-[0.46] transition-transform duration-300 group-hover:scale-[0.52]">
+              <Kai size="xs" animated={false} />
+            </span>
+          </span>
           Keiro
         </Link>
 
