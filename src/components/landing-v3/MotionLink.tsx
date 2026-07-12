@@ -1,8 +1,9 @@
 'use client'
 
 /* Primary / ghost CTA.
-   - Framer Motion spring scale on hover + tap
-   - Primary: CSS shimmer sweep on hover (.lx-shimmer) + --glow box-shadow (.lx-glow) */
+   Primary sits on --lx-ink (11.8:1 against white) rather than --lx-green, which
+   only reaches 3.1:1 on this cream ground and would fail AA for button text.
+   min-h-12 keeps every target above the 44px floor on a phone. */
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -22,23 +23,21 @@ export function MotionLink({ href, children, variant = 'primary', external = fal
   return (
     <motion.div
       className="inline-block"
-      whileHover={{ scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
     >
       <Link
         href={href}
         {...externalProps}
         className={[
-          'relative inline-flex h-12 items-center justify-center overflow-hidden rounded-[8px] px-6 text-sm font-semibold',
+          'lx-focus inline-flex min-h-12 items-center justify-center rounded-full px-6 text-base font-semibold transition-colors duration-200',
           isPrimary
-            ? 'lx-shimmer-host lx-glow text-[#050705]'
-            : 'border border-white/20 text-white transition-colors duration-200 hover:border-white/40',
+            ? 'bg-[var(--lx-ink)] text-[var(--lx-cream)] hover:bg-[#14301f]'
+            : 'border border-[var(--lx-line)] bg-white text-[var(--lx-ink)] hover:border-[var(--lx-sage)]',
         ].join(' ')}
-        style={isPrimary ? { background: 'var(--kx-accent)' } : undefined}
       >
-        {isPrimary && <span className="lx-shimmer" aria-hidden="true" />}
-        <span className="relative z-10">{children}</span>
+        {children}
       </Link>
     </motion.div>
   )

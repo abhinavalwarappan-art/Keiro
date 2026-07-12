@@ -1,124 +1,156 @@
 'use client'
 
-/* ============================ SECTION 1 — HERO =============================
-   Scroll-driven intro:
-   - Starts as Kai's small head/logo.
-   - As the user scrolls, Kai grows toward the viewer, blurs, and dissolves into
-     a darker green circle.
-   - The short hero copy resolves out of that blur before the next section.
-   No CTA buttons, no scroll hint, no bottom hand-off line.
+/* ============================== HERO =======================================
+   Kai speaks first, in first person (the Ada Health pattern: name → what I do →
+   what I am not). The live language switcher is the primary interaction on the
+   page, not a fact stated in copy: tap your language and Kai's actual opening
+   line re-renders in it, in-script and right-to-left where that applies.
+
+   No scroll-linked motion. The only entrance animation is a one-shot fade.
    ========================================================================== */
 
-import { useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { StarrySkyBackground } from '@/components/ui/starry-sky-background'
-import { KaiRobot } from './KaiRobot'
-
-/* Headline copy, split into lines → words so words never break mid-air. */
-const HEADLINE_LINES = [
-  ['Healthcare', 'that', 'speaks'],
-  ['your', 'language.'],
-] as const
-
-/* White → teal-green vertical fill, fading translucent at the foot of each letter
-   so the dark sky shows through. Painted per-letter (not on the h1) because
-   background-clip:text does not clip through descendant boxes on the h1 itself. */
-const HEADLINE_GRADIENT =
-  'linear-gradient(to bottom, #ffffff 0%, #00c896 74%, rgba(0,200,150,0.32) 100%)'
-
-/* One letter, statically painted with the clipped gradient. The whole headline
-   fades in and out as a single unit — no per-letter timing. */
-function GradientChar({ char }: { char: string }) {
-  return (
-    <span
-      className="inline-block text-transparent"
-      style={{
-        backgroundImage: HEADLINE_GRADIENT,
-        WebkitBackgroundClip: 'text',
-        backgroundClip: 'text',
-      }}
-    >
-      {char}
-    </span>
-  )
-}
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Kai } from '@/components/kai/Kai'
+import { FlagEmoji } from './FlagEmoji'
+import { MotionLink } from './MotionLink'
+import { heroGreetings } from './landingData'
 
 export function Hero() {
-  const sectionRef = useRef<HTMLElement | null>(null)
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end end'],
-  })
-
-  // Kai owns the opening: centred and sharp the moment you land, then as you
-  // scroll he grows toward you, blurs, and dissolves — handing the frame to the
-  // headline that resolves in his place.
-  const robotScale = useTransform(scrollYProgress, [0, 0.4], [1, 1.5])
-  // Animating a big blur radius on scroll is GPU-costly; cap it lower — the
-  // opacity fade to 0 does most of the "dissolve", so a smaller blur still reads.
-  const robotBlur = useTransform(scrollYProgress, [0.1, 0.4], [0, 14])
-  const robotOpacity = useTransform(scrollYProgress, [0.08, 0.4], [1, 0])
-  const robotFilter = useTransform(robotBlur, (b) => `blur(${b}px)`)
-
-  const glowScale = useTransform(scrollYProgress, [0, 0.44, 0.68], [0.35, 1.35, 1.75])
-  const glowOpacity = useTransform(scrollYProgress, [0, 0.26, 0.48, 1], [0, 0.14, 0.34, 0.18])
-
-  const copyY = useTransform(scrollYProgress, [0, 1], [0, -26])
-
-  // Eyebrow + headline resolve TOGETHER as one block once Kai has dissolved,
-  // hold, then fade out together as you keep scrolling down.
-  const copyOpacity = useTransform(scrollYProgress, [0.4, 0.52, 0.8, 0.96], [0, 1, 1, 0])
-  const copyBlur = useTransform(scrollYProgress, [0.4, 0.52, 0.8, 0.96], [8, 0, 0, 8])
-  const copyFilter = useTransform(copyBlur, (b) => `blur(${b}px)`)
+  const [active, setActive] = useState(heroGreetings[0])
 
   return (
-    <section ref={sectionRef} id="hero" className="relative h-[250vh] scroll-mt-32 bg-transparent">
-      <div className="sticky top-0 flex h-[100svh] items-center justify-center overflow-hidden bg-transparent px-6">
-        <StarrySkyBackground interactive className="z-0" />
-
+    <section
+      id="hero"
+      className="relative scroll-mt-28 px-5 pb-16 pt-12 sm:px-8 sm:pt-20 md:pt-28 lg:px-16"
+    >
+      {/* Grid placement (rather than source order) puts the language card ahead of
+          the CTAs on a phone — otherwise the one interaction that proves the whole
+          product sits below the fold at 375px. On lg the card spans both rows. */}
+      <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:gap-16">
+        {/* ── Kai's voice ── */}
         <motion.div
-          className="pointer-events-none absolute h-[560px] w-[560px] max-w-[120vw] rounded-full"
-          style={{
-            scale: glowScale,
-            opacity: glowOpacity,
-            background: 'radial-gradient(circle, rgba(0,200,150,0.52) 0%, rgba(0,90,68,0.24) 42%, transparent 70%)',
-            filter: 'blur(28px)',
-          }}
-          aria-hidden
-        />
-
-        <motion.div
-          className="pointer-events-none absolute left-1/2 top-1/2 z-30"
-          style={{ x: '-50%', y: '-50%', scale: robotScale, opacity: robotOpacity, filter: robotFilter }}
-          aria-hidden
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="lg:col-start-1 lg:row-start-1"
         >
-          <KaiRobot size={340} float />
+          <p className="inline-flex items-center gap-2 rounded-full border border-[var(--lx-line)] bg-[var(--lx-mint)] px-3 py-1.5 text-sm font-medium text-[var(--lx-ink)]">
+            Free · No account · No forms
+          </p>
+
+          <h1 className="lx-display mt-6 text-balance text-[clamp(2rem,5.2vw,3.4rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[var(--lx-ink)]">
+            I&apos;m Kai. Tell me what hurts — in the language you think in.
+          </h1>
+
+          <p className="mt-6 max-w-xl text-pretty text-[1.05rem] leading-[1.75] text-[var(--lx-muted)] sm:text-lg">
+            Then I&apos;ll explain it to your doctor, in clear English. I&apos;m not a doctor and I
+            won&apos;t diagnose you. I&apos;ll just make sure you&apos;re understood.
+          </p>
         </motion.div>
 
+        {/* ── The live language moment ── */}
         <motion.div
-          className="relative z-20 mx-auto max-w-3xl text-center"
-          style={{ y: copyY, opacity: copyOpacity, filter: copyFilter }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+          className="relative lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center"
         >
-          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.3em] text-[var(--kx-accent)]">
-            Meet Kai
-          </p>
-          <h1 className="font-sans text-[clamp(2.6rem,6.4vw,5.5rem)] font-medium leading-[1.05] tracking-[-0.025em]">
-            <span className="sr-only">Healthcare that speaks your language.</span>
-            <span aria-hidden>
-              {HEADLINE_LINES.map((words, lineIndex) => (
-                <span key={lineIndex} className="block">
-                  {words.map((word, wordIndex) => (
-                    <span key={wordIndex} className="inline-block whitespace-nowrap align-top">
-                      {wordIndex > 0 && <span className="inline-block" aria-hidden>{'\u00A0'}</span>}
-                      {word.split('').map((char, charIndex) => (
-                        <GradientChar key={charIndex} char={char} />
-                      ))}
-                    </span>
-                  ))}
-                </span>
-              ))}
-            </span>
-          </h1>
+          <div className="rounded-[28px] border border-[var(--lx-line)] bg-[var(--lx-mint)] p-5 shadow-[0_24px_60px_-30px_rgba(26,61,43,0.35)] sm:p-7">
+            <label
+              htmlFor="hero-lang"
+              className="block text-sm font-semibold text-[var(--lx-ink)]"
+            >
+              Which language do you speak?
+            </label>
+
+            {/* Chips are a radiogroup, not a listbox — one visible choice, no popup
+                to trap a screen reader or a shaky finger. */}
+            <div
+              id="hero-lang"
+              role="radiogroup"
+              aria-label="Choose the language Kai speaks to you in"
+              className="mt-3 flex flex-wrap gap-2"
+            >
+              {heroGreetings.map((g) => {
+                const isActive = g.code === active.code
+                return (
+                  <button
+                    key={g.code}
+                    type="button"
+                    role="radio"
+                    aria-checked={isActive}
+                    onClick={() => setActive(g)}
+                    className={[
+                      'lx-focus flex min-h-11 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition-colors duration-200',
+                      isActive
+                        ? 'border-[var(--lx-ink)] bg-[var(--lx-ink)] text-white'
+                        : 'border-[var(--lx-line)] bg-white text-[var(--lx-body)] hover:border-[var(--lx-sage)]',
+                    ].join(' ')}
+                  >
+                    <FlagEmoji region={g.region} />
+                    <span className="lx-native">{g.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Kai's actual opening line, live. aria-live so a screen-reader user
+                hears the change instead of silently missing the whole point. */}
+            <div className="mt-6 flex items-start gap-3">
+              <span className="mt-1 shrink-0">
+                <Kai size="xs" animated={false} />
+              </span>
+
+              <div
+                className="min-h-[8.5rem] flex-1 rounded-[20px] rounded-tl-md border border-[var(--lx-line)] bg-white p-4 sm:min-h-[7.5rem]"
+                aria-live="polite"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={active.code}
+                    lang={active.code}
+                    dir={active.rtl ? 'rtl' : 'ltr'}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                    className={[
+                      'lx-native text-[1.02rem] leading-[1.75] text-[var(--lx-body)]',
+                      active.rtl ? 'text-right' : 'text-left',
+                    ].join(' ')}
+                  >
+                    {active.text}
+                  </motion.p>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <p className="mt-4 text-sm leading-relaxed text-[var(--lx-muted)]">
+              Kai speaks {heroGreetings.length} languages here, and{' '}
+              <a
+                href="#languages"
+                className="lx-focus font-semibold text-[var(--lx-ink)] underline underline-offset-4"
+              >
+                41 in the app
+              </a>
+              .
+            </p>
+          </div>
+        </motion.div>
+
+        {/* ── CTAs — last in the DOM so the card outranks them on a phone; grid
+             placement lifts them back under the copy on desktop. ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          className="flex flex-col gap-3 sm:flex-row sm:items-center lg:col-start-1 lg:row-start-2"
+        >
+          <MotionLink href="/onboarding?fresh=1">Start talking to Kai</MotionLink>
+          <MotionLink href="#how-it-works" variant="ghost">
+            See what happens first
+          </MotionLink>
         </motion.div>
       </div>
     </section>

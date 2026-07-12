@@ -1,69 +1,100 @@
-/* Footer — copy kept exactly. */
+/* Footer — the page's one dark surface.
+
+   This is deliberate: /onboarding renders on a dark starry background, so a
+   cream-white footer would flash-bang straight into it on click-through. Landing
+   the page on --lx-ink first makes that handoff read as a step down rather than
+   a seam. (The real fix is to reconcile the two surfaces, but onboarding/ is out
+   of scope here.) */
 
 import Link from 'next/link'
+import { Kai } from '@/components/kai/Kai'
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden border-t border-white/[0.06] px-6 py-16 md:px-10 lg:px-16">
-      <div
-        className="absolute bottom-0 left-1/2 h-[520px] w-[760px] -translate-x-1/2 translate-y-1/2 rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(0,200,150,0.11) 0%, transparent 70%)' }}
-        aria-hidden
-      />
-      <div className="relative z-[1] mx-auto max-w-7xl">
-        <div className="grid gap-10 lg:grid-cols-[1.25fr_0.75fr_0.75fr_0.75fr]">
+    <footer className="relative bg-[var(--lx-ink)] px-5 py-16 text-white/70 sm:px-8 md:py-20 lg:px-16">
+      <div className="mx-auto max-w-6xl">
+        {/* Final invitation */}
+        <div className="flex flex-col items-center gap-6 border-b border-white/10 pb-14 text-center">
+          <Kai size="sm" state="waving" />
+          <h2 className="lx-display max-w-2xl text-[clamp(1.6rem,4vw,2.4rem)] font-semibold leading-[1.2] text-white">
+            Whenever you&apos;re ready. There&apos;s no rush.
+          </h2>
+          <Link
+            href="/onboarding?fresh=1"
+            className="lx-focus inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-sage)] px-7 font-semibold text-[var(--lx-ink)] transition-colors duration-200 hover:bg-white"
+          >
+            Start talking to Kai
+          </Link>
+          <p className="text-sm text-white/60">Free. No account. Nothing to fill in first.</p>
+        </div>
+
+        <div className="grid gap-10 pt-14 md:grid-cols-3">
           <div>
-            <div className="font-display text-2xl font-bold tracking-[-0.03em] text-white">
-              Keiro <span className="text-[var(--kx-accent)]">●</span>
-            </div>
-            <p className="mt-5 max-w-md text-sm leading-[1.8] text-white/55">
-              Keiro helps you explain symptoms in the language you think in, then turns the conversation into a clear
-              summary your doctor can read.
+            <div className="lx-display text-xl font-semibold text-white">Keiro</div>
+            <p className="mt-4 max-w-sm leading-[1.8]">
+              Keiro helps you explain what&apos;s wrong in the language you think in, then turns
+              that conversation into a summary your doctor can read.
             </p>
           </div>
 
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">For your visit</h3>
-            <ul className="mt-5 space-y-3 text-sm text-white/55">
-              <li>Speak naturally in your language</li>
-              <li>Answer Kai&apos;s simple follow-up questions</li>
-              <li>Bring a clear summary to the doctor</li>
-              <li>No account needed to start</li>
+          <nav aria-label="Footer">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/50">
+              Explore
+            </h3>
+            <ul className="mt-5 space-y-1">
+              {[
+                { href: '#meet-kai', label: 'Meet Kai' },
+                { href: '#how-it-works', label: 'How it works' },
+                { href: '#languages', label: 'Languages' },
+                { href: '#for-clinics', label: 'For clinics' },
+              ].map((item) => (
+                <li key={item.href}>
+                  <a
+                    href={item.href}
+                    className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+              <li>
+                <Link
+                  href="/privacy"
+                  className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
+                >
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms"
+                  className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
+                >
+                  Terms
+                </Link>
+              </li>
             </ul>
-          </div>
+          </nav>
 
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Explore</h3>
-            <nav className="mt-5 flex flex-col gap-3 text-sm text-white/55">
-              <a href="#flow" className="cursor-pointer transition-colors duration-200 hover:text-[var(--kx-accent)]">
-                Steps
-              </a>
-              <a href="#languages" className="cursor-pointer transition-colors duration-200 hover:text-[var(--kx-accent)]">
-                Languages
-              </a>
-              <Link href="/privacy" className="cursor-pointer transition-colors duration-200 hover:text-[var(--kx-accent)]">
-                Privacy
-              </Link>
-              <Link href="/terms" className="cursor-pointer transition-colors duration-200 hover:text-[var(--kx-accent)]">
-                Terms
-              </Link>
-            </nav>
-          </div>
-
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Important</h3>
-            <p className="mt-5 text-sm leading-[1.8] text-white/55">
-              Kai is an AI assistant, not a doctor. If this is an emergency or you may be in danger, call local emergency
-              services right away.
+            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/50">
+              Please read this
+            </h3>
+            <p className="mt-5 leading-[1.8]">
+              Kai is not a doctor and does not diagnose. If this is an emergency, or you may be
+              in danger, call your local emergency number now.
             </p>
-            <p className="mt-4 text-sm leading-[1.8] text-white/55">
-              Free for patients. No credit card. No forms before you can start.
-            </p>
+            <Link
+              href="/emergency"
+              className="lx-focus mt-4 inline-flex min-h-11 items-center font-semibold text-[var(--lx-sage)] underline underline-offset-4 hover:text-white"
+            >
+              Get emergency help
+            </Link>
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-4 border-t border-white/[0.06] pt-6 text-xs text-white/35 md:flex-row md:items-center md:justify-between">
-          <div>© {new Date().getFullYear()} Keiro. All rights reserved.</div>
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/45 md:flex-row md:items-center md:justify-between">
+          <div>© {new Date().getFullYear()} Keiro</div>
           <div>Built for patients who need to be understood.</div>
         </div>
       </div>
