@@ -7,7 +7,12 @@ import { buildKaiSystemPrompt, buildOpeningUserPrompt, buildConsultSystemPrompt,
 import { deepseekChat, deepseekChatStream } from '@/lib/deepseek'
 import { isAllowedChatLanguage } from '@/lib/languages'
 import { logger } from '@/lib/logger'
-import type { PatientProfile } from '@/types'
+import { parsePatientProfile } from '@/lib/patientProfile'
+import { UpstreamError } from '@/lib/upstream'
+
+// Kai streams up to 1000 tokens; the DeepSeek stream timeout (55s) has to be able
+// to fire before the platform kills the function, or we lose the log line.
+export const maxDuration = 60
 
 const EMERGENCY_KEYWORDS = [
   // English
@@ -172,14 +177,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ emergency: true })
     }
 
+    // Validated, not cast: these fields are interpolated into Kai's system prompt.
+    const profile = parsePatientProfile(patientProfile)
+
     const systemPrompt = buildKaiSystemPrompt(
       sanitizedLanguage,
       romanization === true,
-      (patientProfile !== undefined && patientProfile !== null && typeof patientProfile === 'object') ? (patientProfile as PatientProfile) : null,
+      profile,
     )
 
     const apiMessages = isOpening
-      ? [{ role: 'user' as const, content: buildOpeningUserPrompt(sanitizedLanguage, romanization === true, (patientProfile !== undefined && patientProfile !== null && typeof patientProfile === 'object') ? (patientProfile as PatientProfile) : null) }]
+      ? [{ role: 'user' as const, content: buildOpeningUserPrompt(sanitizedLanguage, romanization === true, profile) }]
       : (messages as Array<Record<string, unknown>>).map((m) => ({
           role: (m.role === 'kai' ? 'assistant' : 'user') as 'user' | 'assistant',
           content: String(m.content),
@@ -195,6 +203,45 @@ export async function POST(request: NextRequest) {
       temperature: 0.7,
     })
 
+    // Pull the first token BEFORE returning the streaming Response.
+    //
+    // Once we hand a ReadableStream to NextResponse the 200 and the SSE headers are
+    // already on the wire, so a DeepSeek auth error / 429 / timeout raised inside
+    // start() can only be surfaced as controller.error() — the browser sees a
+    // truncated stream, the patient sees an empty Kai bubble, and nothing is logged.
+    // Blocking on the first delta moves that failure back before the commit point,
+    // where it can still become an honest status code.
+    const iterator = deltas[Symbol.asyncIterator]()
+    let firstChunk: IteratorResult<string>
+    try {
+      firstChunk = await iterator.next()
+    } catch (err) {
+      if (err instanceof UpstreamError) {
+        logger.error('upstream_error', '/api/chat', user.id, {
+          provider: err.provider,
+          kind: err.kind,
+          upstreamStatus: err.status,
+        })
+        return NextResponse.json(
+          { error: 'Kai is unavailable right now. Please try again.' },
+          { status: err.clientStatus }
+        )
+      }
+      throw err
+    }
+
+    // Re-attach the token we already consumed so the emergency-marker buffering
+    // below still sees the complete response from its very first character.
+    async function* withFirstChunk(): AsyncGenerator<string> {
+      if (firstChunk.done) return
+      yield firstChunk.value
+      while (true) {
+        const next = await iterator.next()
+        if (next.done) return
+        yield next.value
+      }
+    }
+
     const encoder = new TextEncoder()
     // Kai emits a bare {"emergency": true} object when it detects a red-flag
     // situation. That marker arrives split across streamed tokens, so it has to
@@ -209,7 +256,7 @@ export async function POST(request: NextRequest) {
         try {
           let full = ''
           let emitted = 0
-          for await (const delta of deltas) {
+          for await (const delta of withFirstChunk()) {
             full += delta
             const compact = full.replace(/\s/g, '')
 
@@ -239,6 +286,14 @@ export async function POST(request: NextRequest) {
           controller.enqueue(encoder.encode('data: [DONE]\n\n'))
           controller.close()
         } catch (err) {
+          // A failure here is mid-stream (the connection dropped after the first
+          // token), so the status code is already sent and controller.error() is
+          // the only signal left. Log it — previously this path was silent, which
+          // made a partial DeepSeek outage invisible in production.
+          logger.error('stream_error', '/api/chat', user.id, {
+            provider: err instanceof UpstreamError ? err.provider : 'unknown',
+            kind: err instanceof UpstreamError ? err.kind : 'stream_aborted',
+          })
           controller.error(err)
         }
       },
@@ -252,6 +307,20 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (err) {
+    // Covers the consult-mode deepseekChat() call and anything else before the
+    // stream commits. Never log err.message for upstream faults — DeepSeek echoes
+    // the request body, which is patient conversation content.
+    if (err instanceof UpstreamError) {
+      logger.error('upstream_error', '/api/chat', undefined, {
+        provider: err.provider,
+        kind: err.kind,
+        upstreamStatus: err.status,
+      })
+      return NextResponse.json(
+        { error: 'Kai is unavailable right now. Please try again.' },
+        { status: err.clientStatus }
+      )
+    }
     logger.error('api_error', '/api/chat', undefined, {
       message: err instanceof Error ? err.message : 'unknown',
     })

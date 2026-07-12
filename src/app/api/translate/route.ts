@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { logger } from '@/lib/logger'
+import { UpstreamError } from '@/lib/upstream'
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,6 +70,19 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ translated })
   } catch (err) {
+    // Upstream faults get an honest status (504 timeout / 429 provider throttle /
+    // 502 provider down) instead of a blanket 500, so an outage is distinguishable
+    // from a bug in our code. We log the provider and failure kind but never
+    // err.message — it carries the upstream response body, which can echo the
+    // text we sent for translation (patient content).
+    if (err instanceof UpstreamError) {
+      logger.error('upstream_error', '/api/translate', undefined, {
+        provider: err.provider,
+        kind: err.kind,
+        upstreamStatus: err.status,
+      })
+      return NextResponse.json({ error: 'Translation failed' }, { status: err.clientStatus })
+    }
     logger.error('api_error', '/api/translate', undefined, {
       message: err instanceof Error ? err.message : 'unknown',
     })

@@ -5,9 +5,15 @@ import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { isAllowedChatLanguage } from '@/lib/languages'
-import { describeLifestyle } from '@/lib/patientProfile'
+import { describeLifestyle, parsePatientProfile } from '@/lib/patientProfile'
 import { deepseekChat } from '@/lib/deepseek'
 import { logger } from '@/lib/logger'
+import { UpstreamError } from '@/lib/upstream'
+
+// The heaviest call in the app: a full 2000-token clinical summary over the whole
+// conversation. It routinely outruns Vercel's default cap, which would kill the
+// function mid-generation and lose the report the patient just spent 10 minutes on.
+export const maxDuration = 60
 
 const REPORT_SCHEMA = `{
   "chief_complaint": "short English summary of the main reason for visit",
@@ -108,7 +114,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { messages, language, sessionId, patientProfile } = await request.json()
+    let body: { messages?: unknown; language?: unknown; sessionId?: unknown; patientProfile?: unknown }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+    const { messages, language, sessionId } = body
+
+    // Validated, not cast — these fields land in the model prompt and the DB.
+    const patientProfile = parsePatientProfile(body.patientProfile)
 
     // Guard the conversation payload before it reaches DeepSeek / .map()
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -239,6 +254,16 @@ ${REPORT_SCHEMA}`
       patientProfile: profile,
     })
   } catch (err) {
+    // Never log err.message for upstream faults — DeepSeek's error body echoes the
+    // conversation we sent it, which is patient health information.
+    if (err instanceof UpstreamError) {
+      logger.error('upstream_error', '/api/report', undefined, {
+        provider: err.provider,
+        kind: err.kind,
+        upstreamStatus: err.status,
+      })
+      return NextResponse.json({ error: 'Report generation failed' }, { status: err.clientStatus })
+    }
     logger.error('api_error', '/api/report', undefined, {
       message: err instanceof Error ? err.message : 'unknown',
     })
@@ -261,6 +286,7 @@ export async function PATCH(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
+      logger.warn('auth_failure', '/api/report:PATCH')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -270,13 +296,19 @@ export async function PATCH(request: NextRequest) {
       checkIpRateLimit(ipHash, 'report_patch', supabase),
     ])
     if (!userLimit.allowed || !ipLimit.allowed) {
+      logger.warn('rate_limit_hit', '/api/report:PATCH', user.id)
       return NextResponse.json(
         { error: 'Please wait a moment before continuing.' },
         { status: 429 }
       )
     }
 
-    const body = await request.json()
+    let body: { reportId?: unknown; physicianNotes?: unknown; consultTranscript?: unknown }
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
     const { reportId, physicianNotes, consultTranscript } = body
 
     if (!reportId || typeof reportId !== 'string') {
@@ -306,11 +338,21 @@ export async function PATCH(request: NextRequest) {
       .eq('user_id', user.id)
 
     if (error) {
+      logger.error('db_update_error', '/api/report:PATCH', user.id, { message: error.message })
       return NextResponse.json({ error: 'Update failed' }, { status: 500 })
     }
 
+    logger.info('report_updated', '/api/report:PATCH', user.id, {
+      fields: Object.keys(updates),
+    })
+
     return NextResponse.json({ ok: true })
-  } catch {
+  } catch (err) {
+    // Was a bare `catch {}`. This handler persists physician notes and the consult
+    // transcript, so a silent failure loses clinician work with no trace at all.
+    logger.error('api_error', '/api/report:PATCH', undefined, {
+      message: err instanceof Error ? err.message : 'unknown',
+    })
     return NextResponse.json({ error: 'Update failed' }, { status: 500 })
   }
 }

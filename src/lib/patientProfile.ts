@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import type {
   LifestyleFrequency,
   PatientLifestyle,
@@ -5,6 +6,53 @@ import type {
   TravelRecency,
   TripLength,
 } from '@/types'
+
+/**
+ * Validation for the patient profile arriving from the client.
+ *
+ * This is untrusted input that gets interpolated straight into Kai's system prompt
+ * (see buildPatientContextBlock) and, in /api/report, written to the reports table.
+ * It was previously taken as a bare `as PatientProfile` cast, so a caller could put
+ * an unbounded string — prompt injection, or a huge payload — into the model's
+ * instructions. Every free-text field is length-capped here and unknown keys are
+ * stripped, so only this shape can ever reach the prompt.
+ *
+ * Caps are generous enough for real answers (a 500-char conditions box is already
+ * more than the intake form allows) and small enough to be useless as an injection
+ * vector budget.
+ */
+const lifestyleSchema = z.object({
+  smoker: z.boolean().catch(false),
+  smokerFrequency: z.enum(['rarely', 'sometimes', 'often']).optional().catch(undefined),
+  alcohol: z.boolean().catch(false),
+  alcoholFrequency: z.enum(['rarely', 'sometimes', 'often']).optional().catch(undefined),
+  recentTravel: z.boolean().catch(false),
+  travelWhen: z.enum(['past_week', 'past_month', 'past_6_months']).optional().catch(undefined),
+  tripLength: z.enum(['over_2h', 'over_6h', 'over_12h']).optional().catch(undefined),
+})
+
+export const patientProfileSchema = z.object({
+  fullName: z.string().trim().max(100),
+  dateOfBirth: z.string().trim().max(20),
+  age: z.number().int().min(0).max(130).optional(),
+  biologicalSex: z.enum(['male', 'female', 'other']),
+  primaryLanguage: z.string().trim().max(50),
+  primaryLanguageCode: z.string().trim().max(20),
+  chronicConditions: z.string().trim().max(500).optional(),
+  lifestyle: lifestyleSchema.optional(),
+  consentAt: z.string().trim().max(40),
+})
+
+/**
+ * Validate an untrusted patient profile. Returns null when the payload is absent
+ * or malformed — callers already handle a null profile by proceeding without
+ * patient context, so a bad payload degrades instead of failing the request.
+ */
+export function parsePatientProfile(input: unknown): PatientProfile | null {
+  if (input === undefined || input === null) return null
+  const result = patientProfileSchema.safeParse(input)
+  return result.success ? result.data : null
+}
 
 /** Compute age in whole years from an ISO date string (YYYY-MM-DD). */
 export function ageFromDateOfBirth(dob: string): number | null {
