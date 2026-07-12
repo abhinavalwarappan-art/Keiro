@@ -1,49 +1,47 @@
-/* Top navigation — fixed rounded section tabs + fast app entry. */
+/* Top navigation — calm, light, and legible. The old version was a floating
+   dark pill with 0.64rem uppercase tracked-out labels; at 375px that is close to
+   unreadable for the person this product is for. */
 
 import Link from 'next/link'
 
 const navItems = [
-  { href: '#hero', label: 'Meet Kai' },
-  { href: '#kai', label: 'Why Keiro' },
-  { href: '#flow', label: 'Steps' },
+  { href: '#meet-kai', label: 'Meet Kai' },
+  { href: '#how-it-works', label: 'How it works' },
   { href: '#languages', label: 'Languages' },
-  { href: '#how-kai-works', label: 'How it works' },
 ]
 
 export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }) {
-  const topClass = hasSessionBanner ? 'top-14' : 'top-4'
-
   return (
-    <header className={`fixed inset-x-0 z-50 px-3 sm:px-5 lg:px-8 ${topClass}`}>
-      <div className="mx-auto flex w-fit max-w-[calc(100vw-1.5rem)] items-center gap-1 rounded-full border border-white/10 bg-black/55 p-1.5 shadow-[0_18px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+    <header
+      className={`sticky z-50 border-b border-[var(--lx-line)] bg-[var(--lx-cream)]/90 backdrop-blur ${
+        hasSessionBanner ? 'top-12' : 'top-0'
+      }`}
+    >
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-16">
         <Link
           href="#hero"
-          className="font-display shrink-0 cursor-pointer rounded-full px-3 py-2 text-lg font-bold tracking-[-0.03em] text-white transition-colors duration-200 hover:text-[var(--kx-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kx-accent)]"
+          className="lx-focus lx-display inline-flex min-h-11 shrink-0 items-center text-xl font-semibold tracking-[-0.02em] text-[var(--lx-ink)]"
         >
-          Keiro <span className="text-[var(--kx-accent)]">●</span>
+          Keiro
         </Link>
-        <nav
-          className="flex min-w-0 items-center justify-center gap-0 overflow-x-auto rounded-full text-[0.64rem] font-semibold uppercase tracking-[0.1em] text-white/60 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          aria-label="Landing page sections"
-        >
+
+        <nav className="hidden items-center gap-1 md:flex" aria-label="Landing page sections">
           {navItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="shrink-0 cursor-pointer rounded-full px-2 py-2.5 transition-colors duration-200 hover:bg-white/[0.07] hover:text-[var(--kx-accent)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--kx-accent)]"
+              className="lx-focus inline-flex min-h-11 items-center rounded-full px-3 font-medium text-[var(--lx-muted)] transition-colors duration-200 hover:bg-[var(--lx-mint)] hover:text-[var(--lx-ink)]"
             >
               {item.label}
             </a>
           ))}
         </nav>
+
         <Link
           href="/onboarding?fresh=1"
-          aria-label="Open Keiro"
-          className="lx-shimmer-host lx-glow relative shrink-0 overflow-hidden rounded-full bg-[var(--kx-accent)] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.14em] text-[#03110d] transition-transform duration-200 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="lx-focus inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[var(--lx-ink)] px-5 font-semibold text-[var(--lx-cream)] transition-colors duration-200 hover:bg-[#14301f]"
         >
-          <span className="lx-shimmer" aria-hidden />
-          <span className="relative z-10 hidden sm:inline">Open Keiro</span>
-          <span className="relative z-10 sm:hidden">Open</span>
+          Start
         </Link>
       </div>
     </header>
