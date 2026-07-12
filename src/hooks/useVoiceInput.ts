@@ -36,11 +36,16 @@ const WHISPER_FIRST_LANGS = new Set<string>([
   'tl-PH',                                                // Tagalog
 ])
 
+// WebKit's MediaRecorder only ever emits MP4/AAC, and its isTypeSupported() can
+// report webm as supported anyway — so asking for webm there yields MP4 bytes under
+// a webm label, which Whisper then refuses to decode. Ask WebKit for mp4 first.
 const WHISPER_MIME_PREFS = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg']
+const WHISPER_MIME_PREFS_WEBKIT = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg']
 
 function pickWhisperMimeType(): string | undefined {
   if (typeof MediaRecorder === 'undefined') return undefined
-  for (const type of WHISPER_MIME_PREFS) {
+  const prefs = isWebKitBrowser() ? WHISPER_MIME_PREFS_WEBKIT : WHISPER_MIME_PREFS
+  for (const type of prefs) {
     if (MediaRecorder.isTypeSupported(type)) return type
   }
   return undefined
@@ -50,6 +55,16 @@ function pickWhisperMimeType(): string | undefined {
 // restart manually and accumulate transcripts across sessions.
 function isSafariBrowser(): boolean {
   return /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+}
+
+// Every iOS browser — Chrome and Firefox included — is WebKit underneath and shares
+// Safari's MediaRecorder behaviour, so a Safari-only UA test would miss them.
+// iPadOS 13+ also reports a desktop "Macintosh" UA; no real Mac has a touchscreen.
+function isWebKitBrowser(): boolean {
+  const ua = navigator.userAgent
+  if (/iPad|iPhone|iPod/.test(ua)) return true
+  if (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) return true
+  return isSafariBrowser()
 }
 
 function getSpeechErrorMessage(error: string): string | null {
@@ -176,7 +191,12 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       setRecording(false)
       mediaRecorderRef.current = null
       if (discardRef.current || chunks.length === 0) return
-      const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' })
+      // Label the clip with what was actually recorded, falling back to the type we
+      // asked for — never to a hardcoded container. Safari can leave `mimeType`
+      // empty while emitting MP4/AAC, and /api/transcribe derives the upload
+      // filename's extension from this type: mislabel it webm and Whisper can't
+      // demux the bytes, which surfaces to the patient as "Voice input failed".
+      const blob = new Blob(chunks, { type: recorder.mimeType || mimeType || '' })
       void transcribe(blob)
     }
 
