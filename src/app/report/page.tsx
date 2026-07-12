@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react'
+import ReportLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -688,7 +689,7 @@ function ReportContent() {
 export default function ReportPage() {
   return (
     <ErrorBoundary>
-      <Suspense>
+      <Suspense fallback={<ReportLoading />}>
         <ReportContent />
       </Suspense>
     </ErrorBoundary>

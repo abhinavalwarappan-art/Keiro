@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState, Suspense } from 'react'
+import AuthLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -146,7 +147,7 @@ function AuthContent() {
 export default function AuthPage() {
   return (
     <ErrorBoundary>
-      <Suspense>
+      <Suspense fallback={<AuthLoading />}>
         <AuthContent />
       </Suspense>
     </ErrorBoundary>

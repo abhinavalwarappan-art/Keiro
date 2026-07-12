@@ -25,10 +25,12 @@ const buttonVariants = cva(
         link:
           'bg-transparent text-brand-ink underline-offset-4 hover:underline p-0 h-auto active:scale-100',
       },
+      /* Every size clears the 44px touch minimum and 14px text floor — the
+         patient base skews older, so no variant is allowed to go smaller. */
       size: {
-        sm: 'h-8 px-3 text-xs',
-        md: 'h-9 px-4 text-sm',
-        lg: 'h-10 px-5 text-sm',
+        sm: 'h-11 px-4 text-sm',
+        md: 'h-12 px-5 text-base',
+        lg: 'h-14 px-6 text-base',
       },
     },
     defaultVariants: {

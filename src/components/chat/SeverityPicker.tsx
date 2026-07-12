@@ -7,13 +7,13 @@ interface SeverityPickerProps {
   disabled?: boolean
 }
 
-/* The 1–10 pain scale keeps four clinically distinct steps; orange (7–9) is a
-   deliberate one-off between warning and error so the scale stays readable. Tapping
+/* The 1–10 pain scale keeps four clinically distinct steps; `caution` (7–9) is the
+   token that sits between warning and error so the scale stays readable. Tapping
    a chip sends the word + range (e.g. "Mild (1–3)") so the report LLM gets both. */
 const SEVERITY_OPTIONS = [
   { word: 'Mild', range: '1–3', classes: 'bg-brand-subtle border-brand-muted text-brand-ink hover:border-brand' },
   { word: 'Moderate', range: '4–6', classes: 'bg-warning-subtle border-warning/20 text-warning-text hover:border-warning' },
-  { word: 'Severe', range: '7–9', classes: 'bg-[#FFF7ED] border-[#FED7AA] text-[#9A3412] hover:border-[#EA580C]' },
+  { word: 'Severe', range: '7–9', classes: 'bg-caution-subtle border-caution-border text-caution-text hover:border-caution' },
   { word: 'Unbearable', range: '10', classes: 'bg-error-subtle border-error/20 text-error-text hover:border-error' },
 ]
 

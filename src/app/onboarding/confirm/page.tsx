@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
+import ConfirmLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -87,8 +88,7 @@ function ConfirmContent() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col overflow-hidden"
-      style={{ background: '#FAFAF9' }}
+      className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col overflow-hidden bg-canvas"
     >
       <header className="shrink-0 border-b border-border-subtle px-5 pb-3 pt-5">
         <div className="mb-3 flex items-center justify-between">
@@ -194,7 +194,7 @@ function ConfirmContent() {
 export default function OnboardingConfirmPage() {
   return (
     <ErrorBoundary>
-      <Suspense>
+      <Suspense fallback={<ConfirmLoading />}>
         <ConfirmContent />
       </Suspense>
     </ErrorBoundary>

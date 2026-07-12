@@ -1,15 +1,14 @@
 /* Keiro design system — "Calm clinical warmth"
-   Geist everywhere · warm stone neutrals · one teal accent · hairline borders
+   DM Sans everywhere · warm stone neutrals · one teal accent · hairline borders
    Tokens defined here are the ONLY colors/radii/shadows allowed in the app.
-   See /DESIGN_SYSTEM.md for the rationale behind every value. */
+   Light-only by design: there is no dark theme, and `color-scheme: light` below
+   pins the UA to it. See /DESIGN_SYSTEM.md for the rationale behind every value. */
 @import "tailwindcss";
-
-@custom-variant dark (&:is(.dark *));
 
 :root {
   color-scheme: light;
 
-  /* ─── Semantic palette (runtime-themeable) ─── */
+  /* ─── Semantic palette ─── */
   --canvas:  #FAFAF9;
   --surface: #FFFFFF;
   --sunken:  #F5F5F4;
@@ -40,6 +39,12 @@
   --warning-subtle: #FFFBEB;
   --warning:        #D97706;
   --warning-text:   #92400E;
+  /* Caution — the 4th step of the 1–10 pain scale. Sits between warning (amber)
+     and error (red) so "Severe" stays distinguishable from "Unbearable". */
+  --caution-subtle: #FFF7ED;
+  --caution-border: #FED7AA;
+  --caution:        #EA580C;
+  --caution-text:   #9A3412;
   --error-subtle:   #FEF2F2;
   --error:          #DC2626;
   --error-text:     #991B1B;
@@ -84,58 +89,6 @@
   --shadow-lg: 0 20px 25px -5px rgb(28 25 23 / 0.08), 0 8px 10px -6px rgb(28 25 23 / 0.06);
 }
 
-.dark {
-  color-scheme: dark;
-
-  --canvas:  #0C0A09;
-  --surface: #1C1917;
-  --sunken:  #161312;
-
-  --border-subtle:  #292524;
-  --border-default: #44403C;
-  --border-strong:  #57534E;
-
-  --text-primary:     #FAFAF9;
-  --text-secondary:   #A8A29E;
-  --text-tertiary:    #78716C;
-  --text-placeholder: #57534E;
-  --text-inverse:     #1C1917;
-
-  --brand-subtle:     #042F2E;
-  --brand-muted:      #134E4A;
-  --brand-border:     #115E59;
-  --brand:            #2DD4BF;
-  --brand-strong:     #5EEAD4;
-  --brand-ink:        #0D9488;
-  --brand-ink-hover:  #14B8A6;
-  --brand-ink-active: #0F766E;
-
-  --success-subtle: #052E16;
-  --success-text:   #86EFAC;
-  --warning-subtle: #451A03;
-  --warning-text:   #FCD34D;
-  --error-subtle:   #450A0A;
-  --error:          #EF4444;
-  --error-text:     #FCA5A5;
-
-  --keiro-deep:    #5EEAD4;
-  --keiro-mid:     #2DD4BF;
-  --keiro-light:   #5EEAD4;
-  --keiro-surface: #042F2E;
-  --keiro-border:  #115E59;
-  --keiro-off:     #0C0A09;
-  --keiro-text:    #FAFAF9;
-  --keiro-muted:   #A8A29E;
-  --off-white:     #0C0A09;
-  --keiro-dark:    #5EEAD4;
-  --keiro-cream:   #0C0A09;
-  --keiro-white:   #1C1917;
-  --keiro-off-white:  #0C0A09;
-  --keiro-text-muted: #A8A29E;
-  --text-dark:     #FAFAF9;
-  --text-muted:    #A8A29E;
-}
-
 /* ─── Tailwind v4 theme — semantic utilities (bg-canvas, text-text-primary…) ─── */
 @theme inline {
   --color-canvas:  var(--canvas);
@@ -167,6 +120,10 @@
   --color-warning-subtle: var(--warning-subtle);
   --color-warning:        var(--warning);
   --color-warning-text:   var(--warning-text);
+  --color-caution-subtle: var(--caution-subtle);
+  --color-caution-border: var(--caution-border);
+  --color-caution:        var(--caution);
+  --color-caution-text:   var(--caution-text);
   --color-error-subtle:   var(--error-subtle);
   --color-error:          var(--error);
   --color-error-text:     var(--error-text);
