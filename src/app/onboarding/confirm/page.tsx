@@ -10,6 +10,7 @@ import RomanizationToggle from '@/components/language/RomanizationToggle'
 import { Language, resolveLanguage, getOpeningMessage, getLanguageDisplayLines } from '@/lib/languages'
 import { pageVariants } from '@/lib/motion'
 import { trackLanguageSelected, trackOnboardingCompleted } from '@/lib/analytics'
+import { useTranslations } from '@/i18n/useTranslations'
 
 const LANG_DRAFT_KEY = 'keiro_onboarding_lang'
 
@@ -19,6 +20,7 @@ function ConfirmContent() {
   const [selected, setSelected] = useState<Language | null>(null)
   const [romanization, setRomanization] = useState(false)
   const hospitalSlug = searchParams.get('hospital')
+  const t = useTranslations(searchParams.get('lang') ?? 'en-US')
 
   useEffect(() => {
     const paramCode = searchParams.get('lang')
@@ -96,9 +98,9 @@ function ConfirmContent() {
             href={allLanguagesHref}
             className="text-xs font-medium text-text-tertiary transition-colors hover:text-text-secondary"
           >
-            ← All languages
+            ← {t('confirm.allLanguages')}
           </Link>
-          <span className="text-xs font-medium text-text-tertiary">Ready to start</span>
+          <span className="text-xs font-medium text-text-tertiary">{t('confirm.readyToStart')}</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -110,26 +112,32 @@ function ConfirmContent() {
               {greeting}.
             </h1>
             <p className="mt-0.5 text-sm leading-snug text-text-secondary">
-              You&apos;ll chat in{' '}
-              <span className="font-medium text-text-primary">{primaryLine?.text}</span>
-              {secondaryLines.map((line) => (
-                <span key={`${line.role}-${line.text}`}>
-                  {' · '}
-                  <span style={{ direction: selected.rtl ? 'rtl' : 'ltr' }}>{line.text}</span>
-                </span>
-              ))}
+              {t('confirm.chatIn')
+                .split(/(\{language\})/)
+                .map((part, i) =>
+                  part === '{language}' ? (
+                    <span key={i}>
+                      <span className="font-medium text-text-primary">{primaryLine?.text}</span>
+                      {secondaryLines.map((line) => (
+                        <span key={`${line.role}-${line.text}`}>
+                          {' · '}
+                          <span style={{ direction: selected.rtl ? 'rtl' : 'ltr' }}>{line.text}</span>
+                        </span>
+                      ))}
+                    </span>
+                  ) : (
+                    <span key={i}>{part}</span>
+                  ),
+                )}
             </p>
           </div>
         </div>
 
-        <p className="mt-3 text-xs leading-relaxed text-text-tertiary">
-          I&apos;ll ask about your symptoms and create a report for your doctor. About 5 minutes ·
-          Free · Private
-        </p>
+        <p className="mt-3 text-xs leading-relaxed text-text-tertiary">{t('confirm.pitch')}</p>
 
         <div className="mt-3 flex w-full items-center justify-between">
           <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} />
-          <span className="text-xs font-medium text-text-tertiary">25+ languages</span>
+          <span className="text-xs font-medium text-text-tertiary">{t('confirm.languageCount')}</span>
         </div>
       </header>
 
@@ -163,8 +171,7 @@ function ConfirmContent() {
               ),
             )}
           <p className="mt-5 text-sm leading-relaxed text-text-secondary">
-            When you continue, we&apos;ll sign you in and open your symptom chat in{' '}
-            {primaryLine?.text ?? selected.en}. You can change language anytime in settings.
+            {t('confirm.openChatIn', { language: primaryLine?.text ?? selected.en })}
           </p>
         </motion.div>
       </section>
@@ -175,7 +182,7 @@ function ConfirmContent() {
           className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-md bg-brand-ink py-3 text-base font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover"
           whileTap={{ scale: 0.98 }}
         >
-          Continue in {primaryLine?.text ?? selected.en}
+          {t('confirm.continueIn', { language: primaryLine?.text ?? selected.en })}
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
             <path
               d="M3.5 9h11M10 4.5l4.5 4.5-4.5 4.5"

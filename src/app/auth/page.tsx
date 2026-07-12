@@ -8,11 +8,40 @@ import { ArrowLeft } from 'lucide-react'
 import Kai from '@/components/kai/Kai'
 import { createClient } from '@/lib/supabase/client'
 import { trackSignIn } from '@/lib/analytics'
+import { useTranslations, type TranslateFn } from '@/i18n/useTranslations'
 
 const supabaseConfigured =
   typeof process.env.NEXT_PUBLIC_SUPABASE_URL === 'string' &&
   process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
   !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder')
+
+/**
+ * Render the legal sentence, splicing the Terms and Privacy links into the
+ * translated template at its {terms} / {privacy} placeholders so word order
+ * stays correct in every language.
+ */
+function LegalLine({ t }: { t: TranslateFn }) {
+  const links: Record<string, React.ReactNode> = {
+    '{terms}': (
+      <Link key="terms" href="/terms" className="underline hover:text-text-secondary">
+        {t('intake.termsOfService')}
+      </Link>
+    ),
+    '{privacy}': (
+      <Link key="privacy" href="/privacy" className="underline hover:text-text-secondary">
+        {t('intake.privacyPolicy')}
+      </Link>
+    ),
+  }
+
+  return (
+    <>
+      {t('auth.legal')
+        .split(/(\{terms\}|\{privacy\})/)
+        .map((part, i) => <span key={i}>{links[part] ?? part}</span>)}
+    </>
+  )
+}
 
 function AuthContent() {
   const router = useRouter()
@@ -27,6 +56,7 @@ function AuthContent() {
   const hospital = searchParams.get('hospital') || ''
   const sessionEnded = searchParams.get('ended') === '1'
 
+  const t = useTranslations(langCode)
   const supabase = useMemo(() => createClient(), [])
 
   const buildChatUrl = () => {
@@ -58,7 +88,7 @@ function AuthContent() {
         goToChat()
         return
       }
-      setError(e instanceof Error ? e.message : 'Could not start your session')
+      setError(e instanceof Error ? e.message : t('auth.errStart'))
     } finally {
       setLoading(false)
     }
@@ -71,7 +101,7 @@ function AuthContent() {
           type="button"
           onClick={() => router.back()}
           className="flex size-9 min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
-          aria-label="Go back"
+          aria-label={t('common.goBack')}
         >
           <ArrowLeft size={17} aria-hidden />
         </button>
@@ -91,7 +121,7 @@ function AuthContent() {
               className="mb-4 rounded-lg border border-border-subtle bg-surface px-4 py-3 text-center text-sm text-text-secondary"
               role="status"
             >
-              Your session has ended.
+              {t('auth.sessionEnded')}
             </div>
           )}
 
@@ -107,15 +137,18 @@ function AuthContent() {
           <div className="mb-6 flex flex-col items-center gap-2">
             <Kai size="sm" state="idle" interactive={false} />
             <p className="text-sm font-medium text-text-tertiary">
-              Hi! I&apos;m Kai.
+              {t('auth.kaiIntro')}
             </p>
           </div>
 
           <h2 className="mb-2 text-center text-2xl font-semibold tracking-tight text-text-primary">
-            Ready when you are
+            {t('auth.title')}
           </h2>
+          <p className="mb-3 text-center text-sm text-text-secondary">
+            {t('auth.subtitle')}
+          </p>
           <p className="mb-6 text-center text-sm text-text-secondary">
-            Tap start and I&apos;ll walk you through everything, one step at a time.
+            {t('auth.privacy')}
           </p>
 
           <button
@@ -124,18 +157,11 @@ function AuthContent() {
             disabled={loading}
             className="min-h-[48px] w-full rounded-md bg-brand-ink px-5 py-3 text-base font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover active:scale-[0.98] disabled:opacity-50"
           >
-            {loading ? 'Starting…' : 'Start now →'}
+            {loading ? t('auth.starting') : t('auth.start')}
           </button>
 
           <p className="mt-6 text-center text-xs text-text-tertiary">
-            By continuing you agree to our{' '}
-            <Link href="/terms" className="underline hover:text-text-secondary">
-              Terms
-            </Link>{' '}
-            and{' '}
-            <Link href="/privacy" className="underline hover:text-text-secondary">
-              Privacy Policy
-            </Link>
+            <LegalLine t={t} />
           </p>
         </div>
       </div>
