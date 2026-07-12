@@ -41,7 +41,7 @@ export function ContactForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clinicName: `${topic} — ${organization}`,
+          clinicName: `${topic}: ${organization}`,
           contactName: name,
           email,
           phone,
@@ -74,7 +74,7 @@ export function ContactForm() {
         aria-live="polite"
       >
         <h3 className="lx-display text-xl font-semibold text-[var(--lx-ink)]">
-          Thank you — we have it.
+          Thank you. We have it.
         </h3>
         <p className="mt-3 leading-[1.8] text-[var(--lx-body)]">
           A real person reads these. We will write back to{' '}
@@ -118,7 +118,7 @@ export function ContactForm() {
           maxLength={150}
           value={organization}
           onChange={(e) => setOrganization(e.target.value)}
-          placeholder="Clinic, publication, firm — or just “on my own”"
+          placeholder="Clinic, publication, firm, or just “on my own”"
           className={field}
         />
       </div>

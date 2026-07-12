@@ -20,10 +20,10 @@ const COUNT = LANGUAGES.length
 
 export const metadata: Metadata = {
   title: 'Languages',
-  description: `Kai speaks ${COUNT} languages — a real conversation in the language you grew up speaking, not a translated menu.`,
+  description: `Kai speaks ${COUNT} languages. A real conversation in the language you grew up speaking, not a translated menu.`,
   openGraph: {
     title: 'We speak your language',
-    description: `Kai holds a real conversation in ${COUNT} languages — not a translated menu.`,
+    description: `Kai holds a real conversation in ${COUNT} languages, not a translated menu.`,
   },
 }
 
@@ -33,13 +33,14 @@ export default function LanguagesPage() {
   return (
     <SiteShell>
       <PageHero
+        variant="centered"
         eyebrow="Languages"
         title="We speak your language."
-        lede={`Every one of the ${COUNT} languages below holds the whole conversation — Kai asks its follow-up questions in your language too, not just translating a form back at you.`}
+        lede={`Every one of the ${COUNT} languages below holds the whole conversation. Kai asks its follow-up questions in your language too, not just translating a form back at you.`}
       />
 
       <Band palette="cream">
-        <BandHeading lede="This is the first thing Kai actually says. Find your language and watch it change — all 45 are here.">
+        <BandHeading lede="This is the first thing Kai actually says. Find your language and watch it change. All 45 are here.">
           Hear it <Accent>for yourself.</Accent>
         </BandHeading>
         <Reveal className="mt-10">
@@ -60,7 +61,7 @@ export default function LanguagesPage() {
             items={[
               {
                 label: 'The conversation, not the menu',
-                body: 'You describe the pain in your language. Kai asks its follow-up questions in your language. Only the summary — the part your doctor reads — comes out in English.',
+                body: 'You describe the pain in your language. Kai asks its follow-up questions in your language. Only the summary, the part your doctor reads, comes out in English.',
               },
               {
                 label: 'Right-to-left, properly',
@@ -68,7 +69,7 @@ export default function LanguagesPage() {
               },
               {
                 label: 'Scripts that actually render',
-                body: 'Devanagari, Bengali, Tamil, Telugu, Gujarati, Malayalam, Amharic, Chinese, Japanese and Korean are drawn with fonts that contain those characters — not a fallback face.',
+                body: 'Devanagari, Bengali, Tamil, Telugu, Gujarati, Malayalam, Amharic, Chinese, Japanese and Korean are drawn with fonts that contain those characters, not a fallback face.',
               },
             ]}
           />
@@ -91,7 +92,7 @@ export default function LanguagesPage() {
             items={[
               {
                 q: 'Do not see yours?',
-                a: 'Then we want to know. Tell us which language and we will work on it — the whole point of this project falls apart if the person who needs it most is the one we left out.',
+                a: 'Then we want to know. Tell us which language and we will work on it. The whole point of this project falls apart if the person who needs it most is the one we left out.',
               },
               {
                 q: 'What if I speak a language but cannot read its script?',
@@ -103,7 +104,7 @@ export default function LanguagesPage() {
               },
               {
                 q: 'Is the translation good enough for medicine?',
-                a: 'Kai does not translate word-for-word — it understands what you meant and writes that down in clinical English. But it is not perfect, which is exactly why you read the summary before your doctor does, and why Kai asks when it is unsure rather than guessing.',
+                a: 'Kai does not translate word-for-word. It understands what you meant and writes that down in clinical English. But it is not perfect, which is exactly why you read the summary before your doctor does, and why Kai asks when it is unsure rather than guessing.',
               },
             ]}
           />

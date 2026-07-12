@@ -20,7 +20,7 @@
 
 export const KAI_GREETINGS: Record<string, string> = {
   'en-US':
-    "Hello, I'm Kai. Tell me what hurts — in your own words. I'll explain it to your doctor.",
+    "Hello, I'm Kai. Tell me what hurts, in your own words. I'll explain it to your doctor.",
   'es-ES':
     'Hola, soy Kai. Cuéntame qué te duele, con tus propias palabras. Yo se lo explicaré a tu médico.',
   'zh-CN': '你好，我是 Kai。用你自己的话告诉我哪里不舒服，我会替你转达给医生。',

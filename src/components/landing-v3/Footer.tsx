@@ -1,34 +1,20 @@
-/* Footer — the page's one dark surface.
+/* Footer — the page's one dark surface, and purely functional.
 
-   This is deliberate: /onboarding renders on a dark starry background, so a
-   cream-white footer would flash-bang straight into it on click-through. Landing
-   the page on --lx-ink first makes that handoff read as a step down rather than
-   a seam. (The real fix is to reconcile the two surfaces, but onboarding/ is out
-   of scope here.) */
+   It used to carry its own "Whenever you're ready / Start talking to Kai" block,
+   which sat directly on top of each page's CtaBand and produced two stacked
+   invitations at the bottom of every page. The footer is now navigation and
+   safety information only; the CTA belongs to the page, and there is at most one.
+
+   Dark on purpose: /onboarding renders on a dark background, so a cream footer
+   would flash-bang straight into it on click-through. */
 
 import Link from 'next/link'
-import { Kai } from '@/components/kai/Kai'
 
 export function Footer() {
   return (
-    <footer className="relative bg-[var(--lx-ink)] px-5 py-16 text-white/70 sm:px-8 md:py-20 lg:px-16">
+    <footer className="relative bg-[var(--lx-ink)] px-5 py-14 text-white/70 sm:px-8 md:py-16 lg:px-16">
       <div className="mx-auto max-w-6xl">
-        {/* Final invitation */}
-        <div className="flex flex-col items-center gap-6 border-b border-white/10 pb-14 text-center">
-          <Kai size="sm" state="waving" />
-          <h2 className="lx-display max-w-2xl text-[clamp(1.6rem,4vw,2.4rem)] font-semibold leading-[1.2] text-white">
-            Whenever you&apos;re ready. There&apos;s no rush.
-          </h2>
-          <Link
-            href="/onboarding?fresh=1"
-            className="lx-focus inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-sage)] px-7 font-semibold text-[var(--lx-ink)] transition-colors duration-200 hover:bg-white"
-          >
-            Start talking to Kai
-          </Link>
-          <p className="text-sm text-white/60">Free. No account. Nothing to fill in first.</p>
-        </div>
-
-        <div className="grid gap-10 pt-14 md:grid-cols-4">
+        <div className="grid gap-10 md:grid-cols-4">
           <div>
             <div className="lx-display text-xl font-semibold text-white">Keiro</div>
             <p className="mt-4 max-w-sm leading-[1.8]">

@@ -34,7 +34,7 @@ export default function HowItWorksPage() {
       <PageHero
         eyebrow="How it works"
         title="You should not have to find the English word for your own pain."
-        lede="Keiro sits in the twenty minutes before your appointment — the part where you are rehearsing, in a language you are still learning, how to explain what is wrong."
+        lede="Keiro sits in the twenty minutes before your appointment, the part where you are rehearsing, in a language you are still learning, how to explain what is wrong."
       />
 
       <Band palette="mint">
@@ -61,7 +61,7 @@ export default function HowItWorksPage() {
               {
                 n: '01',
                 title: 'You talk. Kai listens.',
-                body: 'Pick the language you use at home, then say what hurts — out loud, or typed if you prefer. There is no form. Most people take about five minutes.',
+                body: 'Pick the language you use at home, then say what hurts. Out loud, or typed if you prefer. There is no form. Most people take about five minutes.',
                 payload: <VoiceMock />,
               },
               {
@@ -73,7 +73,7 @@ export default function HowItWorksPage() {
               {
                 n: '03',
                 title: 'Your doctor reads it first.',
-                body: 'Before you sit down, your doctor already knows why you came. You read the summary before they do — if it is wrong, it goes no further.',
+                body: 'Before you sit down, your doctor already knows why you came. You read the summary before they do. If it is wrong, it goes no further.',
                 payload: <ReportMock />,
               },
             ]}
@@ -83,7 +83,7 @@ export default function HowItWorksPage() {
 
       <Band palette="deep">
         <BandHeading lede="None of this is because clinics do not care. It is because the tools available to them are thin.">
-          The help that exists — <Accent>and where it runs out.</Accent>
+          The help that exists, <Accent>and where it runs out.</Accent>
         </BandHeading>
 
         <div className="mt-10">
@@ -138,7 +138,7 @@ export default function HowItWorksPage() {
 
           <Prose>
             <Para>
-              When you speak, your voice becomes text — the same way the dictation button on your
+              When you speak, your voice becomes text, the same way the dictation button on your
               phone works. That text goes to a language model: a program that has read an enormous
               amount of writing and is good at understanding what people mean, not just what they
               said.
@@ -146,7 +146,7 @@ export default function HowItWorksPage() {
             <Para>
               It replies in your language, and it decides what to ask next based on what you have
               already told it. At the end, the conversation is condensed into a structured summary in
-              English — the sections a clinician expects, in the order they expect them.
+              English: the sections a clinician expects, in the order they expect them.
             </Para>
             <Para>
               That is the whole trick. No diagnosis engine, no scoring, no algorithm deciding
@@ -171,11 +171,11 @@ export default function HowItWorksPage() {
             items={[
               {
                 q: 'What do I actually walk away with?',
-                a: 'A summary you can read. You can bring it with you, or send it ahead. You can also decide not to send it at all — nothing goes anywhere until you say so.',
+                a: 'A summary you can read. You can bring it with you, or send it ahead. You can also decide not to send it at all. Nothing goes anywhere until you say so.',
               },
               {
                 q: 'Does my doctor need an account?',
-                a: 'No. The summary is just clear written English. Your doctor reads it the way they would read any other note — nothing to install, nothing to sign up for.',
+                a: 'No. The summary is just clear written English. Your doctor reads it the way they would read any other note. Nothing to install, nothing to sign up for.',
               },
               {
                 q: 'What if I change my mind halfway through?',

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { CtaBand, A } from '@/components/landing-v3/PageBits'
+import { A } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
@@ -57,7 +57,7 @@ export default function AccessibilityPage() {
               using it. <Accent>Designing for anyone else would miss the point entirely.</Accent>
             </>
           }
-          body="Meeting the legal standard is the floor, not the achievement. We build to WCAG 2.2 AA as a baseline and then keep going — because she does not care what standard we met. She cares whether she can read it."
+          body="Meeting the legal standard is the floor, not the achievement. We build to WCAG 2.2 AA as a baseline and then keep going, because she does not care what standard we met. She cares whether she can read it."
         />
       </Band>
 
@@ -110,7 +110,7 @@ export default function AccessibilityPage() {
               {
                 n: '02',
                 label:
-                  'If your device asks for reduced motion, every animation here turns off. Not softened — off.',
+                  'If your device asks for reduced motion, every animation here turns off. Not softened. Off.',
               },
               {
                 n: '03',
@@ -125,7 +125,7 @@ export default function AccessibilityPage() {
               {
                 n: '05',
                 label:
-                  'When Kai’s greeting changes language, it is announced — not silently swapped behind a screen-reader user’s back.',
+                  'When Kai’s greeting changes language, it is announced, not silently swapped behind a screen-reader user’s back.',
               },
               {
                 n: '06',
@@ -145,7 +145,7 @@ export default function AccessibilityPage() {
           <Prose>
             <Para>
               So you can just talk, and switch mid-sentence without losing what you have already
-              said. This is not a power-user feature — for a lot of our users it is the only way in.
+              said. This is not a power-user feature. For a lot of our users it is the only way in.
             </Para>
             <Para>
               Browser speech recognition is good at English and noticeably worse at exactly the
@@ -182,7 +182,7 @@ export default function AccessibilityPage() {
 
         <p className="mt-8 max-w-2xl leading-[1.85] text-[var(--band-muted)]">
           If you use a screen reader, or you help older or disabled patients, and something here is
-          broken or patronising —{' '}
+          broken or patronising,{' '}
           <a
             href="/contact"
             className="lx-focus font-semibold text-[var(--lx-sage)] underline underline-offset-4"
@@ -214,7 +214,7 @@ export default function AccessibilityPage() {
               },
               {
                 q: 'Can someone help me use it?',
-                a: 'Yes, and a lot of people do it that way — an adult child holding the phone while a parent talks. Nothing about Keiro assumes the patient is the one tapping the screen.',
+                a: 'Yes, and a lot of people do it that way, an adult child holding the phone while a parent talks. Nothing about Keiro assumes the patient is the one tapping the screen.',
               },
               {
                 q: 'Is it accessible if I cannot see the screen?',
@@ -241,17 +241,17 @@ export default function AccessibilityPage() {
             items={[
               {
                 id: '1',
-                text: 'WCAG 2.2 Level AA — Web Content Accessibility Guidelines, W3C Recommendation.',
+                text: 'WCAG 2.2 Level AA. Web Content Accessibility Guidelines, W3C Recommendation.',
                 href: 'https://www.w3.org/TR/WCAG22/',
               },
               {
                 id: '2',
-                text: 'WCAG 2.5.8 Target Size (Minimum) — the 24×24 floor; we hold ourselves to 44×44.',
+                text: 'WCAG 2.5.8 Target Size (Minimum). The 24×24 floor; we hold ourselves to 44×44.',
                 href: 'https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html',
               },
               {
                 id: '3',
-                text: 'National CLAS Standards — Culturally and Linguistically Appropriate Services in health care.',
+                text: 'National CLAS Standards. Culturally and Linguistically Appropriate Services in health care.',
                 href: 'https://thinkculturalhealth.hhs.gov/clas',
               },
             ]}
@@ -259,10 +259,6 @@ export default function AccessibilityPage() {
         </div>
       </Band>
 
-      <CtaBand
-        title="Take as long as you need."
-        body="Kai will wait. It is free, and there is no account to make first."
-      />
     </SiteShell>
   )
 }

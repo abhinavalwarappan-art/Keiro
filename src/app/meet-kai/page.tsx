@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Meet Kai',
     description:
-      'Kai is the one who sits with you before the doctor comes in — in your language, at your pace.',
+      'Kai is the one who sits with you before the doctor comes in, in your language, at your pace.',
   },
 }
 
@@ -35,36 +35,33 @@ export default function MeetKaiPage() {
   return (
     <SiteShell>
       <PageHero
+        variant="split"
         eyebrow="Meet Kai"
         title="Kai will wait as long as you need."
         lede="Kai is the one who sits with you before the doctor comes in. Not a form. Not a phone tree. Someone who speaks the way you do."
+        media={
+          <div className="flex justify-center">
+            <div className="lx-breathe">
+              <Kai size="xl" state="waving" interactive />
+            </div>
+          </div>
+        }
       />
 
       <Band palette="mint">
-        <Split
-          media={
-            <div className="flex justify-center">
-              <div className="lx-breathe">
-                <Kai size="xl" state="waving" interactive />
-              </div>
-            </div>
-          }
-          flip
-        >
-          <BandHeading lede="We wrote Kai to behave like the best nurse you have ever met: unhurried, unbothered, and impossible to embarrass.">
-            Personality first. <Accent>Capability second.</Accent>
-          </BandHeading>
-          <Prose>
-            <Para>
-              Everything on this page is a promise about behaviour, not a feature. A mascot that does
-              not change how the software talks to you is just a sticker.
-            </Para>
-            <Para>
-              Kai has one job — to help you say what you came to say — and it is built without the
-              ability to do anything else.
-            </Para>
-          </Prose>
-        </Split>
+        <BandHeading lede="We wrote Kai to behave like the best nurse you have ever met: unhurried, unbothered, and impossible to embarrass.">
+          Personality first. <Accent>Capability second.</Accent>
+        </BandHeading>
+        <Prose>
+          <Para>
+            Everything on this page is a promise about behaviour, not a feature. A mascot that does
+            not change how the software talks to you is just a sticker.
+          </Para>
+          <Para>
+            Kai has one job, to help you say what you came to say, and it is built without the
+            ability to do anything else.
+          </Para>
+        </Prose>
       </Band>
 
       <Band palette="cream">
@@ -82,7 +79,7 @@ export default function MeetKaiPage() {
               {
                 n: '02',
                 label:
-                  'I will listen however you like. Speak out loud, or type if that is easier — and switch whenever you want.',
+                  'I will listen however you like. Speak out loud, or type if that is easier, and switch whenever you want.',
               },
               {
                 n: '03',
@@ -151,7 +148,7 @@ export default function MeetKaiPage() {
           <Thesis
             statement={
               <>
-                Kai is built on a large language model. What makes it different is not the model —{' '}
+                Kai is built on a large language model. What makes it different is not the model.{' '}
                 <Accent>it is the fence we build around it.</Accent>
               </>
             }
@@ -180,7 +177,7 @@ export default function MeetKaiPage() {
               },
               {
                 q: 'What if Kai misunderstands me?',
-                a: 'You read the summary before anyone else does. If it is wrong, you can correct it or simply not send it. Kai also asks follow-up questions rather than guessing — but it is not perfect, which is exactly why you get the final say.',
+                a: 'You read the summary before anyone else does. If it is wrong, you can correct it or simply not send it. Kai also asks follow-up questions rather than guessing, but it is not perfect, which is exactly why you get the final say.',
               },
               {
                 q: 'Can I use it for my mother or father?',
@@ -188,7 +185,7 @@ export default function MeetKaiPage() {
               },
               {
                 q: 'Does my doctor have to use Keiro too?',
-                a: 'No. The summary is just clear written English — no account, no app, no setup on their side.',
+                a: 'No. The summary is just clear written English. No account, no app, no setup on their side.',
               },
             ]}
           />

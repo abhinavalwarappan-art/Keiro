@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { PageHero, CtaBand } from '@/components/landing-v3/PageBits'
+import { PageHero } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
@@ -15,7 +15,7 @@ import { Reveal } from '@/components/landing-v3/Reveal'
 export const metadata: Metadata = {
   title: 'Contact',
   description:
-    'Whether you are a patient, a clinic, a journalist, an investor or a judge — tell us who you are and we will write back. A real person reads these.',
+    'Whether you are a patient, a clinic, a journalist, an investor or a judge, tell us who you are and we will write back. A real person reads these.',
   openGraph: {
     title: 'Contact Keiro',
     description: 'Tell us who you are and we will write back. A real person reads these.',
@@ -28,9 +28,10 @@ export default function ContactPage() {
   return (
     <SiteShell>
       <PageHero
+        variant="centered"
         eyebrow="Contact"
         title="Tell us who you are, and we will write back."
-        lede="A real person reads these — there is no ticketing system and no autoresponder. Find yourself below first; it will usually save you an email."
+        lede="A real person reads these. There is no ticketing system and no autoresponder. Find yourself below first; it will usually save you an email."
       />
 
       <Band palette="cream">
@@ -48,7 +49,7 @@ export default function ContactPage() {
                 detail: (
                   <div className="max-w-2xl">
                     <p className="leading-[1.85] text-[var(--band-muted)]">
-                      Keiro is free, there is no account, and you can start right now — there is
+                      Keiro is free, there is no account, and you can start right now. There is
                       nothing to request and nobody to ask. If something broke, or Kai said something
                       that worried you, we do want to hear that. Use the form below and be blunt.
                     </p>
@@ -66,7 +67,7 @@ export default function ContactPage() {
                   <div className="max-w-2xl">
                     <p className="leading-[1.85] text-[var(--band-muted)]">
                       The for-clinics page explains what your clinicians would actually receive, and
-                      it is candid about the limits — including that Keiro has not been clinically
+                      it is candid about the limits, including that Keiro has not been clinically
                       validated. Read that first; it will make the conversation shorter.
                     </p>
                     <div className="mt-4">
@@ -83,7 +84,7 @@ export default function ContactPage() {
                   <div className="max-w-2xl">
                     <p className="leading-[1.85] text-[var(--band-muted)]">
                       It takes five minutes and needs no account. Choose a language you do not speak
-                      and talk to Kai — that is the entire product. The mission page has the
+                      and talk to Kai. That is the entire product. The mission page has the
                       background and the numbers behind why it exists.
                     </p>
                     <div className="mt-4">
@@ -118,7 +119,7 @@ export default function ContactPage() {
                     <p className="leading-[1.85] text-[var(--band-muted)]">
                       Open Keiro, choose a language you do not speak, and talk to Kai. That is the
                       whole product, and it needs no account. How it works explains the technology in
-                      plain words; privacy &amp; safety is where we are candid about the limits —
+                      plain words; privacy &amp; safety is where we are candid about the limits,
                       including the ones that are not flattering.
                     </p>
                     <div className="mt-4">
@@ -162,7 +163,6 @@ export default function ContactPage() {
         </Reveal>
       </Band>
 
-      <CtaBand />
     </SiteShell>
   )
 }

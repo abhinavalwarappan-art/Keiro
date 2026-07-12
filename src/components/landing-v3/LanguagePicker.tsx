@@ -50,7 +50,7 @@ export function LanguagePicker({
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search — e.g. Tagalog, தமிழ், Polski"
+        placeholder="Search: Tagalog, தமிழ், Polski"
         className="lx-focus mt-3 block min-h-11 w-full rounded-full border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70"
       />
 
@@ -89,7 +89,7 @@ export function LanguagePicker({
 
         {shown.length === 0 && (
           <p className="py-3 text-[var(--lx-muted)]">
-            No match. Kai may still be able to help — tell us which language to add.
+            No match. Kai may still be able to help. Tell us which language to add.
           </p>
         )}
       </div>

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { CtaBand } from '@/components/landing-v3/PageBits'
+
 import {
   Band,
   BandHeading,
@@ -42,7 +42,7 @@ export default function AboutPage() {
             statement={
               <>
                 Medicine asks you to describe a feeling you do not have words for in your first
-                language — and then asks you to do it again, precisely, under fluorescent light,{' '}
+                language. Then it asks you to do it again, precisely, under fluorescent light,{' '}
                 <Accent>while you are frightened.</Accent>
               </>
             }
@@ -62,7 +62,7 @@ export default function AboutPage() {
                 value: 67,
                 suffix: 'M',
                 label: 'people in the US',
-                note: 'speak a language other than English at home — roughly one in five.',
+                note: 'speak a language other than English at home. Roughly one in five.',
               },
               {
                 value: LANGUAGES.length,
@@ -100,7 +100,7 @@ export default function AboutPage() {
           </BandHeading>
           <Prose>
             <Para>
-              It is a companion for the twenty minutes before the visit — the part where you sit in a
+              It is a companion for the twenty minutes before the visit, the part where you sit in a
               waiting room and rehearse.
             </Para>
             <Para>
@@ -138,7 +138,7 @@ export default function AboutPage() {
               {
                 n: '04',
                 label:
-                  'Nothing you say gets sold. Not to advertisers, not to data brokers, not to insurers — see privacy & safety.',
+                  'Nothing you say gets sold. Not to advertisers, not to data brokers, not to insurers. See privacy & safety.',
               },
               {
                 n: '05',
@@ -148,7 +148,7 @@ export default function AboutPage() {
               {
                 n: '06',
                 label:
-                  'We say what we have not done. No clinical review, no validation study, no certification — stated plainly rather than discovered in diligence.',
+                  'We say what we have not done. No clinical review, no validation study, no certification, all stated plainly rather than discovered in diligence.',
               },
             ]}
           />
@@ -173,10 +173,6 @@ export default function AboutPage() {
         </p>
       </Band>
 
-      <CtaBand
-        title="If this is for someone you love, you can start it for them."
-        body="It is free, there is no account, and you can sit with them while they use it."
-      />
     </SiteShell>
   )
 }

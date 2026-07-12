@@ -72,6 +72,7 @@
   "chat.errChat": "Something went wrong reaching Kai. Please try again.",
   "chat.errReport": "We couldn't prepare your report. Please try again.",
   "chat.prepareReport": "Yes, prepare my report",
+  "chat.reportReady": "Your report is ready. Open it again any time.",
   "chat.moreToAdd": "I have more to add",
   "chat.preparingReport": "Preparing your report…",
   "chat.listen": "Listen",

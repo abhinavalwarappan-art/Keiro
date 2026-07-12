@@ -28,7 +28,7 @@ export function Hero() {
           className="lg:col-start-1 lg:row-start-1"
         >
           <h1 className="lx-display text-balance text-[clamp(2.1rem,5.4vw,3.5rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-[var(--lx-ink)]">
-            I&apos;m Kai. Tell me what hurts — <Accent>in the language you think in.</Accent>
+            I&apos;m Kai. Tell me what hurts, <Accent>in the language you think in.</Accent>
           </h1>
 
           <p className="mt-6 max-w-xl text-pretty text-lg leading-[1.8] text-[var(--lx-muted)] sm:text-xl">
@@ -42,7 +42,7 @@ export function Hero() {
           <ul className="mt-7 space-y-2.5">
             {[
               'Free, and it always will be.',
-              'No account. Nothing to fill in first.',
+              'No account needed to start.',
               'You can stop at any point.',
             ].map((item) => (
               <li key={item} className="flex items-center gap-3 text-[var(--lx-body)]">
@@ -88,7 +88,7 @@ export function Hero() {
             >
               {LANGUAGES.length} languages
             </Link>{' '}
-            hold a real conversation — not a translated menu.
+            hold a real conversation, not a translated menu.
           </p>
         </motion.div>
       </div>

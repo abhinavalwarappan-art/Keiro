@@ -229,6 +229,14 @@ function ChatContent() {
   const [messages, setMessages] = useState<ChatMessage[]>(restoredMessages)
   // Starts true: the opening-message effect shows Kai typing immediately on mount
   const [isTyping, setIsTyping] = useState(!restoredHasMessages)
+  // True for the WHOLE reply, including token streaming. `isTyping` is not enough:
+  // it is flipped false the moment the first token arrives, so it covers only the
+  // pre-first-token wait and leaves every control live while Kai is still writing.
+  // A ref would not work either (no re-render), which is why kaiReplyInFlightRef
+  // could not gate the UI and a mid-stream send was silently dropped: the message
+  // was appended to the transcript and streamKaiReply then bailed on the ref guard,
+  // so Kai never answered it.
+  const [isStreaming, setIsStreaming] = useState(false)
   const [chatError, setChatError] = useState(false)
   const [rateLimitError, setRateLimitError] = useState(false)
   const [sessionTimeoutWarning, setSessionTimeoutWarning] = useState(false)
@@ -246,9 +254,11 @@ function ChatContent() {
   const supabase = createClient()
 
   const kaiState: KaiState = generatingReport || isTyping ? 'thinking' : isKaiSpeaking ? 'talking' : 'idle'
-  // Lock all patient input while Kai is speaking so nothing gets clicked/typed
-  // over the audio — patients must listen through before responding.
-  const inputDisabled = isTyping || generatingReport || showProfileIntake || isKaiSpeaking
+  // Lock every patient control while Kai is thinking, writing, speaking, or building
+  // the report. `isStreaming` is the important addition: without it the input and the
+  // quick-reply buttons stayed live for the entire time Kai was typing out a reply.
+  const inputDisabled =
+    isTyping || isStreaming || generatingReport || showProfileIntake || isKaiSpeaking
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -256,6 +266,18 @@ function ChatContent() {
       if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
     })
   }, [])
+
+  // Coming back from the report restored the transcript but left it scrolled to the
+  // TOP, dropping the patient into the middle of their own conversation with no clue
+  // where they were. Land them at the end, where the "open your report" card and the
+  // input are. Instant, not smooth: this is a restore, not a new message arriving.
+  useEffect(() => {
+    if (!restoredHasMessages) return
+    requestAnimationFrame(() => {
+      const el = scrollRef.current
+      if (el) el.scrollTop = el.scrollHeight
+    })
+  }, [restoredHasMessages])
 
   // Persist the live chat session so a refresh or an emergency detour can restore it.
   useEffect(() => {
@@ -292,6 +314,7 @@ function ChatContent() {
     async (history: ChatMessage[], isOpening: boolean) => {
       if (kaiReplyInFlightRef.current) return
       kaiReplyInFlightRef.current = true
+      setIsStreaming(true)
 
       chatAbortRef.current?.abort()
       const controller = new AbortController()
@@ -427,6 +450,9 @@ function ChatContent() {
         setChatError(true)
       } finally {
         kaiReplyInFlightRef.current = false
+        // Released here rather than after the read loop so it also covers the error
+        // and abort paths — otherwise a failed reply would leave the UI locked.
+        setIsStreaming(false)
         if (chatAbortRef.current === controller) chatAbortRef.current = null
       }
     },
@@ -541,6 +567,18 @@ function ChatContent() {
       } catch {
         // Non-fatal.
       }
+
+      // Remember that a report now exists for this conversation. This was the missing
+      // piece: setPreparedReport was never called, so the ReportCard below the
+      // transcript was dead code and a patient who navigated away from their report
+      // had no way back to it from the chat. It is persisted in the session snapshot,
+      // so it survives the trip to /report and back.
+      // /api/report returns the flat report body; report_id and created_at are ours.
+      setPreparedReport({
+        ...(data.reportData as Record<string, unknown>),
+        report_id: data.reportId,
+        created_at: new Date().toISOString(),
+      } as unknown as Report)
 
       const params = new URLSearchParams({
         reportId: data.reportId,
@@ -684,18 +722,18 @@ function ChatContent() {
                 <motion.button
                   type="button"
                   onClick={handlePrepareReport}
-                  disabled={isKaiSpeaking}
+                  disabled={inputDisabled}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-ink py-3.5 font-semibold text-white disabled:opacity-50"
-                  whileTap={isKaiSpeaking ? {} : { scale: 0.97 }}
+                  whileTap={inputDisabled ? {} : { scale: 0.97 }}
                 >
                   <FileText size={16} aria-hidden /> {t('chat.prepareReport')}
                 </motion.button>
                 <motion.button
                   type="button"
                   onClick={() => setShowPrepareReport(false)}
-                  disabled={isKaiSpeaking}
+                  disabled={inputDisabled}
                   className="w-full rounded-lg border border-border-subtle bg-surface py-3.5 text-sm font-semibold text-text-primary disabled:opacity-50"
-                  whileTap={isKaiSpeaking ? {} : { scale: 0.97 }}
+                  whileTap={inputDisabled ? {} : { scale: 0.97 }}
                 >
                   {t('chat.moreToAdd')}
                 </motion.button>
@@ -719,6 +757,9 @@ function ChatContent() {
       <div className="border-t border-border-subtle bg-surface">
         {preparedReport && (
           <div className="mx-auto w-full max-w-2xl px-4 pt-3">
+            <p className="mb-2 text-sm font-medium text-text-secondary">
+              {t('chat.reportReady')}
+            </p>
             <ReportCard
               report={preparedReport}
               onClick={() => {
@@ -733,7 +774,7 @@ function ChatContent() {
           </div>
         )}
 
-        {quickReply === 'severity' && !isTyping && (
+        {quickReply === 'severity' && !isTyping && !isStreaming && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -743,7 +784,7 @@ function ChatContent() {
           </motion.div>
         )}
 
-        {quickReply === 'yesno' && !isTyping && (
+        {quickReply === 'yesno' && !isTyping && !isStreaming && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
