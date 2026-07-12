@@ -6,13 +6,18 @@
    scanning for their own language should be able to *see* it, not scrub a
    carousel until it rotates into view.
 
+   The list comes from src/lib/languages.ts — the same source the app itself
+   uses — so the landing can never claim a different number than Kai actually
+   speaks. (It previously carried its own hand-maintained copy, which had already
+   drifted to 41 while the app supported 45.)
+
    Endonyms are primary (you look for "Tiếng Việt", not "Vietnamese"), rendered
    in a script-complete stack so Devanagari / Arabic / CJK don't fall back.
    ========================================================================== */
 
+import Link from 'next/link'
+import { LANGUAGES } from '@/lib/languages'
 import { Reveal } from './Reveal'
-import { FlagEmoji } from './FlagEmoji'
-import { languages } from './landingData'
 
 export function LanguagesGrid() {
   return (
@@ -36,18 +41,21 @@ export function LanguagesGrid() {
 
         <Reveal delay={0.08}>
           <ul className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {languages.map((language) => (
-              <li key={`${language.code}-${language.region}`}>
+            {LANGUAGES.map((language) => (
+              <li key={language.code}>
                 <div className="flex min-h-16 items-center gap-3 rounded-[16px] border border-[var(--lx-line)] bg-white px-4 py-3">
-                  <FlagEmoji region={language.region} className="shrink-0 text-xl leading-none" />
+                  <span aria-hidden="true" className="shrink-0 text-xl leading-none">
+                    {language.flag}
+                  </span>
                   <div className="min-w-0">
                     <p
                       className="lx-native truncate font-semibold text-[var(--lx-ink)]"
-                      lang={language.code}
+                      lang={language.googleCode}
+                      dir={language.rtl ? 'rtl' : 'ltr'}
                     >
                       {language.native}
                     </p>
-                    <p className="truncate text-sm text-[var(--lx-muted)]">{language.name}</p>
+                    <p className="truncate text-sm text-[var(--lx-muted)]">{language.en}</p>
                   </div>
                 </div>
               </li>
@@ -58,12 +66,12 @@ export function LanguagesGrid() {
         <Reveal delay={0.12}>
           <p className="mt-10 text-lg leading-[1.8] text-[var(--lx-muted)]">
             Do not see yours?{' '}
-            <a
-              href="mailto:hello@keiro.app?subject=Please%20add%20my%20language"
+            <Link
+              href="/contact"
               className="lx-focus font-semibold text-[var(--lx-ink)] underline underline-offset-4"
             >
               Tell us which one
-            </a>{' '}
+            </Link>{' '}
             and we will work on it. Nobody should have to borrow someone else&apos;s words to
             describe their own pain.
           </p>

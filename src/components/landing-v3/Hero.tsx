@@ -10,8 +10,10 @@
    ========================================================================== */
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Kai } from '@/components/kai/Kai'
+import { LANGUAGES } from '@/lib/languages'
 import { FlagEmoji } from './FlagEmoji'
 import { MotionLink } from './MotionLink'
 import { heroGreetings } from './landingData'
@@ -126,14 +128,16 @@ export function Hero() {
               </div>
             </div>
 
+            {/* Counts are derived, never typed by hand — this line previously
+                claimed 41 while the app already supported 45. */}
             <p className="mt-4 text-sm leading-relaxed text-[var(--lx-muted)]">
               Kai speaks {heroGreetings.length} languages here, and{' '}
-              <a
-                href="#languages"
+              <Link
+                href="/languages"
                 className="lx-focus font-semibold text-[var(--lx-ink)] underline underline-offset-4"
               >
-                41 in the app
-              </a>
+                {LANGUAGES.length} in the app
+              </Link>
               .
             </p>
           </div>

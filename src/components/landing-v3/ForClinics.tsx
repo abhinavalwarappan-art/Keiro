@@ -6,6 +6,7 @@
    care product feel like a vendor, so it is kept to three sentences and one link.
    ========================================================================== */
 
+import Link from 'next/link'
 import { Reveal } from './Reveal'
 
 export function ForClinics() {
@@ -25,12 +26,12 @@ export function ForClinics() {
               interpreter scheduling, no lost history. Kai never diagnoses or triages.
             </p>
           </div>
-          <a
-            href="mailto:clinics@keiro.app?subject=Keiro%20for%20clinics"
+          <Link
+            href="/for-clinics"
             className="lx-focus inline-flex min-h-12 shrink-0 items-center justify-center rounded-full border border-[var(--lx-ink)] px-6 font-semibold text-[var(--lx-ink)] transition-colors duration-200 hover:bg-[var(--lx-mint)]"
           >
-            Talk to us
-          </a>
+            Keiro for clinics
+          </Link>
         </div>
       </Reveal>
     </section>

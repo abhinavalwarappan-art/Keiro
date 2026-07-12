@@ -28,7 +28,7 @@ export function Footer() {
           <p className="text-sm text-white/60">Free. No account. Nothing to fill in first.</p>
         </div>
 
-        <div className="grid gap-10 pt-14 md:grid-cols-3">
+        <div className="grid gap-10 pt-14 md:grid-cols-4">
           <div>
             <div className="lx-display text-xl font-semibold text-white">Keiro</div>
             <p className="mt-4 max-w-sm leading-[1.8]">
@@ -37,43 +37,56 @@ export function Footer() {
             </p>
           </div>
 
-          <nav aria-label="Footer">
-            <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/50">
-              Explore
-            </h3>
-            <ul className="mt-5 space-y-1">
-              {[
-                { href: '#meet-kai', label: 'Meet Kai' },
-                { href: '#how-it-works', label: 'How it works' },
-                { href: '#languages', label: 'Languages' },
-                { href: '#for-clinics', label: 'For clinics' },
-              ].map((item) => (
-                <li key={item.href}>
-                  <a
-                    href={item.href}
-                    className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-              <li>
-                <Link
-                  href="/privacy"
-                  className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
-                >
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
-                >
-                  Terms
-                </Link>
-              </li>
-            </ul>
+          {/* Footer IA is flatter than the nav on purpose — every page, in one
+              place, without the About grouping. */}
+          <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-2 md:col-span-2 md:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/50">
+                Keiro
+              </h3>
+              <ul className="mt-5 space-y-1">
+                {[
+                  { href: '/how-it-works', label: 'How it works' },
+                  { href: '/languages', label: 'Languages' },
+                  { href: '/meet-kai', label: 'Meet Kai' },
+                  { href: '/about', label: 'Our mission' },
+                ].map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-white/50">
+                Trust &amp; contact
+              </h3>
+              <ul className="mt-5 space-y-1">
+                {[
+                  { href: '/privacy-safety', label: 'Privacy & safety' },
+                  { href: '/accessibility', label: 'Accessibility' },
+                  { href: '/for-clinics', label: 'For clinics' },
+                  { href: '/contact', label: 'Contact' },
+                  { href: '/privacy', label: 'Privacy policy' },
+                  { href: '/terms', label: 'Terms' },
+                ].map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </nav>
 
           <div>
