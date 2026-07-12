@@ -178,7 +178,7 @@ function ConsultPanel({
             type="button"
             onClick={() => (recording ? stopRecording() : startRecording())}
             disabled={disabled || sending}
-            className={`flex size-10 shrink-0 items-center justify-center rounded-md border transition-colors ${
+            className={`flex size-12 shrink-0 items-center justify-center rounded-md border transition-colors active:scale-95 ${
               recording
                 ? 'border-error bg-error-subtle text-error-text'
                 : 'border-border-subtle bg-surface text-text-secondary hover:bg-sunken'
@@ -191,7 +191,7 @@ function ConsultPanel({
             type="button"
             onClick={() => void handleSend()}
             disabled={disabled || sending || !text.trim()}
-            className="flex size-10 shrink-0 items-center justify-center rounded-md bg-brand-ink text-white transition-colors hover:bg-brand-ink-hover disabled:opacity-50"
+            className="flex size-12 shrink-0 items-center justify-center rounded-md bg-brand-ink text-white transition-colors hover:bg-brand-ink-hover active:scale-95 disabled:opacity-50"
             aria-label="Send message"
           >
             <Send size={18} />
@@ -274,7 +274,7 @@ export function LiveConsultMode({
         <button
           type="button"
           onClick={onBack}
-          className="flex size-9 items-center justify-center rounded-md text-text-secondary hover:bg-sunken"
+          className="flex size-9 min-h-11 min-w-11 items-center justify-center rounded-md text-text-secondary transition-colors hover:bg-sunken active:scale-95"
           aria-label="Go back"
         >
           <ArrowLeft size={17} />
@@ -289,7 +289,7 @@ export function LiveConsultMode({
         <button
           type="button"
           onClick={() => setShowEndPanel(true)}
-          className="rounded-md bg-brand-ink px-3 py-2 text-xs font-medium text-white hover:bg-brand-ink-hover"
+          className="min-h-11 rounded-md bg-brand-ink px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-ink-hover active:scale-95"
         >
           End Consult
         </button>

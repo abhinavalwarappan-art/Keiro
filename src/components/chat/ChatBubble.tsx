@@ -229,7 +229,7 @@ export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleP
           disabled={listenDisabled}
           className={`mt-3 flex min-h-11 items-center gap-2.5 rounded-full border px-5 py-2.5 text-base font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${
             localSpeaking
-              ? 'border-brand bg-brand text-white'
+              ? 'border-brand-ink bg-brand-ink text-white hover:bg-brand-ink-hover'
               : 'border-brand-border bg-brand-subtle text-brand-ink hover:bg-brand-muted'
           }`}
           aria-label={localSpeaking ? t('chat.stopReading') : t('chat.listenAloud')}
