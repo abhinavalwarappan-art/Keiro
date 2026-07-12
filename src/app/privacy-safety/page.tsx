@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { PageHero, CtaBand, A } from '@/components/landing-v3/PageBits'
+import { PageHero, A } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
@@ -33,6 +33,7 @@ export default function PrivacySafetyPage() {
   return (
     <SiteShell>
       <PageHero
+        variant="document"
         eyebrow="Privacy & safety"
         title="You are about to tell a computer something private. Here is exactly what happens to it."
         lede="This is the plain-language version, written to be read rather than agreed to. The formal document is the privacy policy, and nothing here contradicts it."
@@ -48,7 +49,7 @@ export default function PrivacySafetyPage() {
               {
                 n: '01',
                 label:
-                  'Your conversation is not stored. What you say to Kai is not saved to our servers. Use Keiro as a guest — the default — and we store nothing about you at all.',
+                  'Your conversation is not stored. What you say to Kai is not saved to our servers. Use Keiro as a guest, which is the default, and we store nothing about you at all.',
               },
               {
                 n: '02',
@@ -104,7 +105,7 @@ export default function PrivacySafetyPage() {
       </Band>
 
       <Band palette="cream">
-        <BandHeading lede="Safety here does not mean a warning banner. It means Kai is built without the ability to do the dangerous thing. Three layers, independent — so no single mistake gets through.">
+        <BandHeading lede="Safety here does not mean a warning banner. It means Kai is built without the ability to do the dangerous thing. Three layers, independent, so no single mistake gets through.">
           The fence <Accent>around Kai.</Accent>
         </BandHeading>
 
@@ -143,7 +144,7 @@ export default function PrivacySafetyPage() {
                 detail: (
                   <p className="max-w-2xl leading-[1.85] text-[var(--band-muted)]">
                     You read the summary before your doctor does. If Kai got you wrong, it goes no
-                    further. And every path through Keiro ends at a clinician — Kai is never the last
+                    further. And every path through Keiro ends at a clinician. Kai is never the last
                     thing between you and a decision about your body.
                   </p>
                 ),
@@ -162,7 +163,7 @@ export default function PrivacySafetyPage() {
               <Accent>no safety certification.</Accent>
             </>
           }
-          body="It is a young project, and we are not going to dress it up as something it is not. Because Keiro does not store health information on its servers, it is also not a HIPAA-covered service — that is a statement about our architecture, not a claim of accreditation."
+          body="It is a young project, and we are not going to dress it up as something it is not. Because Keiro does not store health information on its servers, it is also not a HIPAA-covered service. That is a statement about our architecture, not a claim of accreditation."
         />
 
         <div className="mx-auto mt-8 max-w-3xl">
@@ -173,7 +174,7 @@ export default function PrivacySafetyPage() {
               <A href="/contact">Please get in touch.</A>
             </Para>
             <Para>
-              And if Kai says something it should not have, or behaves in a way that frightens you —
+              And if Kai says something it should not have, or behaves in a way that frightens you,
               tell us bluntly. A real person reads those.
             </Para>
           </Prose>
@@ -189,7 +190,7 @@ export default function PrivacySafetyPage() {
             items={[
               {
                 q: 'Is this HIPAA compliant?',
-                a: 'Keiro is not a HIPAA-covered entity, because it does not store health information on its servers — your conversation is never saved. That is an architectural answer, not a certification. If you are a clinic evaluating Keiro, read the section above before anything else.',
+                a: 'Keiro is not a HIPAA-covered entity, because it does not store health information on its servers. Your conversation is never saved. That is an architectural answer, not a certification. If you are a clinic evaluating Keiro, read the section above before anything else.',
               },
               {
                 q: 'So an AI company in China sees what I tell Kai?',
@@ -205,7 +206,7 @@ export default function PrivacySafetyPage() {
               },
               {
                 q: 'What if I want everything deleted?',
-                a: 'If you used Keiro as a guest, there is nothing to delete — we never had it. If you signed in, Settings → Delete all my data removes everything immediately, including your reports.',
+                a: 'If you used Keiro as a guest, there is nothing to delete. We never had it. If you signed in, Settings → Delete all my data removes everything immediately, including your reports.',
               },
             ]}
           />
@@ -221,17 +222,17 @@ export default function PrivacySafetyPage() {
             items={[
               {
                 id: '1',
-                text: 'DeepSeek Privacy Policy — describes retention of user inputs and their use in service and model improvement.',
+                text: 'DeepSeek Privacy Policy. Describes retention of user inputs and their use in service and model improvement.',
                 href: 'https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html',
               },
               {
                 id: '2',
-                text: 'HHS — Summary of the HIPAA Privacy Rule. Keiro is not a covered entity; it stores no health information on its servers.',
+                text: 'HHS. Summary of the HIPAA Privacy Rule. Keiro is not a covered entity; it stores no health information on its servers.',
                 href: 'https://www.hhs.gov/hipaa/for-professionals/privacy/laws-regulations/index.html',
               },
               {
                 id: '3',
-                text: 'Section 1557 of the Affordable Care Act — language-access obligations for covered health programmes.',
+                text: 'Section 1557 of the Affordable Care Act. Language-access obligations for covered health programmes.',
                 href: 'https://www.hhs.gov/civil-rights/for-individuals/section-1557/index.html',
               },
             ]}
@@ -239,11 +240,6 @@ export default function PrivacySafetyPage() {
         </div>
       </Band>
 
-      <CtaBand
-        palette="cream"
-        title="Now that you know all that — whenever you’re ready."
-        body="Free, no account, and you can stop at any point."
-      />
     </SiteShell>
   )
 }

@@ -7,22 +7,25 @@ import ReportLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Download, ArrowLeft, AlertTriangle, CheckCircle, ExternalLink, Printer, Stethoscope, Link2, QrCode, Copy } from 'lucide-react'
+import { Download, ArrowLeft, AlertTriangle, CheckCircle, ExternalLink, Printer, Stethoscope, Link2, QrCode, Copy, Volume2, VolumeX } from 'lucide-react'
 import Kai from '@/components/kai/Kai'
 import { LiveConsultMode } from '@/components/consult/LiveConsultMode'
 import { pageVariants } from '@/lib/motion'
 import { createClient } from '@/lib/supabase/client'
 import { Report, ReportData, PatientProfile, ConsultMessage } from '@/types'
-import { speakText } from '@/lib/speech'
+import { speakText, stopSpeech } from '@/lib/speech'
+import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { PATIENT_PROFILE_SESSION_KEY } from '@/lib/chatSession'
 import { formatPatientSex } from '@/lib/patientProfile'
 import { useTranslations } from '@/i18n/useTranslations'
 
 /**
- * Shown and read aloud the moment the report loads — the patient has just finished
- * describing something frightening in a language they don't speak, and this is the
- * first thing they hear afterwards. Each string opens with thanks before the
- * practical instruction.
+ * Shown the moment the report loads. It is NOT spoken automatically: a patient
+ * reading this is often sitting in a waiting room, and their symptoms being read
+ * out to the room is the last thing they want. Audio is opt-in via the Listen
+ * button, matching how speech already works on every message in chat.
+ *
+ * Each string opens with thanks before the practical instruction.
  *
  * Translation note: these open with gratitude, never praise. "You did well" is a
  * register violation toward an elder in several of these languages (notably ja, ko,
@@ -148,7 +151,6 @@ function ReportContent() {
 
   const t = useTranslations(langCode)
   const supabase = useMemo(() => createClient(), [])
-  const spokeCompletionRef = useRef(false)
 
   const loadReport = useCallback(async () => {
     if (!reportId) {
@@ -375,11 +377,23 @@ function ReportContent() {
 
   const roman = searchParams.get('roman') === '1'
 
-  useEffect(() => {
-    if (loading || !report || spokeCompletionRef.current) return
-    spokeCompletionRef.current = true
+  /* Kai used to speak the completion message out loud the instant the report
+     finished loading, with no way to stop it. A patient reading this in a waiting
+     room does not want their symptoms announced to the room, and this was the only
+     auto-playing audio in the app — everywhere else in chat, speech is opt-in per
+     message. So it is opt-in here too: the button below starts it, and stops it. */
+  const speaking = useSpeechActive()
+
+  const toggleSpeech = useCallback(() => {
+    if (speaking) {
+      stopSpeech()
+      return
+    }
     speakText(getLang(COMPLETION_MESSAGES, langCode), langCode)
-  }, [loading, report, langCode])
+  }, [speaking, langCode])
+
+  // Never leave audio playing behind us when the patient navigates away.
+  useEffect(() => () => stopSpeech(), [])
 
   if (loading) {
     return (
@@ -461,10 +475,30 @@ function ReportContent() {
 
       <div className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
         <div className="mb-6 flex items-start gap-3">
-          <Kai size="sm" state="happy" interactive={false} />
-          <p className="pt-1 text-sm leading-relaxed text-text-secondary">
-            {getLang(COMPLETION_MESSAGES, langCode)}
-          </p>
+          <Kai size="sm" state={speaking ? 'talking' : 'happy'} interactive={false} />
+          <div className="pt-1">
+            <p className="text-sm leading-relaxed text-text-secondary">
+              {getLang(COMPLETION_MESSAGES, langCode)}
+            </p>
+            {/* Opt-in, not automatic. Quiet by default because the person reading
+                this is often sitting in a waiting room. */}
+            <button
+              type="button"
+              onClick={toggleSpeech}
+              aria-label={speaking ? t('chat.stopReading') : t('chat.listenAloud')}
+              className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand-ink hover:underline"
+            >
+              {speaking ? (
+                <>
+                  <VolumeX size={14} aria-hidden /> {t('chat.stop')}
+                </>
+              ) : (
+                <>
+                  <Volume2 size={14} aria-hidden /> {t('chat.listen')}
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Actions */}

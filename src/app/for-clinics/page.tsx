@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { PageHero, CtaBand, A } from '@/components/landing-v3/PageBits'
+import { PageHero, A } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
   Accent,
   Thesis,
-  Split,
   StatRow,
   GlassCards,
   Faq,
@@ -23,7 +22,7 @@ const COUNT = LANGUAGES.length
 export const metadata: Metadata = {
   title: 'For clinics',
   description:
-    'Your patient arrives already understood. Keiro hands your clinicians a clear English intake summary before the visit starts — no interpreter scheduling, no lost history.',
+    'Your patient arrives already understood. Keiro hands your clinicians a clear English intake summary before the visit starts. No interpreter scheduling, no lost history.',
   openGraph: {
     title: 'Keiro for clinics',
     description: 'Your patient arrives already understood.',
@@ -36,14 +35,16 @@ export default function ForClinicsPage() {
   return (
     <SiteShell>
       <PageHero
+        variant="split"
         eyebrow="For clinics"
         title="Your patient arrives already understood."
         lede="Keiro is free for patients and always will be. This page is for the people on the other side of the desk."
+        media={<ReportMock />}
       />
 
       <Band palette="cream">
-        <Split media={<ReportMock />}>
-          <BandHeading lede="A patient talks to Kai before the appointment — in the waiting room, on the bus, or at home the night before.">
+        <div className="max-w-3xl">
+          <BandHeading lede="A patient talks to Kai before the appointment, in the waiting room, on the bus, or at home the night before.">
             Not a transcript. <Accent>A summary.</Accent>
           </BandHeading>
           <Prose>
@@ -57,7 +58,7 @@ export default function ForClinicsPage() {
               way they read any other note.
             </Para>
           </Prose>
-        </Split>
+        </div>
       </Band>
 
       <Band palette="mint">
@@ -125,7 +126,7 @@ export default function ForClinicsPage() {
             >
               privacy &amp; safety
             </a>{' '}
-            before anything else — particularly the section on what we have not done.
+            before anything else, particularly the section on what we have not done.
           </p>
         </Reveal>
       </Band>
@@ -162,7 +163,7 @@ export default function ForClinicsPage() {
             items={[
               {
                 q: 'What does it cost?',
-                a: 'Nothing for patients, permanently. We are not currently charging clinics either — this is an early project and what we need most is real use and honest feedback, not revenue.',
+                a: 'Nothing for patients, permanently. We are not currently charging clinics either. This is an early project and what we need most is real use and honest feedback, not revenue.',
               },
               {
                 q: 'Does it integrate with our EHR?',
@@ -170,7 +171,7 @@ export default function ForClinicsPage() {
               },
               {
                 q: 'Who is liable if Kai gets something wrong?',
-                a: 'Kai makes no clinical claims and takes no clinical decisions — it records what the patient said. The patient reviews the summary before it is shared, and your clinician reads it as a patient-reported history, exactly as they would treat anything the patient told them directly.',
+                a: 'Kai makes no clinical claims and takes no clinical decisions. It records what the patient said. The patient reviews the summary before it is shared, and your clinician reads it as a patient-reported history, exactly as they would treat anything the patient told them directly.',
               },
               {
                 q: 'Has this been validated?',
@@ -191,11 +192,6 @@ export default function ForClinicsPage() {
         </Prose>
       </Band>
 
-      <CtaBand
-        palette="cream"
-        title="Want to see what your clinicians would receive?"
-        body="Talk to Kai yourself — it takes about five minutes, and you end up looking at a real summary."
-      />
     </SiteShell>
   )
 }

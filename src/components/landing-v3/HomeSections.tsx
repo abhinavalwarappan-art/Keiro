@@ -43,11 +43,11 @@ export function WhyBand() {
         statement={
           <>
             About 67 million people in this country speak a language other than English at home. Many
-            of them sit in a waiting room rehearsing how to say where it hurts — and{' '}
+            of them sit in a waiting room rehearsing how to say where it hurts, and{' '}
             <Accent>still walk out unsure they were understood.</Accent>
           </>
         }
-        body="That is the whole reason Keiro exists. Not to replace your doctor — to make sure the person in front of them actually gets heard."
+        body="That is the whole reason Keiro exists. Not to replace your doctor. To make sure the person in front of them actually gets heard."
       />
     </Band>
   )
@@ -97,13 +97,13 @@ export function StepsBand() {
             {
               n: '02',
               title: 'Kai writes it down.',
-              summary: 'Turned into clear clinical notes — without changing what you meant.',
+              summary: 'Turned into clear clinical notes, without changing what you meant.',
               detail: (
                 <div className="grid gap-5 lg:grid-cols-2 lg:items-center">
                   <div>
                     <p className="leading-[1.85] text-[var(--band-muted)]">
                       Kai asks the follow-up questions a good nurse would ask. When something is
-                      unclear it asks you about it rather than writing down a confident guess — which
+                      unclear it asks you about it rather than writing down a confident guess. That
                       is the difference between an intake companion and a translation app.
                     </p>
                     <p className="mt-4 leading-[1.85] text-[var(--band-muted)]">
@@ -211,7 +211,7 @@ export function TrustBand() {
             },
             {
               label: 'Never keep your conversation',
-              body: 'What you say to Kai is not saved to our servers. Use it as a guest — the default — and we store nothing about you at all.',
+              body: 'What you say to Kai is not saved to our servers. Use it as a guest, which is the default, and we store nothing about you at all.',
             },
             {
               label: 'Never sell anything you said',
