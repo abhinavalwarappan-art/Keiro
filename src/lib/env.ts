@@ -14,12 +14,17 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
 
-  // AI + integrations — validated WHERE THEY'RE USED (their route throws a clear
-  // error at request time), never at build. A missing server key must not fail the
-  // whole production build, which also takes down the static, intake, and emergency
-  // pages that don't touch it. DEEPSEEK_API_KEY powers Kai chat + reports; without
-  // it those routes 500 while the rest of the site works. GROQ_API_KEY powers voice.
-  DEEPSEEK_API_KEY: z.string().optional(),
+  // Required — Gemini is the sole AI provider (Kai chat, the clinical report, and
+  // consult translation all route through it). This is validated here, at module
+  // load, rather than at the call site: a deploy without it should fail loudly and
+  // immediately instead of serving a site whose core feature 502s. Note the blast
+  // radius — this schema is parsed in the root layout, so a missing key takes down
+  // every route, including the static and emergency pages that never call Gemini.
+  GEMINI_API_KEY: z.string(),
+
+  // Other integrations — validated WHERE THEY'RE USED (their route throws a clear
+  // error at request time), never at build, so a missing key degrades one feature
+  // rather than the whole deploy. GROQ_API_KEY powers voice.
   GROQ_API_KEY: z.string().optional(), // voice transcription (Whisper on Groq)
   ANTHROPIC_API_KEY: z.string().optional(), // legacy — no longer used by Kai
   OPENAI_API_KEY: z.string().optional(), // legacy — transcription moved to Groq

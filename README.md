@@ -32,7 +32,7 @@ Required keys:
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | [supabase.com](https://supabase.com) → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same as above |
-| `DEEPSEEK_API_KEY` | [platform.deepseek.com](https://platform.deepseek.com) |
+| `GEMINI_API_KEY` | [aistudio.google.com](https://aistudio.google.com/apikey) — **required**, the app will not boot without it |
 | `OPENAI_API_KEY` | [platform.openai.com](https://platform.openai.com) (for Whisper voice) |
 | `DEEPL_API_KEY` | [deepl.com/pro-api](https://www.deepl.com/pro-api) (optional) |
 | `GOOGLE_TRANSLATE_KEY` | [console.cloud.google.com](https://console.cloud.google.com) (optional, fallback) |
@@ -126,7 +126,7 @@ src/
 - **Styling:** Tailwind CSS + custom CSS variables
 - **Animations:** Framer Motion
 - **Database:** Supabase (PostgreSQL + Auth)
-- **AI:** DeepSeek (`deepseek-chat`) — Kai conversation + report generation
+- **AI:** Google Gemini (`gemini-3.1-flash-lite`) — Kai conversation + report generation
 - **Voice:** OpenAI Whisper (transcription) + Web Speech API (playback)
 - **Translation:** DeepL (primary) + Google Translate (fallback)
 - **PDF:** jsPDF

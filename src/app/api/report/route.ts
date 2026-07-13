@@ -6,7 +6,7 @@ import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { isAllowedChatLanguage } from '@/lib/languages'
 import { describeLifestyle, parsePatientProfile } from '@/lib/patientProfile'
-import { deepseekChat } from '@/lib/deepseek'
+import { geminiChat } from '@/lib/gemini'
 import { logger } from '@/lib/logger'
 import { UpstreamError } from '@/lib/upstream'
 
@@ -57,6 +57,18 @@ const reportDataSchema = z.object({
     dizziness: false,
     appetite_loss: false,
   }),
+  // TODO(reliability): this `.catch([])` is SILENT DATA LOSS on a clinical field.
+  // If Gemini's output shape drifts — e.g. it returns medications as a flat string
+  // array `["Paracetamol"]` instead of `[{name, dosage, frequency}]` — every element
+  // fails the inner object parse, the array-level .catch swallows it, and the report
+  // reaches the physician with medications: [] and no error anywhere. A doctor then
+  // reads "no medications" for a patient who reported taking some.
+  // Observed: gemini-3.1-flash-lite returns the correct object shape when the full
+  // REPORT_SCHEMA is in the prompt, but flat strings when the shape is underspecified,
+  // so this is one prompt edit away from firing. Same risk applies to `symptoms` and
+  // `possible_conditions` below. Fix: parse leniently (coerce strings -> {name}) and
+  // log a warning on shape mismatch instead of discarding, rather than failing closed
+  // to an empty array. Deferred to a dedicated reliability pass.
   medications: z.array(z.object({
     name: z.string().trim().default('Not reported').catch('Not reported'),
     dosage: z.string().trim().default('Not reported').catch('Not reported'),
@@ -125,7 +137,7 @@ export async function POST(request: NextRequest) {
     // Validated, not cast — these fields land in the model prompt and the DB.
     const patientProfile = parsePatientProfile(body.patientProfile)
 
-    // Guard the conversation payload before it reaches DeepSeek / .map()
+    // Guard the conversation payload before it reaches Gemini / .map()
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'No conversation to summarize' }, { status: 400 })
     }
@@ -179,7 +191,7 @@ Maximum 4 possible conditions.`
     const reportPrompt = `Generate the complete patient intake report in English using exactly this JSON shape:
 ${REPORT_SCHEMA}`
 
-    const text = await deepseekChat({
+    const text = await geminiChat({
       system: systemPrompt,
       messages: [
         ...messages.map((m: { role: string; content: string }) => ({
@@ -254,7 +266,7 @@ ${REPORT_SCHEMA}`
       patientProfile: profile,
     })
   } catch (err) {
-    // Never log err.message for upstream faults — DeepSeek's error body echoes the
+    // Never log err.message for upstream faults — Gemini's error body echoes the
     // conversation we sent it, which is patient health information.
     if (err instanceof UpstreamError) {
       logger.error('upstream_error', '/api/report', undefined, {

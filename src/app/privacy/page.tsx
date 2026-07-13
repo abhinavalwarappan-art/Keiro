@@ -195,10 +195,12 @@ export default function PrivacyPage() {
         <Section title="Third-party services we use">
           <ul>
             <li>
-              <strong>DeepSeek</strong> — processes your messages during your session to create
-              Kai&apos;s responses and your report. DeepSeek is operated from China and processes
-              your messages on servers located there; under its privacy policy it may retain inputs
-              and use them to improve its services and models.
+              <strong>Google (Gemini)</strong> — processes your messages during your session to
+              create Kai&apos;s responses and your report. Keiro uses Google&apos;s free API tier;
+              under Google&apos;s Gemini API terms, content submitted on that tier is used to
+              improve Google&apos;s products, human reviewers may read API input and output, and
+              Google directs that sensitive, confidential or personal information should not be
+              submitted to it.
             </li>
             <li>
               <strong>Groq (Whisper)</strong> — if you use voice input, your audio clip is

@@ -25,7 +25,7 @@ supabase db push
 - [ ] Required variables are present and non-empty:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `DEEPSEEK_API_KEY`
+  - `GEMINI_API_KEY` (required — a missing key fails the build and takes down every route)
   - `OPENAI_API_KEY`
   - `DEEPL_API_KEY`
   - `GOOGLE_TRANSLATE_KEY`
