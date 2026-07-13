@@ -64,8 +64,8 @@ conditions" as physician reference only.
              │                   │       │              │              │
              ▼                   ▼       ▼              ▼              ▼
    ┌──────────────────┐  ┌─────────────────┐  ┌──────────────────────────────┐
-   │    DeepSeek      │  │      Groq       │  │        Supabase (Postgres)   │
-   │  deepseek-chat   │  │ whisper-large-  │  │                              │
+   │  Google Gemini   │  │      Groq       │  │        Supabase (Postgres)   │
+   │ 3.1-flash-lite   │  │ whisper-large-  │  │                              │
    │                  │  │    v3-turbo     │  │  auth · profiles · sessions  │
    │ • Kai chat       │  │                 │  │  reports · consents ·        │
    │   (streaming)    │  │ • voice → text  │  │  feedback · api_calls ·      │
@@ -86,7 +86,7 @@ conditions" as physician reference only.
 | Service | Used for | Failure mode if it goes down |
 |---|---|---|
 | **Supabase** (Postgres + Auth) | Anonymous auth, profiles, sessions, reports, consents, feedback, **and both durable rate limiters** | Hard down. Auth fails → every protected route 401s. Per-user rate limit **fails closed** (denies), per-IP **fails open**. |
-| **DeepSeek** (`deepseek-chat`) | Kai's chat (streaming), the clinical report summary, consult-mode translation | Chat and report return 502/503/504. The rest of the app (intake, emergency page, static pages) still works. |
+| **Google Gemini** (`gemini-3.1-flash-lite`) | Kai's chat (streaming), the clinical report summary, consult-mode translation | Chat and report return 502/503/504. **A *missing* `GEMINI_API_KEY` is different and worse:** it is required in `src/lib/env.ts`, which is parsed in the root layout, so the whole app fails to boot — including the emergency page. |
 | **Groq** (`whisper-large-v3-turbo`) | Server-side voice transcription — **fallback only**. The browser's Web Speech API is the primary mic path. | Voice degrades to browser-only STT. Languages with weak browser support lose voice input; typing still works. |
 | **DeepL** → **Google Translate** | UI string + consult translation. DeepL first when the language has a `deeplCode` and the key is set; Google is the fallback (and the only path for e.g. Hindi). | DeepL failure silently falls through to Google. Both down → `/api/translate` returns 502. |
 | **Resend** | Emails the clinic demo-request form to the team | Contact form returns 500. No patient-facing impact. |
@@ -94,10 +94,18 @@ conditions" as physician reference only.
 | **Sentry** | Exception tracking (client + server + edge configs present; a regression test asserts PHI is scrubbed) | Loss of error visibility only. |
 | **PostHog** | Client-side product analytics | Loss of analytics only. |
 
-Notably **not** a dependency any more: Anthropic. Kai moved off Claude to DeepSeek on
-2026-07-06 for cost. `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` remain in the env schema
-as optional legacy entries and are unused. *(The public privacy policy still names
-Anthropic — that copy needs updating; it is a factual inaccuracy, not just stale marketing.)*
+Notably **not** dependencies any more: Anthropic and DeepSeek. Kai moved off Claude to
+DeepSeek on 2026-07-06, then off DeepSeek to Gemini on 2026-07-13 — both times for cost.
+`src/lib/deepseek.ts` is deleted, `DEEPSEEK_API_KEY` is gone from the env schema, and the
+`@anthropic-ai/sdk` package has been removed. `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`
+remain in the env schema as optional legacy entries and are unused.
+
+**Model pinning.** `GEMINI_MODEL` in `src/lib/gemini.ts` is pinned to the exact string
+`gemini-3.1-flash-lite`, deliberately *not* the `gemini-flash-lite-latest` alias — a moving
+alias would let Google change the model under a medical intake flow with no code change.
+Do not "restore" `gemini-2.5-flash-lite`: it 404s with *"no longer available to new users"*
+on keys created after Google retired the 2.5 family, even though it still appears in the
+`ListModels` catalog.
 
 ---
 
@@ -118,7 +126,7 @@ Anthropic — that copy needs updating; it is a factual inaccuracy, not just sta
 **The chat conversation itself is never written to the database.** There is a `messages`
 table in Postgres, but no Keiro code path reads or writes it — verified by grep. The
 transcript lives in the browser's `sessionStorage` and is passed in the request body on
-each turn. It reaches the server, is forwarded to DeepSeek, and is discarded when the
+each turn. It reaches the server, is forwarded to Gemini, and is discarded when the
 function returns. Only the *derived* report is persisted.
 
 This is a genuinely strong privacy property and it is worth stating plainly to a
@@ -127,8 +135,13 @@ generate.
 
 ### What is sent to third parties
 
-- **DeepSeek** receives the full conversation text and the patient profile block (name,
-  DOB, age, sex, chronic conditions, lifestyle). This is PHI leaving our infrastructure.
+- **Google (Gemini)** receives the full conversation text and the patient profile block
+  (name, DOB, age, sex, chronic conditions, lifestyle). This is PHI leaving our
+  infrastructure — **and we send it on Google's free tier**, whose terms state that
+  submitted content is used to improve Google's products, that human reviewers may read
+  API input and output, and that sensitive/confidential/personal information should not be
+  submitted at all. Moving to a paid Gemini tier reverses all three. See
+  [Known limitations](#known-limitations).
 - **Groq** receives raw audio of the patient speaking, when the browser STT path is not used.
 - **Google / DeepL** receive UI strings and consult-mode utterances.
 
@@ -161,14 +174,14 @@ This is the hot path. One patient message triggers **5 network calls**:
 | 2 | `supabase.auth.getUser()` in the route | Supabase Auth |
 | 3 | `check_and_record_api_call` (per-user limit) | Supabase Postgres |
 | 4 | `check_and_record_ip_call` (per-IP limit) | Supabase Postgres |
-| 5 | `POST /chat/completions` (streaming) | DeepSeek |
+| 5 | `POST /models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse` | Google Gemini |
 
 (3) and (4) run concurrently via `Promise.all`. So: **4 Supabase round trips and exactly
 1 LLM call per message.** There is no retrieval step, no embedding call, no fan-out — the
 LLM cost per message is a single completion.
 
 A **voice** message adds a prior `/api/transcribe` request (auth + 2 limiter RPCs + 1 Groq
-call). Report generation is 4 Supabase round trips + 1 DeepSeek call + 1 insert.
+call). Report generation is 4 Supabase round trips + 1 Gemini call + 1 insert.
 
 Emergency detection is a **local keyword scan** across 11 languages before any LLM call,
 plus a model-emitted `{"emergency":true}` marker that the stream watches for. The keyword
@@ -216,11 +229,17 @@ count-check and the insert in one statement, so concurrent requests cannot all r
 Documented provider limits (verified 2026-07-11 against public docs — **our account's
 actual tier is not confirmed and must be checked in each console before any demo**):
 
-- **DeepSeek** publishes *no* requests-per-minute limit. It throttles on **concurrency**:
-  2,500 concurrent connections for `deepseek-v4-flash` (which `deepseek-chat` aliases),
-  measured account-wide across all API keys, returning HTTP 429 above that. A chat message
-  holds a connection only while the model is generating (a few seconds), so DeepSeek is
-  **not** the binding constraint at any plausible demo or early-pilot scale.
+- **Google Gemini**, on the **free** tier, is now the **binding constraint** — this reverses
+  the previous position, where DeepSeek's concurrency-only throttle meant the model provider
+  never bound. Google no longer publishes per-model limits in its docs (they are key-specific,
+  at [aistudio.google.com/rate-limit](https://aistudio.google.com/rate-limit)); the commonly
+  documented free-tier flash-lite figures are **15 RPM / 250k TPM / 1,000 RPD**. Every patient
+  turn is one request and every report is one more, so ~15 RPM works out to roughly **5–7
+  concurrent users** and 1,000 RPD to roughly **75–100 complete intake sessions per day**.
+  That is *tighter than Groq's 20 RPM*, so Gemini — not voice — is what fails first now.
+  A transient `503 "high demand"` was also observed on this tier during the migration.
+  **Enable billing before any in-person demo.** Paid tier raises these ceilings and
+  simultaneously fixes the PHI-on-free-tier problem described above.
 
 - **Groq**, on the **free** tier, limits `whisper-large-v3-turbo` to **20 requests/minute**,
   2,000/day, and 7,200 audio-seconds/hour. This is by far the hardest external ceiling we
@@ -249,8 +268,8 @@ enforces an explicit timeout and normalises failures into a typed `UpstreamError
 
 | Call | Timeout |
 |---|---|
-| DeepSeek — streaming (chat) | 55s |
-| DeepSeek — non-streaming (report, consult) | 45s |
+| Gemini — streaming (chat) | 55s |
+| Gemini — non-streaming (report, consult) | 45s |
 | Groq transcription | 30s |
 | DeepL / Google translate | 10s |
 
@@ -260,7 +279,7 @@ generic 500. `/api/chat` and `/api/report` set `maxDuration = 60` so the platfor
 kill a long report generation mid-flight.
 
 `/api/chat` pulls the **first streamed token before returning the SSE response**. This
-matters: once the 200 and the `text/event-stream` headers are on the wire, a DeepSeek
+matters: once the 200 and the `text/event-stream` headers are on the wire, a Gemini
 failure can only appear as a truncated stream — the patient sees an empty Kai bubble and
 nothing is logged. Blocking on the first delta moves that failure back to a point where it
 can still become a real status code.
@@ -274,15 +293,24 @@ worse than finding them disclosed.
 
 **Compliance**
 
-1. **No BAA with any subprocessor.** Patient conversation text goes to DeepSeek, patient
-   audio to Groq, consult utterances to Google/DeepL. None of these are HIPAA-covered
+1. **No BAA with any subprocessor.** Patient conversation text goes to Google (Gemini),
+   patient audio to Groq, consult utterances to Google/DeepL. None of these are HIPAA-covered
    arrangements today. Keiro is currently defensible as a *pre-clinical intake aid*, not as
    a system of record. This is the single biggest gap between the demo and a real clinical
    deployment, and it is a commercial/legal problem before it is an engineering one.
-2. **DeepSeek is a PRC-based provider.** Independent of HIPAA, some US health systems will
-   refuse this on procurement grounds alone. Worth knowing before a hospital CIO asks.
-3. The published privacy policy still names Anthropic as the model provider. Kai has run on
-   DeepSeek since 2026-07-06. That is a factual inaccuracy in a user-facing legal document.
+2. **We send PHI to Gemini's *free* tier, which Google's own terms forbid.** The Gemini API
+   Additional Terms state: *"Do not submit sensitive, confidential, or personal information
+   to the Unpaid Services"*, that Google uses unpaid-tier content to improve its products,
+   and that human reviewers may read API input and output. Keiro sends patient names, DOBs,
+   symptoms, medications and allergies over exactly that tier. **Enabling billing is the
+   single highest-leverage fix in this document**: the paid tier stops model training on our
+   data, stops human review, and limits retention to abuse detection. It also raises the rate
+   limits we are about to hit. This supersedes the old "DeepSeek is a PRC-based provider"
+   concern — the data-residency objection is gone, but the training/review objection is not.
+3. The consent copy in `src/app/privacy/page.tsx` and `src/app/privacy-safety/page.tsx` was
+   corrected on 2026-07-13 and now names Google/Gemini and discloses the free-tier terms
+   above. **If billing is enabled, that copy becomes wrong in the opposite (over-scary)
+   direction and must be updated again.**
 
 **Blocking — contact form**
 
@@ -327,9 +355,11 @@ worse than finding them disclosed.
 
 **Operations**
 
-9. **No retry or backoff on upstream failures.** A single DeepSeek 429 or a transient blip
-   fails the patient's message outright. Given DeepSeek throttles on concurrency, a brief
-   spike is exactly when we would want one retry with jitter. Not implemented.
+9. **No retry or backoff on upstream failures.** A single Gemini 429 or a transient blip
+   fails the patient's message outright. This is now materially riskier than it was under
+   DeepSeek: the free tier's 15 RPM ceiling means a 429 is a *routine* event at demo scale,
+   not an exotic one, and a `503 "high demand"` was already observed during the migration.
+   One retry with jitter is exactly what is wanted here. Not implemented.
 10. **No alerting.** Logs are structured JSON on stdout and Sentry captures exceptions, but
     nothing pages anyone. There is no dashboard, no SLO, no error-budget. "How do you
     monitor this?" currently answers as: *Vercel logs plus Sentry, reactively.*

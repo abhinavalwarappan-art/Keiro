@@ -4,13 +4,13 @@ import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { buildKaiSystemPrompt, buildOpeningUserPrompt, buildConsultSystemPrompt, buildConsultUserPrompt } from '@/lib/claude'
-import { deepseekChat, deepseekChatStream } from '@/lib/deepseek'
+import { geminiChat, geminiChatStream } from '@/lib/gemini'
 import { isAllowedChatLanguage } from '@/lib/languages'
 import { logger } from '@/lib/logger'
 import { parsePatientProfile } from '@/lib/patientProfile'
 import { UpstreamError } from '@/lib/upstream'
 
-// Kai streams up to 1000 tokens; the DeepSeek stream timeout (55s) has to be able
+// Kai streams up to 1000 tokens; the Gemini stream timeout (55s) has to be able
 // to fire before the platform kills the function, or we lose the log line.
 export const maxDuration = 60
 
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       const systemPrompt = buildConsultSystemPrompt(sanitizedLanguage, langCode, romanization === true)
       const userPrompt = buildConsultUserPrompt(consultSide as 'doctor' | 'patient', consultText, langCode)
 
-      const text = await deepseekChat({
+      const text = await geminiChat({
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
         maxTokens: 500,
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
     // Log message count only — never log message content or patient input
     logger.info('message_sent', '/api/chat', user.id, { messageCount: Array.isArray(messages) ? messages.length : 0 })
 
-    const deltas = deepseekChatStream({
+    const deltas = geminiChatStream({
       system: systemPrompt,
       messages: apiMessages,
       maxTokens: 1000,
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     // Pull the first token BEFORE returning the streaming Response.
     //
     // Once we hand a ReadableStream to NextResponse the 200 and the SSE headers are
-    // already on the wire, so a DeepSeek auth error / 429 / timeout raised inside
+    // already on the wire, so a Gemini auth error / 429 / timeout raised inside
     // start() can only be surfaced as controller.error() — the browser sees a
     // truncated stream, the patient sees an empty Kai bubble, and nothing is logged.
     // Blocking on the first delta moves that failure back before the commit point,
@@ -289,7 +289,7 @@ export async function POST(request: NextRequest) {
           // A failure here is mid-stream (the connection dropped after the first
           // token), so the status code is already sent and controller.error() is
           // the only signal left. Log it — previously this path was silent, which
-          // made a partial DeepSeek outage invisible in production.
+          // made a partial Gemini outage invisible in production.
           logger.error('stream_error', '/api/chat', user.id, {
             provider: err instanceof UpstreamError ? err.provider : 'unknown',
             kind: err instanceof UpstreamError ? err.kind : 'stream_aborted',
@@ -307,8 +307,8 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (err) {
-    // Covers the consult-mode deepseekChat() call and anything else before the
-    // stream commits. Never log err.message for upstream faults — DeepSeek echoes
+    // Covers the consult-mode geminiChat() call and anything else before the
+    // stream commits. Never log err.message for upstream faults — Gemini echoes
     // the request body, which is patient conversation content.
     if (err instanceof UpstreamError) {
       logger.error('upstream_error', '/api/chat', undefined, {

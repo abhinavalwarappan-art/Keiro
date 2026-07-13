@@ -83,18 +83,21 @@ export default function PrivacySafetyPage() {
           <Prose>
             <Para>
               Kai is not magic and it does not run on our laptop. To understand you and answer you,
-              your messages are sent to an AI company called <strong>DeepSeek</strong>, which does
-              the actual language work.
+              your messages are sent to <strong>Google</strong>, whose Gemini model does the actual
+              language work.
             </Para>
             <Para>
-              DeepSeek is operated from China and processes your messages on servers there. Under its
-              own privacy policy, it may keep what it receives and use it to improve its models
+              Keiro uses Google&apos;s free API tier. On that tier, Google&apos;s own terms say it
+              uses what you submit to improve its products, that human reviewers may read it, and
+              that you should not send sensitive personal information through it at all
               <sup>
                 <a href="#ref-1" className="lx-focus underline underline-offset-2">
                   1
                 </a>
               </sup>
-              . We do not control that, and we are not going to pretend otherwise.
+              . Your symptoms, your name and your date of birth go through it anyway, because that
+              is what Kai needs to work. Paying Google for the API would stop the training and the
+              human review. We have not done that yet, and you deserve to know it before you type.
             </Para>
             <Para>
               This is the single most important thing on this page, which is why it is not in the
@@ -194,8 +197,8 @@ export default function PrivacySafetyPage() {
                 a: 'Keiro is not a HIPAA-covered entity, because it does not store health information on its servers. Your conversation is never saved. That is an architectural answer, not a certification. If you are a clinic evaluating Keiro, read the section above before anything else.',
               },
               {
-                q: 'So an AI company in China sees what I tell Kai?',
-                a: 'Yes. Your messages are processed by DeepSeek, on servers in China, and under their policy they may retain and learn from what they receive. We put this in the middle of the page rather than the footnotes because you should decide with it in hand.',
+                q: 'So another company sees what I tell Kai?',
+                a: 'Yes. Google does. Kai runs on Google’s Gemini model, and Keiro is on Google’s free API tier, where Google’s terms say it may use what you send to improve its products and that human reviewers may read it. Those same terms say not to send sensitive personal information on that tier, which is exactly what a symptom is. We put this in the middle of the page rather than the footnotes because you should decide with it in hand.',
               },
               {
                 q: 'Can Kai be tricked into diagnosing me?',
@@ -223,8 +226,8 @@ export default function PrivacySafetyPage() {
             items={[
               {
                 id: '1',
-                text: 'DeepSeek Privacy Policy. Describes retention of user inputs and their use in service and model improvement.',
-                href: 'https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html',
+                text: 'Google. Gemini API Additional Terms of Service. States that for the unpaid tier Google uses submitted content to improve its products, that human reviewers may read API input and output, and that sensitive, confidential or personal information should not be submitted.',
+                href: 'https://ai.google.dev/gemini-api/terms',
               },
               {
                 id: '2',
