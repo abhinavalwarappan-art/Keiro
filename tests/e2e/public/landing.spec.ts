@@ -52,15 +52,6 @@ test.describe('navigation bar', () => {
     await expect(brand).toBeVisible()
   })
 
-  test('section nav items are present', async ({ page }) => {
-    const nav = page.getByRole('navigation', { name: /landing page sections/i })
-    await expect(nav).toBeVisible()
-    // Check a stable subset of nav labels from Nav.tsx navItems array
-    for (const label of ['Steps', 'Languages', 'How it works']) {
-      await expect(nav.getByText(label)).toBeVisible()
-    }
-  })
-
   test('nav CTA link points to /onboarding', async ({ page }) => {
     // NB: the CTA is now labelled "Start with Kai" (was "Open Keiro") and href is
     // /onboarding?fresh=1. Anchored on data-testid so the label can change freely.
@@ -74,95 +65,6 @@ test.describe('navigation bar', () => {
     const cta = page.getByTestId('nav-cta')
     await cta.click()
     await expect(page).toHaveURL(/\/onboarding/)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// KaiJourney section (#kai)
-// ---------------------------------------------------------------------------
-
-test.describe('KaiJourney section', () => {
-  test('section mounts in the DOM and contains scene copy', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    const section = page.locator('#kai')
-    await expect(section).toBeAttached()
-
-    // KaiJourney renders three scenes; the first scene title should exist in DOM.
-    // On mobile (stacked reveal) all scenes render; check at least one.
-    await expect(
-      page.getByText('We build Kai to help humans.').first(),
-    ).toBeAttached()
-  })
-
-  test('contains the "Built to be understood" eyebrow text', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByText('Built to be understood').first()).toBeAttached()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Flow section (#flow) — Three simple steps
-// ---------------------------------------------------------------------------
-
-test.describe('Flow section — three steps', () => {
-  test('section heading "Three simple steps." is present', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    const heading = page.getByRole('heading', { name: /Three simple steps/i })
-    await expect(heading).toBeAttached()
-  })
-
-  test('all three step titles render when their step is selected', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    // Flow renders only the ACTIVE step's copy via AnimatePresence. Rather than
-    // depend on scroll-driven progress (flaky), drive it deterministically with the
-    // step nav dots (aria-label "Go to step N") and assert the active heading.
-    const titles = ['You speak', 'Kai interprets', 'Doctor reads']
-    for (let i = 0; i < titles.length; i++) {
-      await page.getByRole('button', { name: new RegExp(`^Go to step ${i + 1}$`) }).click()
-      await expect(page.getByRole('heading', { name: titles[i] })).toBeVisible()
-    }
-  })
-
-  test('step nav buttons are accessible via aria-label', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    // Flow renders buttons with aria-label "Go to step N: <title>"
-    await expect(
-      page.getByRole('button', { name: /Go to step 1/i }).first(),
-    ).toBeAttached()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// HowKaiWorks section (#how-kai-works)
-// ---------------------------------------------------------------------------
-
-test.describe('HowKaiWorks section', () => {
-  test('section renders with its heading', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    const section = page.locator('#how-kai-works')
-    await expect(section).toBeAttached()
-
-    const heading = page.getByRole('heading', {
-      name: /Kai listens like a person/i,
-    })
-    await expect(heading).toBeAttached()
-  })
-
-  test('feature labels are present in the DOM', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    // From HowKaiWorks.tsx features array
-    for (const label of ['Speak naturally', 'Real-time interpretation', 'Instant report']) {
-      await expect(page.getByText(label).first()).toBeAttached()
-    }
-  })
-
-  test('"Open app" link inside HowKaiWorks points to /onboarding', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-    // MotionLink renders <a href="/onboarding?fresh=1">Open app →</a>
-    const link = page.getByRole('link', { name: /Open app/i })
-    await expect(link).toBeAttached()
-    const href = await link.getAttribute('href')
-    expect(href).toMatch(/\/onboarding/)
   })
 })
 

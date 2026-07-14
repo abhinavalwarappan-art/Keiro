@@ -17,18 +17,13 @@ function appAlert(page: Parameters<typeof silenceSpeech>[0]) {
   return page.locator('[role="alert"]:not([id="__next-route-announcer__"])')
 }
 
-// ─── method screen ──────────────────────────────────────────────────────────
+// ─── /auth screen (guest-only) ──────────────────────────────────────────────
+//
+// Keiro is guest-only: /auth offers anonymous sign-in and nothing else. The
+// method screen (Continue with email / phone / Google) and its email and phone
+// steps were removed in the rebuild, and their specs deleted with them.
 
-test.describe('method screen', () => {
-  test('renders all sign-in options', async ({ page }) => {
-    await gotoAuth(page)
-    await expect(page.getByRole('button', { name: /continue to chat/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with phone/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with google/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /continue with email/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /start without an account/i })).toBeVisible()
-  })
-
+test.describe('/auth screen (guest-only)', () => {
   test('language badge shows the native language name', async ({ page }) => {
     await silenceSpeech(page)
     await page.goto('/auth?lang=es-MX&langName=Spanish&langNative=Español&roman=0')
@@ -41,14 +36,7 @@ test.describe('method screen', () => {
     await expect(page.getByRole('button', { name: 'Go back' })).toBeVisible()
   })
 
-  test('"Continue to chat →" navigates to /chat without signing in', async ({ page }) => {
-    await gotoAuth(page)
-    await page.getByRole('button', { name: /continue to chat/i }).click()
-    await page.waitForURL('**/chat**')
-    await expect(page).toHaveURL(/\/chat/)
-  })
-
-  test('"Start without an account" completes real anon auth and lands on /chat', async ({ page }) => {
+  test('guest start completes real anon auth and lands on /chat', async ({ page }) => {
     // guestLogin is the shared fixture that drives this exact flow
     await guestLogin(page)
     await expect(page).toHaveURL(/\/chat/)
@@ -59,176 +47,6 @@ test.describe('method screen', () => {
   })
 })
 
-// ─── phone step ─────────────────────────────────────────────────────────────
-
-test.describe('phone step', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoAuth(page)
-    await page.getByRole('button', { name: /continue with phone/i }).click()
-  })
-
-  test('phone input and Send code button are visible', async ({ page }) => {
-    await expect(page.getByLabel('Phone number')).toBeVisible()
-    await expect(page.getByRole('button', { name: /send code/i })).toBeVisible()
-  })
-
-  test('Send code disabled with fewer than 10 digits', async ({ page }) => {
-    const btn = page.getByRole('button', { name: /send code/i })
-    // Initially disabled (empty)
-    await expect(btn).toBeDisabled()
-    // 9 digits — still disabled
-    await page.getByLabel('Phone number').fill('555000000')
-    await expect(btn).toBeDisabled()
-  })
-
-  test('Send code enabled at exactly 10 digits', async ({ page }) => {
-    await page.getByLabel('Phone number').fill('5550000000')
-    await expect(page.getByRole('button', { name: /send code/i })).toBeEnabled()
-  })
-
-  test('back button returns to method screen', async ({ page }) => {
-    await page.getByRole('button', { name: 'Go back' }).click()
-    await expect(page.getByRole('button', { name: /continue to chat/i })).toBeVisible()
-  })
-})
-
-// ─── email step ─────────────────────────────────────────────────────────────
-
-test.describe('email step', () => {
-  test.beforeEach(async ({ page }) => {
-    await gotoAuth(page)
-    await page.getByRole('button', { name: /continue with email/i }).click()
-  })
-
-  test('renders email and password inputs with signin submit', async ({ page }) => {
-    await expect(page.locator('#auth-email')).toBeVisible()
-    await expect(page.locator('#auth-password')).toBeVisible()
-    await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible()
-  })
-
-  test('switching to signup mode shows name input and changes submit text', async ({ page }) => {
-    await page.getByRole('button', { name: /create an account/i }).click()
-    await expect(page.locator('#auth-name')).toBeVisible()
-    await expect(page.getByRole('button', { name: /create account/i })).toBeVisible()
-  })
-
-  test('switching back to signin hides name input', async ({ page }) => {
-    // go to signup then back to signin
-    await page.getByRole('button', { name: /create an account/i }).click()
-    await expect(page.locator('#auth-name')).toBeVisible()
-    await page.getByRole('button', { name: /sign in/i, exact: false }).filter({ hasText: /sign in/i }).first().click()
-    await expect(page.locator('#auth-name')).not.toBeVisible()
-  })
-
-  test('"Forgot password?" appears in signin mode and switches to forgot mode', async ({ page }) => {
-    const forgotBtn = page.getByRole('button', { name: /forgot password/i })
-    await expect(forgotBtn).toBeVisible()
-    await forgotBtn.click()
-    // In forgot mode: no password field, submit says "Send reset link →"
-    await expect(page.locator('#auth-password')).not.toBeVisible()
-    await expect(page.getByRole('button', { name: /send reset link/i })).toBeVisible()
-  })
-
-  test('"Forgot password?" not visible in signup mode', async ({ page }) => {
-    await page.getByRole('button', { name: /create an account/i }).click()
-    await expect(page.getByRole('button', { name: /forgot password/i })).not.toBeVisible()
-  })
-
-  test.describe('signin validation', () => {
-    test('invalid email keeps submit disabled', async ({ page }) => {
-      await page.locator('#auth-email').fill('not-an-email')
-      await page.locator('#auth-password').fill('password123')
-      // canSubmit = false because email regex fails; button stays disabled
-      await expect(page.getByRole('button', { name: /sign in/i })).toBeDisabled()
-    })
-
-    test('password shorter than 8 chars keeps submit disabled', async ({ page }) => {
-      await page.locator('#auth-email').fill('test@example.com')
-      await page.locator('#auth-password').fill('short')
-      await expect(page.getByRole('button', { name: /sign in/i })).toBeDisabled()
-    })
-
-    test('valid email + 8-char password enables submit', async ({ page }) => {
-      await page.locator('#auth-email').fill('test@example.com')
-      await page.locator('#auth-password').fill('password123')
-      await expect(page.getByRole('button', { name: /sign in/i })).toBeEnabled()
-    })
-
-    /**
-     * Trigger the alert by submitting with valid-looking credentials that will be
-     * rejected by Supabase. The client guard passes (email valid, pw >= 8) so the
-     * form fires, Supabase returns "invalid login credentials", and the form maps
-     * it to a friendly message shown as role="alert".
-     *
-     * This does NOT create any user — it only exercises the error branch.
-     */
-    test('submitting bad credentials shows role="alert" error', async ({ page }) => {
-      await page.locator('#auth-email').fill('nonexistent-keiro-test@example.invalid')
-      await page.locator('#auth-password').fill('wrongpassword999')
-      await page.getByRole('button', { name: /sign in/i }).click()
-      // Wait for the async auth call to return and the alert to appear
-      await expect(appAlert(page)).toBeVisible()
-      // The friendly message for "invalid login credentials"
-      await expect(appAlert(page)).toContainText(/incorrect|wrong|invalid|try again/i)
-    })
-  })
-
-  test.describe('signup validation', () => {
-    test.beforeEach(async ({ page }) => {
-      await page.getByRole('button', { name: /create an account/i }).click()
-    })
-
-    test('submit disabled when name is empty (even with valid email + password)', async ({ page }) => {
-      // name stays empty
-      await page.locator('#auth-email').fill('test@example.com')
-      await page.locator('#auth-password').fill('password123')
-      await expect(page.getByRole('button', { name: /create account/i })).toBeDisabled()
-    })
-
-    test('submit disabled when email is invalid', async ({ page }) => {
-      await page.locator('#auth-name').fill('Test User')
-      await page.locator('#auth-email').fill('bad@')
-      await page.locator('#auth-password').fill('password123')
-      await expect(page.getByRole('button', { name: /create account/i })).toBeDisabled()
-    })
-
-    test('submit disabled when password is too short', async ({ page }) => {
-      await page.locator('#auth-name').fill('Test User')
-      await page.locator('#auth-email').fill('test@example.com')
-      await page.locator('#auth-password').fill('short1')
-      await expect(page.getByRole('button', { name: /create account/i })).toBeDisabled()
-    })
-
-    test('all fields valid enables submit (does not fire — gate only)', async ({ page }) => {
-      await page.locator('#auth-name').fill('Test User')
-      await page.locator('#auth-email').fill('test@example.com')
-      await page.locator('#auth-password').fill('password123')
-      await expect(page.getByRole('button', { name: /create account/i })).toBeEnabled()
-    })
-  })
-
-  test.describe('forgot mode', () => {
-    test.beforeEach(async ({ page }) => {
-      await page.getByRole('button', { name: /forgot password/i }).click()
-    })
-
-    test('renders only email input and Send reset link button', async ({ page }) => {
-      await expect(page.locator('#auth-email')).toBeVisible()
-      await expect(page.locator('#auth-password')).not.toBeVisible()
-      await expect(page.getByRole('button', { name: /send reset link/i })).toBeVisible()
-    })
-
-    test('send reset link disabled with invalid email', async ({ page }) => {
-      await page.locator('#auth-email').fill('notanemail')
-      await expect(page.getByRole('button', { name: /send reset link/i })).toBeDisabled()
-    })
-
-    test('send reset link enabled with valid email', async ({ page }) => {
-      await page.locator('#auth-email').fill('test@example.com')
-      await expect(page.getByRole('button', { name: /send reset link/i })).toBeEnabled()
-    })
-  })
-})
 
 // ─── reset-password page ─────────────────────────────────────────────────────
 
