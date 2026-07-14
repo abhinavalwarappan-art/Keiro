@@ -22,12 +22,13 @@ test.describe('landing page — initial paint', () => {
 
   test('h1 contains the hero headline text', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    // Hero renders a sr-only span with the full headline inside h1.
-    // We check textContent (which includes sr-only text) rather than visible text.
-    const h1 = page.locator('h1').first()
+    // The headline is split across an <Accent> span, so assert on textContent.
+    const h1 = page.getByTestId('hero-headline')
     await expect(h1).toBeAttached()
     const text = await h1.textContent()
-    expect(text).toMatch(/Healthcare.*speaks.*language/i)
+    // Copy was rewritten in the site rebuild — the old headline
+    // ("Healthcare that speaks your language") no longer exists anywhere in src/.
+    expect(text).toMatch(/Tell me what hurts.*language you think in/i)
   })
 
   test('hero section is present in the DOM', async ({ page }) => {
@@ -60,16 +61,17 @@ test.describe('navigation bar', () => {
     }
   })
 
-  test('"Open Keiro" CTA link points to /onboarding', async ({ page }) => {
-    // The CTA is an <a href="/onboarding?fresh=1"> with aria-label "Open Keiro"
-    const cta = page.getByRole('link', { name: /Open Keiro/i })
+  test('nav CTA link points to /onboarding', async ({ page }) => {
+    // NB: the CTA is now labelled "Start with Kai" (was "Open Keiro") and href is
+    // /onboarding?fresh=1. Anchored on data-testid so the label can change freely.
+    const cta = page.getByTestId('nav-cta')
     await expect(cta).toBeVisible()
     const href = await cta.getAttribute('href')
     expect(href).toMatch(/\/onboarding/)
   })
 
-  test('"Open Keiro" CTA navigates to /onboarding', async ({ page }) => {
-    const cta = page.getByRole('link', { name: /Open Keiro/i })
+  test('nav CTA navigates to /onboarding', async ({ page }) => {
+    const cta = page.getByTestId('nav-cta')
     await cta.click()
     await expect(page).toHaveURL(/\/onboarding/)
   })
@@ -176,8 +178,9 @@ test.describe('footer', () => {
   })
 
   test('Privacy link is present and routes to /privacy', async ({ page }) => {
-    // Footer renders <Link href="/privacy">Privacy</Link>
-    const link = page.locator('footer').getByRole('link', { name: /Privacy/i })
+    // The footer carries BOTH "Privacy policy" (/privacy) and "Privacy & safety"
+    // (/privacy-safety); a /Privacy/i name lookup matched both. Keyed on href instead.
+    const link = page.locator('footer').getByTestId('footer-link-privacy')
     await expect(link).toBeAttached()
     const href = await link.getAttribute('href')
     expect(href).toMatch(/\/privacy/)
@@ -197,7 +200,7 @@ test.describe('footer', () => {
   })
 
   test('footer Privacy link navigates to /privacy', async ({ page }) => {
-    const link = page.locator('footer').getByRole('link', { name: /Privacy/i })
+    const link = page.locator('footer').getByTestId('footer-link-privacy')
     await link.click()
     await expect(page).toHaveURL(/\/privacy/)
   })
@@ -330,9 +333,9 @@ test.describe('/terms page', () => {
 // ---------------------------------------------------------------------------
 
 test.describe('primary CTA navigation', () => {
-  test('clicking "Open Keiro" in nav routes to /onboarding', async ({ page }) => {
+  test('clicking the nav CTA routes to /onboarding', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await page.getByRole('link', { name: /Open Keiro/i }).click()
+    await page.getByTestId('nav-cta').click()
     await expect(page).toHaveURL(/\/onboarding/)
     // Onboarding page should have an h1 or visible content
     await expect(page.locator('body')).not.toBeEmpty()

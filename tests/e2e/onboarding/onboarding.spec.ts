@@ -67,7 +67,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
   test('shows the chosen language name and a Continue button', async ({ page }) => {
     await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
     // The page has a setTimeout(0) before populating state; wait for the button.
-    await expect(page.getByRole('button', { name: new RegExp(`Continue in ${LANG_EN}`, 'i') })).toBeVisible()
+    await expect(page.getByTestId('confirm-continue')).toBeVisible()
     // The chosen language label should appear somewhere on screen
     await expect(page.getByText(LANG_EN).first()).toBeVisible()
   })
@@ -75,7 +75,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
   test('romanization toggle flips aria-pressed', async ({ page }) => {
     await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
     // Wait for the confirm content to render (setTimeout(0) delay)
-    const continueBtn = page.getByRole('button', { name: new RegExp(`Continue in ${LANG_EN}`, 'i') })
+    const continueBtn = page.getByTestId('confirm-continue')
     await expect(continueBtn).toBeVisible()
 
     const toggle = page.getByRole('button', { name: 'Toggle romanized script' })
@@ -92,7 +92,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
 
   test('"Continue in <language>" navigates to /auth with expected query params and sets localStorage', async ({ page }) => {
     await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
-    const continueBtn = page.getByRole('button', { name: new RegExp(`Continue in ${LANG_EN}`, 'i') })
+    const continueBtn = page.getByTestId('confirm-continue')
     await expect(continueBtn).toBeVisible()
     await continueBtn.click()
 
@@ -113,7 +113,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
 
   test('"Continue in <language>" with romanization on sets roman=1 and localStorage keiro-roman=1', async ({ page }) => {
     await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
-    const continueBtn = page.getByRole('button', { name: new RegExp(`Continue in ${LANG_EN}`, 'i') })
+    const continueBtn = page.getByTestId('confirm-continue')
     await expect(continueBtn).toBeVisible()
 
     // Enable romanization toggle
@@ -134,9 +134,9 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
   test('"← All languages" link returns to /onboarding', async ({ page }) => {
     await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
     // Wait for content to load
-    await expect(page.getByRole('button', { name: new RegExp(`Continue in ${LANG_EN}`, 'i') })).toBeVisible()
+    await expect(page.getByTestId('confirm-continue')).toBeVisible()
 
-    const backLink = page.getByRole('link', { name: /all languages/i })
+    const backLink = page.getByTestId('confirm-all-languages')
     await expect(backLink).toBeVisible()
     await backLink.click()
     // /onboarding?fresh=1 — must not still be on /confirm
@@ -171,7 +171,7 @@ test.describe('onboarding — deep-link behaviour', () => {
     await page.goto(`/onboarding?lang=${LANG_CODE}`)
     await page.waitForURL(`**/onboarding/confirm?lang=${LANG_CODE}`)
     expect(page.url()).toContain(`lang=${LANG_CODE}`)
-    await expect(page.getByRole('button', { name: new RegExp(`Continue in ${LANG_EN}`, 'i') })).toBeVisible()
+    await expect(page.getByTestId('confirm-continue')).toBeVisible()
   })
 
   test('/onboarding?fresh=1 clears saved language from localStorage', async ({ page }) => {

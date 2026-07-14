@@ -38,8 +38,11 @@ export function Footer() {
                   { href: '/about', label: 'Our mission' },
                 ].map((item) => (
                   <li key={item.href}>
+                    {/* Keyed on href, not label: "Privacy policy" and "Privacy & safety" both
+                        match a /Privacy/i lookup, which made the E2E locator ambiguous. */}
                     <Link
                       href={item.href}
+                      data-testid={`footer-link-${item.href.slice(1)}`}
                       className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
                     >
                       {item.label}
@@ -63,8 +66,11 @@ export function Footer() {
                   { href: '/terms', label: 'Terms' },
                 ].map((item) => (
                   <li key={item.href}>
+                    {/* Keyed on href, not label: "Privacy policy" and "Privacy & safety" both
+                        match a /Privacy/i lookup, which made the E2E locator ambiguous. */}
                     <Link
                       href={item.href}
+                      data-testid={`footer-link-${item.href.slice(1)}`}
                       className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
                     >
                       {item.label}

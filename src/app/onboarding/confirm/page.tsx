@@ -94,8 +94,11 @@ function ConfirmContent() {
     >
       <header className="shrink-0 border-b border-border-subtle px-5 pb-3 pt-5">
         <div className="mb-3 flex items-center justify-between">
+          {/* data-testid: this label is localized to the SELECTED language, so for
+              lang=es-ES it renders "← Todos los idiomas", never "All languages". */}
           <Link
             href={allLanguagesHref}
+            data-testid="confirm-all-languages"
             className="text-xs font-medium text-text-tertiary transition-colors hover:text-text-secondary"
           >
             ← {t('confirm.allLanguages')}
@@ -177,8 +180,12 @@ function ConfirmContent() {
       </section>
 
       <footer className="z-20 shrink-0 border-t border-border-subtle bg-surface px-4 pb-5 pt-3">
+        {/* data-testid: the label is t('confirm.continueIn', { language }) and interpolates
+            the language's NATIVE name ("Continue in Español", not "Continue in Spanish"),
+            so it is unmatchable by an English display-text locator. Keep this stable. */}
         <motion.button
           onClick={handleContinue}
+          data-testid="confirm-continue"
           className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-md bg-brand-ink py-3 text-base font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover"
           whileTap={{ scale: 0.98 }}
         >

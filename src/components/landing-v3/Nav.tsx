@@ -155,8 +155,12 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* data-testid: the E2E suite's handle on the primary CTA. Its label has already
+              changed once ("Open Keiro" → "Start with Kai") and it renders two different
+              texts by breakpoint, so matching on text is not viable. Keep this stable. */}
           <Link
             href={CTA.href}
+            data-testid="nav-cta"
             className="lx-focus inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[var(--lx-ink)] px-4 font-semibold text-[var(--lx-cream)] transition-colors duration-200 hover:bg-[#14301f] sm:px-5"
           >
             <span className="hidden sm:inline">{CTA.label}</span>

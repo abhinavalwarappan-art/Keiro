@@ -34,7 +34,10 @@ export function Hero() {
           transition={ENTRANCE}
           className="lg:col-start-1 lg:row-start-1"
         >
-          <h1 className="lx-display text-balance text-[clamp(2.1rem,5.4vw,3.5rem)] text-[var(--lx-ink)]">
+          <h1
+            data-testid="hero-headline"
+            className="lx-display text-balance text-[clamp(2.1rem,5.4vw,3.5rem)] text-[var(--lx-ink)]"
+          >
             I&apos;m Kai. Tell me what hurts, <Accent>in the language you think in.</Accent>
           </h1>
 
