@@ -152,8 +152,13 @@ function AuthContent() {
             {t('auth.privacy')}
           </p>
 
+          {/* data-testid is the E2E suite's handle on the guest-auth entry point. The
+              visible label is t('auth.start') — it changes with copy AND with the
+              patient's language, so matching on its text silently killed every chat
+              spec once. Keep this attribute stable; rename the copy freely. */}
           <button
             type="button"
+            data-testid="guest-start"
             onClick={handleStart}
             disabled={loading}
             className="min-h-[48px] w-full rounded-md bg-brand-ink px-5 py-3 text-base font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover active:scale-[0.98] disabled:opacity-50"

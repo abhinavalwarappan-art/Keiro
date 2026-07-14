@@ -217,13 +217,25 @@ function chatQuery(o: LangOpts): string {
 }
 
 /**
- * Drive the REAL anonymous-auth path: open /auth with language params, click
- * "Start without an account" (→ supabase.auth.signInAnonymously), land on /chat.
+ * Drive the REAL anonymous-auth path: open /auth with language params, click the
+ * guest-start button (→ supabase.auth.signInAnonymously), land on /chat.
+ *
+ * Selected by data-testid, NOT by visible text. This previously matched on
+ * "Start without an account"; the copy became t('auth.start') and the locator
+ * silently stopped resolving — setup timed out, and because the chat project
+ * depends on it, all 17 chat specs reported "did not run" rather than failing.
+ * The label is also localized, so any non-English `o.lang` would have broken a
+ * text match anyway. Keep this keyed to the test id.
  */
 export async function guestLogin(page: Page, o: LangOpts = {}): Promise<void> {
   await silenceSpeech(page)
   await page.goto(`/auth?${chatQuery(o)}`)
-  await page.getByRole('button', { name: /start without an account/i }).click()
+  const startButton = page.getByTestId('guest-start')
+  // Assert the handle still points at a real, enabled button — so if the element
+  // is ever changed out from under the test id, this fails loudly instead of hanging.
+  await expect(startButton).toBeEnabled()
+  await expect(startButton).toHaveRole('button')
+  await startButton.click()
   await page.waitForURL('**/chat**')
 }
 
