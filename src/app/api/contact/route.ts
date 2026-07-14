@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
+import { getClientIp, hashIp } from '@/lib/clientIp'
 import { logger } from '@/lib/logger'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -10,23 +11,6 @@ const CONTACT_WINDOW_MS = 15 * 60 * 1000 // 15 minutes
 
 const FROM_EMAIL = process.env.CONTACT_FROM_EMAIL ?? 'Keiro Contact <onboarding@resend.dev>'
 const TO_EMAIL = process.env.CONTACT_TO_EMAIL ?? 'keiro.contact@gmail.com'
-
-function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
-
-async function hashIp(ip: string): Promise<string> {
-  const data = new TextEncoder().encode(ip)
-  const buf = await crypto.subtle.digest('SHA-256', data)
-  return Array.from(new Uint8Array(buf))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
-    .slice(0, 32)
-}
 
 function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)

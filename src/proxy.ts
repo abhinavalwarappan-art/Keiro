@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
+import { getClientIp, UNKNOWN_IP } from '@/lib/clientIp'
 
 // API routes that require a valid Supabase session
 const PROTECTED_API_ROUTES = ['/api/chat', '/api/report', '/api/translate']
@@ -20,14 +21,6 @@ const IP_LIMITS: Record<string, { limit: number; windowMs: number }> = {
 // shared across serverless instances. Per-user DB limits in rateLimit.ts are
 // the primary enforcement layer.
 const ipAttempts = new Map<string, { count: number; resetAt: number }>()
-
-function getClientIp(req: NextRequest): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
 
 // Mirrors RATE_LIMIT_DISABLED in rateLimit.ts — bypasses the per-IP tier too.
 const RATE_LIMIT_DISABLED = process.env.RATE_LIMIT_DISABLED === 'true'
@@ -71,7 +64,7 @@ export async function proxy(request: NextRequest) {
     // Per-IP rate limit (second tier, shared-WiFi aware).
     // Reject requests from unknown IPs to prevent rate-limit bypass.
     const ip = getClientIp(request)
-    if (ip === 'unknown') {
+    if (ip === UNKNOWN_IP) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
     if (isIpOverLimit(ip, pathname)) {
