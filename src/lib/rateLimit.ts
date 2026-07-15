@@ -10,7 +10,8 @@ interface RateLimitConfig {
 // Per-IP limits for shared-WiFi environments live in src/proxy.ts.
 const ENDPOINT_CONFIGS: Record<string, RateLimitConfig> = {
   chat:         { limit: 30, windowMs: 2 * 60 * 60 * 1000 }, // 30 messages per 2-hour session
-  report:       { limit: 3,  windowMs: 2 * 60 * 60 * 1000 }, // 3 PDF generations per session
+  report:       { limit: 3,  windowMs: 2 * 60 * 60 * 1000 }, // 3 report generations per session
+  report_pdf:   { limit: 30, windowMs: 60 * 60 * 1000 },      // 30 PDF renders per hour (download/open/print, own report)
   translate:    { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 translations per hour
   report_patch: { limit: 20, windowMs: 60 * 60 * 1000 },      // 20 note saves per hour
   transcribe:   { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 Whisper transcriptions per hour (Groq API call)

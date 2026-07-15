@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: projectRoot,
   },
+  // Headless-Chromium packages must load from node_modules at runtime, not be bundled
+  // by the server compiler (the chromium binary + native bits can't be webpacked).
+  serverExternalPackages: ['@sparticuz/chromium', 'playwright-core'],
   async redirects() {
     return [
       {

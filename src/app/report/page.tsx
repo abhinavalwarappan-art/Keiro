@@ -18,6 +18,7 @@ import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { PATIENT_PROFILE_SESSION_KEY } from '@/lib/chatSession'
 import { formatPatientSex } from '@/lib/patientProfile'
 import { useTranslations } from '@/i18n/useTranslations'
+import { logger } from '@/lib/logger'
 
 /**
  * Shown the moment the report loads. It is NOT spoken automatically: a patient
@@ -322,33 +323,53 @@ function ReportContent() {
     async (action: 'open' | 'download' | 'print') => {
       if (!report) return
       setPdfAction(action)
+      let blobUrl: string | null = null
       try {
-        // Lazy-load jsPDF (~350kb) — it only needs to exist the moment a user
-        // exports, so it stays out of the report page's initial bundle.
-        const { generateReportPDF } = await import('@/lib/pdf')
-        const pdf = generateReportPDF(
-          reportToReportData(report),
-          report.report_id,
-          {
-            name: report.patient_name,
-            age: report.patient_age,
-            dob: report.patient_dob,
-            sex: report.patient_sex,
-            language: report.language_used,
-            visitType: report.visit_type || 'Symptom Intake',
-          },
-          undefined,
-          physicianNotes || undefined,
-        )
+        // The PDF is rendered server-side by headless Chromium (see /api/report/pdf) so
+        // non-Latin patient names and free-text shape correctly for every script — jsPDF
+        // could not. Returns application/pdf bytes we turn into a blob.
+        const res = await fetch('/api/report/pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reportId: report.report_id,
+            reportData: reportToReportData(report),
+            patientInfo: {
+              name: report.patient_name,
+              age: report.patient_age,
+              dob: report.patient_dob,
+              sex: report.patient_sex,
+              language: report.language_used,
+              visitType: report.visit_type || 'Symptom Intake',
+            },
+            physicianNotes: physicianNotes || undefined,
+          }),
+        })
+        if (!res.ok) throw new Error(`PDF request failed: ${res.status}`)
+
+        const blob = await res.blob()
+        blobUrl = URL.createObjectURL(blob)
+
         if (action === 'download') {
-          pdf.save(`Keiro-Report-${report.report_id}.pdf`)
+          const a = document.createElement('a')
+          a.href = blobUrl
+          a.download = `Keiro-Report-${report.report_id}.pdf`
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
         } else if (action === 'print') {
-          pdf.autoPrint()
-          pdf.output('dataurlnewwindow')
+          const w = window.open(blobUrl, '_blank')
+          w?.addEventListener('load', () => w.print())
         } else {
-          pdf.output('dataurlnewwindow')
+          window.open(blobUrl, '_blank')
         }
+      } catch (err) {
+        logger.error('report_pdf_failed', 'report_page', null, {
+          error: err instanceof Error ? err.message : String(err),
+        })
       } finally {
+        // Revoke on the next tick so the new tab / download has grabbed the URL first.
+        if (blobUrl) setTimeout(() => URL.revokeObjectURL(blobUrl as string), 60_000)
         setPdfAction(null)
       }
     },
