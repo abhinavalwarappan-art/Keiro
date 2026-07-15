@@ -1,28 +1,31 @@
 'use client'
 
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { MessageCircle, Phone } from 'lucide-react'
 import { trackEmergencyShown } from '@/lib/analytics'
 import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY } from '@/lib/chatSession'
+import { resolveEmergencyNumber, type ResolvedEmergency } from '@/lib/emergencyNumbers'
 
+// `{n}` is replaced at render time with the patient's locale-resolved emergency
+// number (see resolveEmergencyNumber) — never hardcode a country's number here.
 const EMERGENCY_TRANSLATIONS = [
-  { flag: '🇪🇸', lang: 'Español', text: 'Necesito ayuda médica urgente. Por favor llame al 911 inmediatamente.', roman: 'Necesito ayuda médica urgente.' },
-  { flag: '🇮🇳', lang: 'हिन्दी', text: 'मुझे तत्काल चिकित्सा सहायता चाहिए। कृपया अभी 911 पर कॉल करें।', roman: 'Mujhe tatkal chikitsa sahayta chahiye.' },
-  { flag: '🇨🇳', lang: '中文', text: '我需要紧急医疗帮助。请立即拨打911。', roman: 'Wǒ xūyào jǐnjí yīliáo bāngzhù.' },
-  { flag: '🇸🇦', lang: 'العربية', text: 'أحتاج إلى مساعدة طبية عاجلة. من فضلك اتصل بـ 911 الآن.', roman: 'Ahtaj ila musaada tibbiya ajila.' },
-  { flag: '🇻🇳', lang: 'Tiếng Việt', text: 'Tôi cần giúp đỡ y tế khẩn cấp. Xin hãy gọi 911 ngay lập tức.', roman: 'Tôi cần giúp đỡ y tế khẩn cấp.' },
-  { flag: '🇵🇭', lang: 'Tagalog', text: 'Kailangan ko ng agarang tulong medikal. Mangyaring tumawag ng 911 agad.', roman: '' },
-  { flag: '🇰🇷', lang: '한국어', text: '긴급 의료 도움이 필요합니다. 지금 바로 911에 전화해 주세요.', roman: 'Ginjip uiryo doryumi piryohabnida.' },
-  { flag: '🇵🇰', lang: 'اردو', text: 'مجھے فوری طبی مدد چاہیے۔ براہ کرم ابھی 911 پر کال کریں۔', roman: 'Mujhe fori tibbi madad chahiye.' },
-  { flag: '🇮🇳', lang: 'தமிழ்', text: 'எனக்கு அவசர மருத்துவ உதவி தேவை. உடனே 911 ஐ அழைக்கவும்.', roman: 'Enakku avasara maruttuva utavi teva.' },
-  { flag: '🇮🇳', lang: 'ગુજરાતી', text: 'મને તાત્કાલિક તબીબી સહાય જોઈએ. કૃપા કરીને હવે 911 પર ફોન કરો.', roman: 'Mane tatkaalik tabeebi sahay joi-e.' },
-  { flag: '🇫🇷', lang: 'Français', text: "J'ai besoin d'aide médicale urgente. Appelez le 911 immédiatement.", roman: '' },
-  { flag: '🇧🇷', lang: 'Português', text: 'Preciso de ajuda médica urgente. Por favor ligue para o 911 imediatamente.', roman: '' },
-  { flag: '🇷🇺', lang: 'Русский', text: 'Мне нужна срочная медицинская помощь. Пожалуйста, позвоните 911 немедленно.', roman: 'Mne nuzhna srochnaya meditsinskaya pomoshch.' },
-  { flag: '🇹🇷', lang: 'Türkçe', text: 'Acil tıbbi yardıma ihtiyacım var. Lütfen hemen 911\'i arayın.', roman: '' },
-  { flag: '🇮🇷', lang: 'فارسی', text: 'به کمک فوری پزشکی نیاز دارم. لطفاً همین الان با ۹۱۱ تماس بگیرید.', roman: 'Be komak fowri pezeshki niyaz daram.' },
+  { flag: '🇪🇸', lang: 'Español', text: 'Necesito ayuda médica urgente. Por favor llame al {n} inmediatamente.', roman: 'Necesito ayuda médica urgente.' },
+  { flag: '🇮🇳', lang: 'हिन्दी', text: 'मुझे तत्काल चिकित्सा सहायता चाहिए। कृपया अभी {n} पर कॉल करें।', roman: 'Mujhe tatkal chikitsa sahayta chahiye.' },
+  { flag: '🇨🇳', lang: '中文', text: '我需要紧急医疗帮助。请立即拨打{n}。', roman: 'Wǒ xūyào jǐnjí yīliáo bāngzhù.' },
+  { flag: '🇸🇦', lang: 'العربية', text: 'أحتاج إلى مساعدة طبية عاجلة. من فضلك اتصل بـ {n} الآن.', roman: 'Ahtaj ila musaada tibbiya ajila.' },
+  { flag: '🇻🇳', lang: 'Tiếng Việt', text: 'Tôi cần giúp đỡ y tế khẩn cấp. Xin hãy gọi {n} ngay lập tức.', roman: 'Tôi cần giúp đỡ y tế khẩn cấp.' },
+  { flag: '🇵🇭', lang: 'Tagalog', text: 'Kailangan ko ng agarang tulong medikal. Mangyaring tumawag ng {n} agad.', roman: '' },
+  { flag: '🇰🇷', lang: '한국어', text: '긴급 의료 도움이 필요합니다. 지금 바로 {n}에 전화해 주세요.', roman: 'Ginjip uiryo doryumi piryohabnida.' },
+  { flag: '🇵🇰', lang: 'اردو', text: 'مجھے فوری طبی مدد چاہیے۔ براہ کرم ابھی {n} پر کال کریں۔', roman: 'Mujhe fori tibbi madad chahiye.' },
+  { flag: '🇮🇳', lang: 'தமிழ்', text: 'எனக்கு அவசர மருத்துவ உதவி தேவை. உடனே {n} ஐ அழைக்கவும்.', roman: 'Enakku avasara maruttuva utavi teva.' },
+  { flag: '🇮🇳', lang: 'ગુજરાતી', text: 'મને તાત્કાલિક તબીબી સહાય જોઈએ. કૃપા કરીને હવે {n} પર ફોન કરો.', roman: 'Mane tatkaalik tabeebi sahay joi-e.' },
+  { flag: '🇫🇷', lang: 'Français', text: "J'ai besoin d'aide médicale urgente. Appelez le {n} immédiatement.", roman: '' },
+  { flag: '🇧🇷', lang: 'Português', text: 'Preciso de ajuda médica urgente. Por favor ligue para o {n} imediatamente.', roman: '' },
+  { flag: '🇷🇺', lang: 'Русский', text: 'Мне нужна срочная медицинская помощь. Пожалуйста, позвоните {n} немедленно.', roman: 'Mne nuzhna srochnaya meditsinskaya pomoshch.' },
+  { flag: '🇹🇷', lang: 'Türkçe', text: 'Acil tıbbi yardıma ihtiyacım var. Lütfen hemen {n}\'i arayın.', roman: '' },
+  { flag: '🇮🇷', lang: 'فارسی', text: 'به کمک فوری پزشکی نیاز دارم. لطفاً همین الان با {n} تماس بگیرید.', roman: 'Be komak fowri pezeshki niyaz daram.' },
 ]
 
 const RTL_LANGUAGES = new Set(['العربية', 'اردو', 'فارسی'])
@@ -30,8 +33,31 @@ const RTL_LANGUAGES = new Set(['العربية', 'اردو', 'فارسی'])
 export default function EmergencyPage() {
   const router = useRouter()
 
+  // The patient's locale decides which country's emergency number to show. We start
+  // from the safe global fallback (112) so the first paint is never wrong, then
+  // resolve the real locale on the client. Locale is a best-guess of the patient's
+  // country, not their verified location — hence the always-visible "verify" note.
+  const [emergency, setEmergency] = useState<ResolvedEmergency>(() => resolveEmergencyNumber(null))
+  const { number, country, isFallback } = emergency
+
   useEffect(() => {
     trackEmergencyShown()
+  }, [])
+
+  useEffect(() => {
+    // Prefer an explicit ?lang= (set by the chat emergency detour); otherwise read
+    // the persisted chat session; otherwise keep the global fallback.
+    let langCode: string | null = null
+    try {
+      langCode = new URLSearchParams(window.location.search).get('lang')
+      if (!langCode) {
+        const raw = sessionStorage.getItem(ACTIVE_CHAT_SESSION_KEY)
+        if (raw) langCode = (JSON.parse(raw) as { langCode?: string }).langCode ?? null
+      }
+    } catch {
+      // URL or sessionStorage unavailable — keep the global fallback number
+    }
+    if (langCode) setEmergency(resolveEmergencyNumber(langCode))
   }, [])
 
   const handleContinueChat = useCallback(() => {
@@ -84,19 +110,24 @@ export default function EmergencyPage() {
           </div>
         </section>
 
-        {/* Call 911 */}
+        {/* Call the local emergency number */}
         <section className="py-5">
           <motion.a
-            href="tel:911"
+            href={`tel:${number}`}
             className="flex min-h-[60px] w-full items-center justify-center gap-3 rounded-xl bg-error py-4 text-lg font-semibold text-white shadow-[0_12px_28px_rgba(220,38,38,0.25)] transition-[background-color,box-shadow,transform] duration-150 hover:bg-red-700 active:scale-[0.98]"
             animate={{ boxShadow: ['0 12px 28px rgba(220,38,38,0.22)', '0 16px 36px rgba(220,38,38,0.32)', '0 12px 28px rgba(220,38,38,0.22)'] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
           >
             <Phone size={22} aria-hidden />
-            <span>Call 911 now</span>
+            <span>Call {number} now</span>
           </motion.a>
           <p className="mt-3 text-center text-xs font-medium text-text-secondary">
             Show this screen to anyone nearby
+          </p>
+          <p className="mt-1.5 text-center text-xs font-medium text-text-tertiary">
+            {isFallback
+              ? `${number} reaches emergency services from mobile phones in most countries. If it does not connect, dial your local emergency number.`
+              : `This is the emergency number for ${country}. If you are somewhere else, dial your local emergency number instead.`}
           </p>
         </section>
 
@@ -107,7 +138,7 @@ export default function EmergencyPage() {
               Emergency message in all languages
             </h2>
             <span className="rounded-full border border-border-subtle bg-surface px-2.5 py-1 text-[11px] font-medium text-text-tertiary">
-              911
+              {number}
             </span>
           </div>
           <div className="flex flex-col gap-2.5">
@@ -136,7 +167,7 @@ export default function EmergencyPage() {
                       dir={isRtl ? 'rtl' : 'ltr'}
                       className={`text-[15px] leading-relaxed text-text-primary text-pretty ${isRtl ? 'text-right' : 'text-left'}`}
                     >
-                      {t.text}
+                      {t.text.replace('{n}', number)}
                     </p>
                     <p className="mt-1.5 min-h-4 text-xs leading-snug text-text-tertiary">
                       {t.roman || ' '}

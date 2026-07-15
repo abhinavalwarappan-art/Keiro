@@ -87,8 +87,8 @@ export default function TermsPage() {
 
         <Section title="6. Emergency Situations">
           <p>
-            <strong>Keiro is not an emergency service.</strong> In any emergency, call 911
-            immediately. Keiro provides a multilingual emergency phrase screen as a communication
+            <strong>Keiro is not an emergency service.</strong> In any emergency, call your local
+            emergency number immediately. Keiro provides a multilingual emergency phrase screen as a communication
             courtesy, but you must contact emergency services directly. Do not rely on Keiro
             during a medical emergency.
           </p>

@@ -363,7 +363,7 @@ function ChatContent() {
             } catch {
               // Non-fatal.
             }
-            router.push('/emergency')
+            router.push(`/emergency?lang=${encodeURIComponent(langCode)}`)
           }
           return
         }
@@ -415,7 +415,7 @@ function ChatContent() {
                 } catch {
                   // Non-fatal.
                 }
-                router.push('/emergency')
+                router.push(`/emergency?lang=${encodeURIComponent(langCode)}`)
                 return
               }
               if (parsed.text) {
