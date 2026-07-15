@@ -18,10 +18,17 @@ const nextConfig: NextConfig = {
   // Headless-Chromium packages must load from node_modules at runtime, not be bundled
   // by the server compiler (the chromium binary + native bits can't be webpacked).
   serverExternalPackages: ['@sparticuz/chromium', 'playwright-core'],
-  // The report PDF route reads these font files at runtime (reportFonts.ts) to embed
-  // them in the HTML; force them into the function bundle so process.cwd() can find them.
+  // Force runtime files into the /api/report/pdf function bundle that Next's tracer
+  // misses: the embedded fonts (read via fs in reportFonts.ts), and the full
+  // playwright-core + @sparticuz/chromium packages — both read data files (e.g.
+  // playwright's browsers.json, chromium's compressed binary) via fs at runtime, not
+  // require, so nft doesn't trace them and the Lambda 500s with "Cannot find module".
   outputFileTracingIncludes: {
-    '/api/report/pdf': ['./src/lib/fonts/**/*.woff2'],
+    '/api/report/pdf': [
+      './src/lib/fonts/**/*.woff2',
+      './node_modules/playwright-core/**/*',
+      './node_modules/@sparticuz/chromium/**/*',
+    ],
   },
   async redirects() {
     return [
