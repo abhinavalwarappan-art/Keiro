@@ -171,8 +171,10 @@ export function buildReportHtml(
   html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body {
     margin: 0; color: var(--ink);
-    font-family: "Noto Sans", "Noto Sans CJK SC", "Noto Sans Arabic", "Noto Sans Devanagari", "Noto Sans Hebrew",
-      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    /* 'NotoReport' is the embedded multi-script family injected at render time (see
+       reportFonts.ts); it carries CJK/Arabic/Devanagari/Cyrillic so serverless Chromium
+       renders them without system fonts. System stack is a last-resort fallback only. */
+    font-family: "NotoReport", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     font-size: 11px; line-height: 1.5;
   }
   .header { background: var(--green); color: #fff; padding: 12px 16px; display: flex; justify-content: space-between; align-items: flex-start; }

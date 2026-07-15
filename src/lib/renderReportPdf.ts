@@ -1,4 +1,5 @@
 import 'server-only'
+import { buildReportFontStyle } from './reportFonts'
 
 /**
  * Render a self-contained HTML document (see buildReportHtml) to a PDF using headless
@@ -6,16 +7,15 @@ import 'server-only'
  * joining + RTL), Devanagari (with reordering/conjuncts), Cyrillic — which is why we
  * moved off jsPDF (no shaping, Latin-1 fonts → mojibake).
  *
+ * Fonts are EMBEDDED into the HTML as base64 @font-face data-URIs (see reportFonts.ts),
+ * so the glyphs travel with the document. That is what makes this correct on serverless
+ * Chromium (@sparticuz/chromium), which ships almost no fonts: we never depend on system
+ * fonts, so dev (macOS, has the fonts) and prod (Vercel, does not) render identically.
+ *
  * Browser resolution:
  *  - Serverless (Vercel/Lambda): @sparticuz/chromium provides the executable + args.
- *    IMPORTANT — that build ships NO CJK/Arabic/Indic fonts, so those scripts render as
- *    tofu unless fonts are provisioned to the function at DEPLOY time (bundle Noto Sans
- *    + Noto Sans CJK/Arabic/Devanagari into the deployment and point fontconfig at them,
- *    or add a fonts layer). @sparticuz/chromium v149 removed the runtime `font()` loader,
- *    so this is an ops/deploy step, verified on a preview deploy — not something this
- *    module can guarantee. Latin/Cyrillic/Greek work with the bundled defaults.
- *  - Local dev / test: Playwright's downloaded Chromium (system fonts cover the scripts
- *    on a dev machine). Run `npx playwright install chromium` once.
+ *  - Local dev / test: Playwright's downloaded Chromium. Run `npx playwright install
+ *    chromium` once.
  */
 
 const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
@@ -40,9 +40,17 @@ export async function renderReportPdf(html: string): Promise<Uint8Array> {
   const browser = await launchBrowser()
   try {
     const page = await browser.newPage()
-    // The HTML is fully self-contained (inline CSS, no external requests), so 'load' is
-    // enough — we never wait on the network.
-    await page.setContent(html, { waitUntil: 'load' })
+    // Inject the embedded fonts into <head> so glyphs travel with the document (see
+    // reportFonts.ts). Falls back to appending if there's no </head> for any reason.
+    const fontStyle = buildReportFontStyle()
+    const htmlWithFonts = html.includes('</head>')
+      ? html.replace('</head>', `${fontStyle}</head>`)
+      : fontStyle + html
+    // Self-contained (inline CSS + inlined fonts, no external requests). Wait for the
+    // embedded @font-face faces to finish loading before printing, so the first paint
+    // isn't a fallback font.
+    await page.setContent(htmlWithFonts, { waitUntil: 'load' })
+    await page.evaluate(() => document.fonts.ready)
     const pdf = await page.pdf({ format: 'A4', printBackground: true, preferCSSPageSize: true })
     return pdf
   } finally {

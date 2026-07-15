@@ -57,9 +57,11 @@ describe('buildReportHtml', () => {
     expect(html).toContain('&quot;')
   })
 
-  it('declares a Unicode-capable font stack and a script-covering fallback chain', () => {
+  it('declares the embedded Unicode family with a system fallback chain', () => {
     const html = htmlFor('王伟')
-    expect(html).toMatch(/font-family:[^;]*Noto Sans/)
+    // 'NotoReport' is the embedded multi-script family (fonts injected at render time).
+    expect(html).toMatch(/font-family:\s*"NotoReport"/)
+    expect(html).toMatch(/sans-serif/)
   })
 
   it('renders a well-formed, self-contained document with no external requests', () => {
