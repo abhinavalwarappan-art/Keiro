@@ -781,6 +781,32 @@
   box-shadow: none;
 }
 
+/* ----------------------------------------------------------------------------
+   PLANE DEPTH — stacked bands read as layered planes, not flat colour swaps.
+
+   A lit 1px top edge (a fold of light, not a divider) where a tinted or dark
+   band meets the section above; the deep band also gets a faint top vignette so
+   it reads as a recessed plane, complementing the light already rising from its
+   bottom edge (see .lx-band-deep .lx-flow). Cream bands are the page ground and
+   stay flush — only the bands that change ground earn an edge.
+   -------------------------------------------------------------------------- */
+.lx-band-mint {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.lx-band-deep {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 28px 56px -40px rgba(0, 0, 0, 0.45);
+}
+
+/* Marquee "logo-strip" chips — a resting shadow and a hair of inset top-white so
+   the 45 script pills read as physical tokens rather than flat outlines. Same
+   depth grammar as the cards; no hover state, they are proof, not controls. */
+.lx-chip {
+  box-shadow: var(--lx-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
 /* Content must sit above the flow field. */
 .lx-above {
   position: relative;

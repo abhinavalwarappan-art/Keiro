@@ -754,7 +754,7 @@ export function LanguageMarquee() {
         {strip.map((language, i) => (
           <span
             key={`${language.code}-${i}`}
-            className="lx-native flex shrink-0 items-center gap-2 rounded-full border border-[var(--band-line)] bg-[var(--band-card)] px-4 py-2 text-[var(--band-body)]"
+            className="lx-native lx-chip flex shrink-0 items-center gap-2 rounded-full border border-[var(--band-line)] bg-[var(--band-card)] px-4 py-2 text-[var(--band-body)]"
           >
             <span>{language.flag}</span>
             {language.native}

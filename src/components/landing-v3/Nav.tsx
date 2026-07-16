@@ -162,7 +162,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
           <Link
             href={CTA.href}
             data-testid="nav-cta"
-            className="lx-focus inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[var(--lx-ink)] px-4 font-semibold text-[var(--lx-cream)] transition-colors duration-200 hover:bg-[var(--lx-ink-deep)] sm:px-5"
+            className="lx-focus lx-btn lx-btn-primary inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-4 font-semibold sm:px-5"
           >
             <span className="hidden sm:inline">{CTA.label}</span>
             <span className="sm:hidden">Start</span>
