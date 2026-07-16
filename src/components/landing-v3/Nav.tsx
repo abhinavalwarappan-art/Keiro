@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Kai } from '@/components/kai/Kai'
+import { IconChevronDown, IconMenu, IconX } from './icons'
 
 type NavLink = { href: string; label: string; children?: { href: string; label: string }[] }
 
@@ -115,14 +116,14 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
                   {link.label}
                   <span
                     aria-hidden="true"
-                    className={`text-[0.6rem] transition-transform duration-200 ${openAbout ? 'rotate-180' : ''}`}
+                    className={`grid place-items-center transition-transform duration-200 ${openAbout ? 'rotate-180' : ''}`}
                   >
-                    ▼
+                    <IconChevronDown size={11} />
                   </span>
                 </button>
 
                 {openAbout && (
-                  <ul className="absolute left-0 top-[calc(100%+0.5rem)] w-60 overflow-hidden rounded-[16px] border border-[var(--lx-line)] bg-white p-1.5 shadow-[0_24px_60px_-24px_rgba(26,61,43,0.35)]">
+                  <ul className="absolute left-0 top-[calc(100%+0.5rem)] w-60 overflow-hidden rounded-[16px] border border-[var(--lx-line)] bg-[var(--lx-paper)] p-1.5 shadow-[0_24px_60px_-24px_rgba(26,61,43,0.35)]">
                     {link.children.map((child) => (
                       <li key={child.href}>
                         <Link
@@ -161,7 +162,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
           <Link
             href={CTA.href}
             data-testid="nav-cta"
-            className="lx-focus inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[var(--lx-ink)] px-4 font-semibold text-[var(--lx-cream)] transition-colors duration-200 hover:bg-[#14301f] sm:px-5"
+            className="lx-focus inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[var(--lx-ink)] px-4 font-semibold text-[var(--lx-cream)] transition-colors duration-200 hover:bg-[var(--lx-ink-deep)] sm:px-5"
           >
             <span className="hidden sm:inline">{CTA.label}</span>
             <span className="sm:hidden">Start</span>
@@ -176,8 +177,8 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
             onClick={() => setOpenMenu((v) => !v)}
             className="lx-focus inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--lx-line)] text-[var(--lx-ink)] lg:hidden"
           >
-            <span aria-hidden="true" className="text-lg leading-none">
-              {openMenu ? '✕' : '☰'}
+            <span aria-hidden="true" className="grid place-items-center">
+              {openMenu ? <IconX size={16} /> : <IconMenu size={17} />}
             </span>
           </button>
         </div>

@@ -14,6 +14,7 @@ import { LANGUAGES } from '@/lib/languages'
 import { KaiDemo } from './KaiDemo'
 import { MotionLink } from './MotionLink'
 import { Accent } from './Sections'
+import { IconCheck } from './icons'
 
 const ENTRANCE = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }
 
@@ -36,7 +37,7 @@ export function Hero() {
         >
           <h1
             data-testid="hero-headline"
-            className="lx-display text-balance text-[clamp(2.1rem,5.4vw,3.5rem)] text-[var(--lx-ink)]"
+            className="lx-display text-balance text-[clamp(2.2rem,5.5vw,3.7rem)] text-[var(--lx-ink)]"
           >
             I&apos;m Kai. Tell me what hurts, <Accent>in the language you think in.</Accent>
           </h1>
@@ -57,10 +58,10 @@ export function Hero() {
             ].map((item) => (
               <li key={item} className="flex items-center gap-3 text-[var(--lx-body)]">
                 <span
-                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-[0.65rem] font-bold text-white"
+                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
                   aria-hidden="true"
                 >
-                  ✓
+                  <IconCheck size={11} strokeWidth={2} />
                 </span>
                 {item}
               </li>

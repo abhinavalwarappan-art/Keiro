@@ -162,7 +162,9 @@ export default function ContactPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--lx-sage)]">
             If this is an emergency
           </p>
-          <h2 className="mt-5 text-balance font-sans text-[clamp(1.5rem,3.4vw,2.1rem)] font-semibold leading-[1.25] tracking-[-0.01em] text-[var(--band-ink)]">
+          {/* Deliberately NOT the serif voice: safety copy reads like a notice,
+              in the same workhorse sans as the trust pages. */}
+          <h2 className="mt-5 text-balance text-[clamp(1.5rem,3.4vw,2.1rem)] font-semibold leading-[1.25] tracking-[-0.01em] text-[var(--band-ink)]">
             Do not use this form.
           </h2>
           <p className="mt-5 max-w-2xl text-lg leading-[1.8] text-[var(--band-body)]">

@@ -41,8 +41,10 @@ export default function MeetKaiPage() {
         lede="Kai is the one who sits with you before the doctor comes in. Not a form. Not a phone tree. Someone who speaks the way you do."
         media={
           <div className="flex justify-center">
-            <div className="lx-breathe">
-              <Kai size="xl" state="waving" interactive />
+            <div className="lx-kai-stage p-8">
+              <div className="lx-breathe">
+                <Kai size="xl" state="waving" interactive />
+              </div>
             </div>
           </div>
         }

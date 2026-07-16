@@ -27,7 +27,7 @@ import { Kai } from '@/components/kai/Kai'
 export function LanguageStrip() {
   return (
     <div className="lx-band lx-band-cream border-y border-[var(--band-line)] py-6">
-      <p className="mb-4 text-center text-sm font-medium uppercase tracking-[0.16em] text-[var(--lx-muted)]">
+      <p className="lx-label mb-4 text-center text-xs text-[var(--lx-muted)]">
         Kai holds the conversation in
       </p>
       <LanguageMarquee />
@@ -149,8 +149,10 @@ export function MeetKaiBand() {
       <Split
         media={
           <div className="flex justify-center">
-            <div className="lx-breathe">
-              <Kai size="xl" state="waving" interactive />
+            <div className="lx-kai-stage p-8">
+              <div className="lx-breathe">
+                <Kai size="xl" state="waving" interactive />
+              </div>
             </div>
           </div>
         }
@@ -240,7 +242,7 @@ export function TrustBand() {
 export function ClinicsStrip() {
   return (
     <Band palette="cream" id="for-clinics">
-      <div className="flex flex-col gap-6 rounded-[16px] border border-[var(--band-line)] bg-white p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-6 rounded-[16px] border border-[var(--band-line)] bg-[var(--band-card)] p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
         <div className="max-w-xl">
           <p className="lx-label text-xs text-[var(--lx-muted)]">
             For clinics

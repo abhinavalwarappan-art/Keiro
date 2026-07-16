@@ -25,6 +25,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion, AnimatePresence, useInView, useReducedMotion } from 'framer-motion'
+import { KaiDot } from './ChatMock'
 
 type Turn = { who: 'kai' | 'patient'; text: string }
 
@@ -237,31 +238,33 @@ export function KaiDemo() {
     )
   }, [script, phase, reduced])
 
+  /* Two speakers, two materials — the product's own chat grammar. Kai has no
+     bubble: the mark plus plain words on the paper. Only the patient gets the
+     filled ink bubble, and its tail corner is a LOGICAL corner (rounded-ee),
+     so the whole exchange genuinely mirrors when the frame is dir="rtl". */
   const bubbles = (
-    <div
-      className="space-y-2.5"
-      dir={script.rtl ? 'rtl' : 'ltr'}
-    >
+    <div className="space-y-3">
       {visible.map((turn) => (
         <motion.div
           key={`${script.code}-${turn.i}`}
           initial={reduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
-          className={`flex ${turn.who === 'patient' ? 'justify-end' : 'justify-start'}`}
+          className={turn.who === 'kai' ? 'flex items-start gap-2.5' : 'flex'}
         >
+          {turn.who === 'kai' && <KaiDot size={24} />}
           <p
             lang={script.code}
-            className={`lx-native max-w-[86%] rounded-[12px] px-3.5 py-2.5 text-[0.9rem] leading-[1.55] ${
+            className={`lx-native text-[0.9rem] leading-[1.55] ${
               turn.who === 'patient'
-                ? 'bg-[var(--lx-ink)] text-white'
-                : 'bg-[var(--lx-mint)] text-[var(--lx-body)]'
+                ? 'ms-auto w-fit max-w-[86%] rounded-[14px] rounded-ee-[4px] bg-[var(--lx-ink)] px-3.5 py-2.5 text-white'
+                : 'max-w-[86%] pt-0.5 text-[var(--lx-body)]'
             }`}
           >
             {turn.shown}
             {turn.typing && (
               <span
-                className="ml-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] bg-current"
+                className="ms-0.5 inline-block h-[1em] w-[2px] translate-y-[2px] bg-current"
                 aria-hidden="true"
                 style={{ animation: 'lx-caret 1s step-end infinite' }}
               />
@@ -272,14 +275,18 @@ export function KaiDemo() {
     </div>
   )
 
+  /* The output document. Always LTR — whatever direction the conversation ran,
+     the deliverable is an English clinical note, and the snap from a mirrored
+     exchange back to a left-to-right document IS the product, visible. Set as a
+     letterhead: serif title, one heavier rule, chart-mono field names. */
   const summary = (
-    <div>
-      <div className="flex items-center justify-between pb-2">
-        <span className="lx-label text-[0.625rem] text-[var(--lx-ink)]">Intake summary</span>
+    <div dir="ltr">
+      <div className="flex items-baseline justify-between gap-3 border-b-[1.5px] border-[var(--lx-ink)] pb-2">
+        <span className="lx-heading text-[1.02rem] text-[var(--lx-ink)]">Intake summary</span>
         <span className="lx-label text-[0.625rem] text-[var(--lx-green-ink)]">English</span>
       </div>
 
-      <dl className="divide-y divide-[var(--lx-line)] border-y border-[var(--lx-line)]">
+      <dl className="divide-y divide-[var(--lx-line)] border-b border-[var(--lx-line)]">
         {[...SUMMARY, { k: 'Patient spoke', v: script.spoken }].map((row, i) => (
           <motion.div
             key={row.k}
@@ -288,9 +295,9 @@ export function KaiDemo() {
             transition={{ delay: 0.1 + i * 0.07, duration: 0.3 }}
             className="flex items-baseline justify-between gap-4 py-2"
           >
-            <dt className="text-xs text-[var(--lx-muted)]">{row.k}</dt>
+            <dt className="lx-label text-[0.6rem] text-[var(--lx-muted)]">{row.k}</dt>
             <dd
-              className={`text-right text-[0.85rem] font-medium ${
+              className={`text-right text-[0.85rem] font-semibold tabular-nums ${
                 row.k === 'Patient spoke'
                   ? 'text-[var(--lx-green-ink)]'
                   : 'text-[var(--lx-ink)]'
@@ -325,7 +332,7 @@ export function KaiDemo() {
             className={`lx-focus lx-native inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors duration-150 ${
               i === active
                 ? 'border-transparent bg-[var(--lx-ink)] text-white'
-                : 'border-[var(--lx-line)] bg-white/70 text-[var(--lx-body)] hover:border-[var(--lx-green)]'
+                : 'border-[var(--lx-line)] bg-[var(--lx-paper)]/80 text-[var(--lx-body)] hover:border-[var(--lx-green)]'
             }`}
           >
             <span aria-hidden="true">{s.flag}</span>
@@ -334,20 +341,40 @@ export function KaiDemo() {
         ))}
       </div>
 
-      <div className="lx-demo-frame relative overflow-hidden rounded-[16px] border border-[var(--lx-line)] bg-white">
+      {/* The surface takes the script's direction — chrome included — so
+          picking العربية mirrors it the way the real product does. Direction
+          sits on the chrome and INSIDE each keyed panel, never on the frame:
+          during the crossfade the outgoing conversation must keep its own
+          direction, or Spanish spends 250ms rendered right-to-left.
+          The summary pins itself back to LTR: it is an English document. */}
+      <div className="lx-demo-frame relative overflow-hidden rounded-[16px] border border-[var(--lx-line)] bg-[var(--lx-paper)]">
         {/* Chrome. A title bar with a live status is most of what separates
             "product" from "div with a border". */}
-        <div className="flex items-center justify-between border-b border-[var(--lx-line)] px-4 py-2.5">
+        <div
+          dir={script.rtl ? 'rtl' : 'ltr'}
+          className="flex items-center justify-between gap-3 border-b border-[var(--lx-line)] px-4 py-2.5"
+        >
           <span className="flex items-center gap-2">
-            <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--lx-green)] opacity-60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--lx-green)]" />
-            </span>
+            <KaiDot size={22} />
             <span className="lx-label text-[0.625rem] text-[var(--lx-muted)]">
               {reduced ? 'Conversation and summary' : phase.summary ? 'Summary ready' : 'Kai · listening'}
             </span>
+            {!reduced && !phase.summary && (
+              <span className="lx-listen" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            )}
           </span>
-          <span className="lx-native text-xs text-[var(--lx-muted)]">{script.native}</span>
+          <span className="flex items-center gap-2">
+            {script.rtl && (
+              <span className="lx-label rounded-[4px] border border-[var(--lx-line)] px-1.5 py-0.5 text-[0.55rem] text-[var(--lx-green-ink)]">
+                RTL
+              </span>
+            )}
+            <span className="lx-native text-xs text-[var(--lx-muted)]">{script.native}</span>
+          </span>
         </div>
 
         {reduced ? (
@@ -363,7 +390,7 @@ export function KaiDemo() {
              by side. The chips still work. Nothing that matters is lost — only the
              theatre. */
           <div className="space-y-5 p-4">
-            {bubbles}
+            <div dir={script.rtl ? 'rtl' : 'ltr'}>{bubbles}</div>
             {summary}
           </div>
         ) : (
@@ -378,6 +405,7 @@ export function KaiDemo() {
               {!phase.summary ? (
                 <motion.div
                   key={`chat-${script.code}`}
+                  dir={script.rtl ? 'rtl' : 'ltr'}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0, y: -8 }}

@@ -49,15 +49,11 @@ export function PageHero({
   ) : null
 
   if (variant === 'document') {
-    /* This variant used to be distinguished by being SANS while every other hero
-       was serif. Now that the whole site is a neo-grotesque, that distinction is
-       gone and it needs a new one.
-
-       So it earns it the way a real document masthead does: symmetric, ruled top
-       and bottom, tighter measure, and a HEAVIER weight than the display tier
-       (400 against 300). A trust page should read like something you can rely on
-       — dense and squared-off — not like a magazine feature that thins out as it
-       grows. Weight is the axis doing the work now, not typeface.
+    /* The one SANS hero on the site. Every narrative page opens in the serif
+       voice; the trust pages (privacy, accessibility, terms) open like the
+       policies they are — symmetric, ruled top and bottom, tighter measure,
+       set in the workhorse sans at a steady 500. A promise should read like
+       something you can rely on, not like a magazine feature.
 
        (It is also fully centred. It used to be a left-aligned column that was
        itself centred on the page — the worst of both, with the text hanging off
@@ -71,7 +67,7 @@ export function PageHero({
             <p className="lx-label text-xs text-[var(--lx-muted)]">{eyebrow}</p>
             <span className="h-px flex-1 bg-[var(--lx-line)]" aria-hidden="true" />
           </div>
-          <h1 className="lx-display mx-auto mt-8 max-w-3xl text-balance text-[clamp(1.75rem,3.8vw,2.6rem)] font-normal leading-[1.2] text-[var(--lx-ink)]">
+          <h1 className="mx-auto mt-8 max-w-3xl text-balance text-[clamp(1.75rem,3.8vw,2.6rem)] font-medium leading-[1.25] tracking-[-0.01em] text-[var(--lx-ink)]">
             {title}
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-pretty leading-[1.9] text-[var(--lx-muted)]">
@@ -167,7 +163,7 @@ export function CtaBand({
 }) {
   return (
     <section
-      className={`lx-band lx-band-${palette} border-t border-[var(--band-line)] px-5 py-16 sm:px-8 md:py-20 lg:px-16`}
+      className={`lx-band lx-band-${palette} lx-section border-t border-[var(--band-line)] px-5 sm:px-8 lg:px-16`}
     >
       <Reveal className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
         <Kai size="sm" state="waving" />

@@ -73,7 +73,7 @@ export function ContactForm() {
         role="status"
         aria-live="polite"
       >
-        <h3 className="lx-display text-xl font-semibold text-[var(--lx-ink)]">
+        <h3 className="lx-heading text-xl text-[var(--lx-ink)]">
           Thank you. We have it.
         </h3>
         <p className="mt-3 leading-[1.8] text-[var(--lx-body)]">
@@ -85,7 +85,7 @@ export function ContactForm() {
   }
 
   const field =
-    'lx-focus mt-2 block min-h-12 w-full rounded-[12px] border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70'
+    'lx-focus mt-2 block min-h-12 w-full rounded-[12px] border border-[var(--lx-line)] bg-[var(--lx-paper)] px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70'
   const label = 'block font-semibold text-[var(--lx-ink)]'
 
   return (
@@ -176,7 +176,7 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={status === 'sending'}
-          className="lx-focus inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-ink)] px-6 font-semibold text-[var(--lx-cream)] transition-colors duration-200 hover:bg-[#14301f] disabled:opacity-60"
+          className="lx-focus inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-ink)] px-6 font-semibold text-[var(--lx-cream)] transition-colors duration-200 hover:bg-[var(--lx-ink-deep)] disabled:opacity-60"
         >
           {status === 'sending' ? 'Sending…' : 'Send'}
         </button>

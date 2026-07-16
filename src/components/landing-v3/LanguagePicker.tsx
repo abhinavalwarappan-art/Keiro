@@ -10,9 +10,9 @@
 
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Kai } from '@/components/kai/Kai'
 import { LANGUAGES, type Language } from '@/lib/languages'
 import { KAI_GREETINGS } from './greetings'
+import { KaiDot } from './ChatMock'
 
 function matches(language: Language, query: string) {
   const q = query.trim().toLowerCase()
@@ -37,7 +37,7 @@ export function LanguagePicker({
   const greeting = KAI_GREETINGS[active.code] ?? KAI_GREETINGS['en-US']
 
   return (
-    <div className="rounded-[16px] border border-[var(--lx-line)] bg-white/70 p-4 shadow-[0_24px_60px_-34px_rgba(26,61,43,0.4)] backdrop-blur sm:p-6">
+    <div className="lx-demo-frame rounded-[16px] border border-[var(--lx-line)] bg-[var(--lx-paper)] p-4 sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <label htmlFor="lang-search" className="font-semibold text-[var(--lx-ink)]">
           Which language do you speak?
@@ -51,7 +51,7 @@ export function LanguagePicker({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search: Tagalog, தமிழ், Polski"
-        className="lx-focus mt-3 block min-h-11 w-full rounded-full border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70"
+        className="lx-focus mt-3 block min-h-11 w-full rounded-[12px] border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70"
       />
 
       <div
@@ -94,29 +94,40 @@ export function LanguagePicker({
         )}
       </div>
 
-      {/* Kai's actual opening line, live. aria-live so a screen-reader user hears
-          the change rather than silently missing the entire point. */}
-      <div className="mt-5 flex items-start gap-3">
-        <span className="mt-1 shrink-0">
-          <Kai size="xs" animated={false} />
-        </span>
-        <div
-          className="min-h-[7.5rem] flex-1 rounded-[16px] rounded-tl-md border border-[var(--lx-line)] bg-[var(--lx-mint)] p-4 sm:min-h-[6.5rem]"
-          aria-live="polite"
-        >
+      {/* Kai's actual opening line, live — set like a type specimen, because it
+          is one: this is the moment the page proves the script renders, the
+          direction flips, and Kai genuinely opens in your language. aria-live so
+          a screen-reader user hears the change rather than silently missing the
+          entire point. */}
+      <div
+        className="mt-5 rounded-[12px] border border-[var(--lx-line)] bg-[var(--lx-mint)]/60 p-4"
+        aria-live="polite"
+        dir={active.rtl ? 'rtl' : 'ltr'}
+      >
+        <div className="flex items-center justify-between gap-3 pb-3">
+          <span className="flex items-center gap-2">
+            <KaiDot size={22} />
+            <span className="lx-native text-xs text-[var(--lx-muted)]">{active.native}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            {active.rtl && (
+              <span className="lx-label rounded-[4px] border border-[var(--lx-line)] px-1.5 py-0.5 text-[0.55rem] text-[var(--lx-green-ink)]">
+                RTL
+              </span>
+            )}
+            <span className="lx-mono text-[0.65rem] text-[var(--lx-muted)]">{active.code}</span>
+          </span>
+        </div>
+        <div className="min-h-[6rem] sm:min-h-[5rem]">
           <AnimatePresence mode="wait">
             <motion.p
               key={active.code}
               lang={active.googleCode}
-              dir={active.rtl ? 'rtl' : 'ltr'}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-              className={[
-                'lx-native text-[1.02rem] leading-[1.75] text-[var(--lx-body)]',
-                active.rtl ? 'text-right' : 'text-left',
-              ].join(' ')}
+              className="lx-native text-[1.15rem] leading-[1.75] text-[var(--lx-body)]"
             >
               {greeting}
             </motion.p>

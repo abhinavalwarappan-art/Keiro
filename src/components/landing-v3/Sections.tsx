@@ -14,6 +14,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { LANGUAGES } from '@/lib/languages'
 import { Reveal } from './Reveal'
+import { IconCheck, IconPlus, IconX } from './icons'
 
 /* ── Band — the primitive every section sits on ──────────────────────────── */
 
@@ -51,7 +52,7 @@ export function Band({
   return (
     <section
       id={id}
-      className={`lx-band lx-band-${palette} relative overflow-hidden border-y border-[var(--band-line)] px-5 py-16 sm:px-8 md:py-24 lg:px-16 ${
+      className={`lx-band lx-band-${palette} lx-section relative overflow-hidden border-y border-[var(--band-line)] px-5 sm:px-8 lg:px-16 ${
         id ? 'scroll-mt-24' : ''
       } ${className}`}
     >
@@ -363,11 +364,11 @@ export function ExpandableSteps({ items }: { items: Expandable[] }) {
                   </span>
                   <span
                     aria-hidden="true"
-                    className={`shrink-0 text-2xl leading-none text-[var(--lx-green)] transition-transform duration-300 ${
+                    className={`grid h-6 w-6 shrink-0 place-items-center text-[var(--lx-green)] transition-transform duration-300 ${
                       isOpen ? 'rotate-45' : ''
                     }`}
                   >
-                    +
+                    <IconPlus size={16} />
                   </span>
                 </button>
               </h3>
@@ -469,10 +470,10 @@ export function CheckList({ items }: { items: string[] }) {
         <Reveal key={item} delay={Math.min(i, 6) * 0.05}>
           <li className="flex items-start gap-3.5 border-b border-[var(--band-line)] py-4">
             <span
-              className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-[0.65rem] font-bold text-white"
+              className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
               aria-hidden="true"
             >
-              ✓
+              <IconCheck size={11} strokeWidth={2} />
             </span>
             <span className="leading-[1.7] text-[var(--band-body)]">{item}</span>
           </li>
@@ -556,15 +557,19 @@ function LedgerColumn({
             >
               <span
                 aria-hidden="true"
-                className={`mt-1 grid shrink-0 place-items-center rounded-full text-xs font-bold ${
-                  twoUp ? 'h-5 w-5' : 'h-7 w-7 text-sm'
+                className={`mt-1 grid shrink-0 place-items-center rounded-full ${
+                  twoUp ? 'h-5 w-5' : 'h-7 w-7'
                 } ${
                   kind === 'will'
                     ? 'bg-[var(--lx-green)] text-white'
                     : 'border border-[var(--band-line)] bg-transparent text-[var(--band-muted)]'
                 }`}
               >
-                {kind === 'will' ? '✓' : '✕'}
+                {kind === 'will' ? (
+                  <IconCheck size={twoUp ? 11 : 13} strokeWidth={2} />
+                ) : (
+                  <IconX size={twoUp ? 10 : 12} strokeWidth={1.75} />
+                )}
               </span>
               <span className="min-w-0">
                 <span
@@ -697,7 +702,15 @@ export function ContrastPair({
         <ul className="mt-6 space-y-5">
           {rows.map((row, i) => (
             <Reveal key={row.theirs} delay={i * 0.06}>
-              <li className="leading-[1.75] text-[var(--band-muted)]">{row.theirs}</li>
+              <li className="flex gap-3 leading-[1.75] text-[var(--band-muted)]">
+                <span
+                  aria-hidden="true"
+                  className="mt-1 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full border border-[var(--band-line)] text-[var(--band-muted)] opacity-70"
+                >
+                  <IconX size={9} strokeWidth={1.75} />
+                </span>
+                {row.theirs}
+              </li>
             </Reveal>
           ))}
         </ul>
@@ -713,8 +726,10 @@ export function ContrastPair({
               <li className="flex gap-3 leading-[1.75] text-[var(--band-body)]">
                 <span
                   aria-hidden="true"
-                  className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--lx-green)]"
-                />
+                  className="mt-1 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
+                >
+                  <IconCheck size={9} strokeWidth={2.25} />
+                </span>
                 {row.ours}
               </li>
             </Reveal>
@@ -882,9 +897,9 @@ export function Faq({ items }: { items: { q: string; a: string }[] }) {
             {item.q}
             <span
               aria-hidden="true"
-              className="shrink-0 text-xl leading-none text-[var(--lx-green)] transition-transform duration-200 group-open:rotate-45"
+              className="grid h-5 w-5 shrink-0 place-items-center text-[var(--lx-green)] transition-transform duration-200 group-open:rotate-45"
             >
-              +
+              <IconPlus size={14} />
             </span>
           </summary>
           <p className="mt-3 max-w-2xl leading-[1.85] text-[var(--band-muted)]">{item.a}</p>

@@ -33,8 +33,8 @@ export function MotionLink({ href, children, variant = 'primary', external = fal
         className={[
           'lx-focus inline-flex min-h-12 items-center justify-center rounded-full px-6 text-base font-semibold transition-colors duration-200',
           isPrimary
-            ? 'bg-[var(--lx-ink)] text-[var(--lx-cream)] hover:bg-[#14301f]'
-            : 'border border-[var(--lx-line)] bg-white text-[var(--lx-ink)] hover:border-[var(--lx-sage)]',
+            ? 'bg-[var(--lx-ink)] text-[var(--lx-cream)] hover:bg-[var(--lx-ink-deep)]'
+            : 'border border-[var(--lx-line)] bg-[var(--lx-paper)] text-[var(--lx-ink)] hover:border-[var(--lx-sage)]',
         ].join(' ')}
       >
         {children}

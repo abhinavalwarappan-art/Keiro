@@ -18,6 +18,7 @@ import {
   References,
 } from '@/components/landing-v3/Sections'
 import { VoiceMock } from '@/components/landing-v3/ChatMock'
+import { IconCheck } from '@/components/landing-v3/icons'
 
 export const metadata: Metadata = {
   title: 'Accessibility',
@@ -72,10 +73,10 @@ export default function AccessibilityPage() {
                 demo: (
                   <div className="flex items-center gap-3">
                     <span
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-sm font-bold text-white"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
                       aria-hidden="true"
                     >
-                      ✓
+                      <IconCheck size={18} strokeWidth={2} />
                     </span>
                     <span className="text-sm text-[var(--band-muted)]">
                       actual size,

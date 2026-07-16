@@ -38,8 +38,18 @@
      towards the brand hue, and that — not texture — is what makes a page feel
      atmospheric. Neither site ships a single noise or grid overlay. */
   --lx-cream: #fafaf9;      /* page ground */
+  --lx-paper: #fffdfa;      /* card ground — the one warm neutral. Pure #fff on
+                               a warm cream page reads as a hole; two points of
+                               warmth make a card read as paper sitting ON the
+                               page rather than a cutout through it. */
+  --lx-ink-deep: #14301f;   /* pressed/hover state of --lx-ink. Was hardcoded
+                               inline in four places; now it is a token. */
   --lx-body: #2f2b28;       /* body copy — warm charcoal */
   --lx-muted: #57534e;      /* secondary copy (7:1 on cream) */
+
+  /* Vertical rhythm — one clamp owns every band's breathing room, so section
+     air scales with the viewport instead of stepping at breakpoints. */
+  --lx-section: clamp(4rem, 2.75rem + 4.5vw, 7rem);
 
   /* Two-layer shadows — one far and soft, one near and tight, both tinted with
      the forest ink and never black, both capped at 10% alpha, with negative
@@ -53,14 +63,11 @@
   /* easeOutQuart — Stripe's movement curve. 150ms for colour, 300ms for motion. */
   --lx-ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
 
-  /* ONE family across display and body, differentiated by weight and tracking
-     alone — the discipline that makes Stripe read as a single engineered object.
-     Body is 400; display drops to 300 (see .lx-display). DM Sans stays in the
-     patient app, and in .lx-native for the 45 scripts Inter cannot draw.
-
-     Pairing DM Sans with Inter Tight would be the worst of both: two neutral
-     grotesques close enough to look like a mistake rather than a decision. */
-  font-family: var(--font-inter-tight), 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Body voice: a humanist sans that carries the reading without carrying the
+     voice — the voice belongs to the serif display tier (see .lx-display).
+     One sans for everything readable, one serif for everything said, one mono
+     for everything charted. Three faces, three jobs, no overlap. */
+  font-family: var(--font-source-sans), 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-weight: 400;
 
   background: var(--lx-cream);
@@ -68,92 +75,89 @@
 }
 
 /* ============================================================================
-   TYPE — the single biggest "is this a software company?" signal.
+   TYPE — the single biggest "who is speaking?" signal.
 
-   Stripe's scale, verbatim from their bundle:
+   The voice is a DOCUMENT serif, not a product grotesque. Literata is a book
+   face: built for long, patient reading, warm in its detailing, and completely
+   free of both the newspaper shout (high-contrast display serifs) and the
+   SaaS default (Inter and its relatives). On a healthcare product whose whole
+   promise is "I will wait as long as you need", the headline face should be
+   the one designed for taking your time.
 
-     heading-xxl  56px / 1.03 / -0.025em / weight 300
-     heading-xl   48px / 1.03 / -0.02em  / weight 300
-     heading-lg   32px / 1.07 / -0.02em  / weight 300
-     heading-md   26px / 1.10 / -0.01em  / weight 300
-     heading-xs   16px / 1.20 /  0em     / weight 400
-
-   Read what that says. The contrast is NOT size — it is weight and tracking
-   moving in lockstep WITH size. Big type gets *lighter*, *tighter* and
-   *closer-leaded* as it grows; small type gets sturdier and looser. The face
-   gets more airy the more of it there is.
-
-   Keiro was doing the exact opposite: every heading was a SEMIBOLD SERIF at
-   display size. A serif at 56px/700 is a newspaper front page. At 56px/300 with
-   -0.025em, a neo-grotesque is a piece of software.
+   The scale still moves weight and tracking WITH size — big type stays lighter
+   and closer-leaded, small type sturdier — but the serif needs gentler numbers
+   than a grotesque: serifs self-space, so tracking tighter than -0.015em makes
+   the letterforms collide.
 
    These classes own font-family, weight, tracking AND leading, so the JSX must
    NOT also pass Tailwind's font-weight, tracking or leading utilities — those sit
    later in the cascade and would win. Size (and only size) stays in the JSX.
    -------------------------------------------------------------------------- */
 
-/* The scale has THREE display tiers, not one, because the tracking and leading
-   have to move WITH the size — that is the whole rule. One class applied at every
-   size means the biggest headings are too loose and the mid-size ones are too
-   cramped; -0.025em is correct at 56px and visibly wrong at 22px. */
-
-/* xxl / xl — the h1s and the big numerals. 34–72px. */
+/* xxl / xl — the h1s and the big numerals. 34–72px. Optical sizing does the
+   display refinement; 430 on the variable axis is calm without going thin. */
 .lx-display {
-  font-family: var(--font-inter-tight), 'Inter', system-ui, -apple-system, sans-serif;
-  font-weight: 300;
-  letter-spacing: -0.025em;
-  line-height: 1.04;
-  /* Figures in a stat row must not jitter in place as they count up. */
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-literata), Georgia, 'Times New Roman', serif;
+  font-optical-sizing: auto;
+  font-weight: 430;
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+  /* Figures in a stat row must not jitter in place as they count up, and a
+     book face defaults to oldstyle figures — force lining for display work. */
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 /* lg / md — section headings, theses, quotes. 22–40px. Looser on both axes. */
 .lx-heading {
-  font-family: var(--font-inter-tight), 'Inter', system-ui, -apple-system, sans-serif;
-  font-weight: 300;
-  letter-spacing: -0.012em;
-  line-height: 1.16;
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-literata), Georgia, 'Times New Roman', serif;
+  font-optical-sizing: auto;
+  font-weight: 430;
+  letter-spacing: -0.008em;
+  line-height: 1.18;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
-/* Titles — h3, card headings, anything 16–24px. Sturdier and looser, per above. */
+/* Titles — h3, card headings, anything 16–24px. These are UI, not voice, so
+   they stay in the sans: a serif at card-title size reads like a hymn book. */
 .lx-title {
-  font-family: var(--font-inter-tight), 'Inter', system-ui, -apple-system, sans-serif;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+  font-family: var(--font-source-sans), 'Source Sans 3', system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.008em;
+  line-height: 1.3;
 }
 
-/* Eyebrows, labels, table headers, chrome. */
+/* Eyebrows, field labels, table headers, chrome — the CHART voice. One mono,
+   one tracking, everywhere: the same register a clinician's intake form uses
+   for its field names, which is exactly the association we want. Mono needs
+   far less tracking than a sans to read as spaced. */
 .lx-label {
-  font-family: var(--font-inter-tight), 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-spline-mono), ui-monospace, 'SF Mono', Menlo, monospace;
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
 
 /* Monospaced numerals for the precise, instrumental details — step indices,
-   spec figures, anything that wants to look measured rather than written. One of
-   the cheapest "engineers built this" tells there is. */
+   spec figures, ISO language codes, anything that wants to look measured
+   rather than written. Same face as .lx-label so the utility layer is ONE
+   voice, not a family of system fallbacks. */
 .lx-mono {
-  font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, monospace;
+  font-family: var(--font-spline-mono), ui-monospace, 'SF Mono', Menlo, monospace;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
-/* THE SERIF — an accent now, not the voice.
-
-   Fraunces used to set every heading on the site, which is what made the whole
-   thing read as an editorial magazine. It now appears on exactly the beats where
-   a deliberate tonal break is the point — the mission thesis, the "she is 72"
-   quote — and nowhere else. Wallpaper everywhere; a voice used twice. */
+/* THE ITALIC BEAT — the moments where the page stops explaining and says
+   something human (the mission thesis, the "she is 72" quote). Same family as
+   the headings, italic: a change of posture, not a change of speaker. */
 .lx-serif {
-  font-family: var(--font-fraunces), Georgia, 'Times New Roman', serif;
+  font-family: var(--font-literata), Georgia, 'Times New Roman', serif;
   font-optical-sizing: auto;
-  font-weight: 400;
-  letter-spacing: -0.015em;
-  line-height: 1.3;
+  font-style: italic;
+  font-weight: 420;
+  letter-spacing: -0.005em;
+  line-height: 1.32;
 }
 
 /* ----------------------------------------------------------------------------
@@ -164,7 +168,7 @@
    webfont subsets to a budget Android phone.
    -------------------------------------------------------------------------- */
 .lx-native {
-  font-family: var(--font-dm-sans), 'Noto Sans', 'Noto Sans Arabic', 'Noto Sans Devanagari',
+  font-family: var(--font-source-sans), 'Noto Sans', 'Noto Sans Arabic', 'Noto Sans Devanagari',
     'Noto Sans Bengali', 'Noto Sans SC', 'Noto Sans JP', 'Noto Sans KR', system-ui,
     -apple-system, 'Segoe UI', sans-serif;
   font-feature-settings: normal;
@@ -262,7 +266,7 @@
   --band-body: var(--lx-body);
   --band-muted: var(--lx-muted);
   --band-line: var(--lx-line);
-  --band-card: #ffffff;
+  --band-card: var(--lx-paper);
 }
 
 .lx-band-mint {
@@ -271,7 +275,7 @@
   --band-body: var(--lx-body);
   --band-muted: var(--lx-muted);
   --band-line: var(--lx-line);
-  --band-card: #ffffff;
+  --band-card: var(--lx-paper);
 }
 
 /* Deep band. Text is near-white and hairlines are white-alpha, so anything
@@ -297,14 +301,10 @@
    serif in the accent colour. One tiny component makes every heading on the site
    read as authored rather than generated.
    -------------------------------------------------------------------------- */
-/* Now that headings are a neo-grotesque, an italic SERIF phrase dropped into the
-   middle of one reads as an accident rather than as emphasis — two faces fighting
-   inside a single line.
-
-   Supabase's H1 shows the engineered way to do this: "Build in a weekend / Scale
-   to millions", where the payoff line is the same face at the same weight and is
-   simply the brand colour. The colour IS the emphasis. Nothing else changes, and
-   the line stays one object.
+/* The emphasis is a posture shift in the SAME face, plus the accent colour.
+   Colour alone was the tell that made every heading read as the same template;
+   a swapped-in second family would be worse (two voices in one sentence). An
+   italic of the same serif is how a book emphasises — which is the register.
 
    Colour is the display tier (--lx-green-accent), never the fill green — this is
    real text and it has to be readable by the people this product exists for. */
@@ -316,10 +316,16 @@
   color: var(--lx-sage);
 }
 
-/* Inside a serif beat, the accent stays serif — it would be strange for the
-   emphasis to leave the face mid-sentence. */
-.lx-serif .lx-accent {
+/* Inside upright headings the accent leans in… */
+.lx-display .lx-accent,
+.lx-heading .lx-accent {
   font-style: italic;
+}
+
+/* …and inside the italic beats it stands back up. Same family both ways: the
+   inversion is what makes the emphasis read as authored rather than defaulted. */
+.lx-serif .lx-accent {
+  font-style: normal;
 }
 
 /* ----------------------------------------------------------------------------
@@ -627,8 +633,8 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  /* Fraunces' descenders get clipped by background-clip without this. */
-  padding-bottom: 0.08em;
+  /* Serif descenders get clipped by background-clip without this. */
+  padding-bottom: 0.1em;
 }
 
 .lx-band-deep .lx-grad-text {
@@ -710,6 +716,88 @@
 }
 
 /* ----------------------------------------------------------------------------
+   SECTION RHYTHM — every band breathes on the same clamp, so vertical air
+   scales continuously with the viewport instead of stepping at breakpoints.
+   -------------------------------------------------------------------------- */
+.lx-section {
+  padding-block: var(--lx-section);
+}
+
+/* ----------------------------------------------------------------------------
+   THE MASCOT'S STAGE — Kai stands in a pool of the brand light instead of
+   floating in blank space. A radial wash plus one hairline ring; the ring is
+   what makes it read as a *place* rather than a glow. Purely decorative, so it
+   lives behind the figure and never intercepts a pointer.
+   -------------------------------------------------------------------------- */
+.lx-kai-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.lx-kai-stage::before {
+  content: '';
+  position: absolute;
+  inset: -8%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--lx-green) 16%, transparent) 0%,
+    color-mix(in oklab, var(--lx-green) 7%, transparent) 55%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.lx-kai-stage::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: 104%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid var(--lx-line);
+  pointer-events: none;
+}
+
+/* ----------------------------------------------------------------------------
+   LISTENING — three small bars beside the status label while Kai is taking
+   the patient in. The resting state is three calm dashes (correct under
+   reduced motion and before hydration); the animation is opt-in below, with
+   everything else. Heights move via scaleY only.
+   -------------------------------------------------------------------------- */
+.lx-listen {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 10px;
+}
+
+.lx-listen span {
+  width: 2px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--lx-green);
+  transform: scaleY(0.4);
+  transform-origin: center;
+}
+
+@keyframes lx-listen {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+/* ----------------------------------------------------------------------------
    THE HOVER BUS — one inherited boolean drives every child animation.
 
    Straight from Stripe, and it is the cheapest good idea they have. Instead of a
@@ -780,6 +868,18 @@
 @media (prefers-reduced-motion: no-preference) {
   .lx-breathe {
     animation: lx-breathe 6s ease-in-out infinite;
+  }
+
+  .lx-listen span {
+    animation: lx-listen 1.1s ease-in-out infinite;
+  }
+
+  .lx-listen span:nth-child(2) {
+    animation-delay: 0.18s;
+  }
+
+  .lx-listen span:nth-child(3) {
+    animation-delay: 0.36s;
   }
 
   .lx-marquee-track {

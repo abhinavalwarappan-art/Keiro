@@ -3,41 +3,50 @@
    Loaded here rather than in app/layout.tsx so the patient app keeps its
    single-typeface (DM Sans) rule.
 
-   TWO faces, with sharply separated jobs:
+   THREE faces, with sharply separated jobs — the register is "a clinician's
+   letterhead, read aloud by someone kind":
 
-   1. Inter Tight — display, headings, UI chrome, numerals. This is the
-      "engineered" face and it does the overwhelming majority of the work.
+   1. Literata — display, headings, and the emotional beats. A book face,
+      designed to be read slowly and patiently, which is the product promise
+      ("Kai will wait as long as you need") set in type. Warm, humanist
+      detailing; nothing newspaper about it at 400–500 with the optical-size
+      axis doing the display work. Emphasis inside a heading is the SAME face
+      in italic plus the accent green — a posture shift, not a font swap.
 
-      The reason the site read as a boutique magazine rather than as software was
-      not the colour or the layout: it was that every heading was a SEMIBOLD SERIF.
-      Stripe, Linear and Vercel all run the opposite discipline — a precise
-      neo-grotesque whose display sizes get *lighter* and *tighter* as they grow
-      (weight 300, tracking -0.025em, leading 1.03), while the small sizes get
-      sturdier (weight 500, tracking 0, leading 1.2). Type contrast comes from
-      weight and tracking moving in lockstep with size, never from size alone.
-      That inversion is most of the "serious engineering team" signal.
+   2. Source Sans 3 — body, UI chrome, buttons, card titles. A humanist sans
+      built for legibility at text sizes, with the Latin-ext + Vietnamese
+      coverage a multilingual brand actually exercises. It carries the reading;
+      it never carries the voice.
 
-   2. Fraunces — kept, but demoted to an accent. It now appears on two or three
-      deliberately emotional beats (the mission thesis, the "she is 72" quote) and
-      nowhere else. Used everywhere it was wallpaper; used twice it is a voice.
+   3. Spline Sans Mono — the clinical-utility layer: eyebrows, field labels,
+      ISO language codes, step indices, anything that should read as *charted*
+      rather than written. One mono, one tracking, everywhere.
 
-   Both are Latin-only. Anything rendering a *patient's* own language must use
-   `.lx-native` (a Noto/system stack — see landing.css), or the glyphs fall back
-   to a mismatched font. Never put translated copy in `.lx-display` or `.lx-serif`. */
+   All three are Latin-script faces. Anything rendering a *patient's* own
+   language must use `.lx-native` (Source Sans 3 first, then the Noto/system
+   stack — see landing.css), or the glyphs fall back to a mismatched font.
+   Never put translated copy in `.lx-display` or `.lx-serif`. */
 
-import { Fraunces, Inter_Tight } from 'next/font/google'
+import { Literata, Source_Sans_3, Spline_Sans_Mono } from 'next/font/google'
 
-export const interTight = Inter_Tight({
-  subsets: ['latin'],
+export const literata = Literata({
+  subsets: ['latin', 'latin-ext', 'vietnamese'],
   display: 'swap',
-  variable: '--font-inter-tight',
-  // 300 display / 400 body / 500 titles / 600 buttons. Nothing heavier: a
-  // 700-weight headline is a newspaper, and that is the look we are leaving.
-  weight: ['300', '400', '500', '600'],
+  variable: '--font-literata',
+  style: ['normal', 'italic'],
+  // Variable font: full weight axis, plus the optical-size axis — opsz is what
+  // keeps 56px headings airy while small serif moments stay sturdy.
+  axes: ['opsz'],
 })
 
-export const fraunces = Fraunces({
-  subsets: ['latin'],
+export const sourceSans = Source_Sans_3({
+  subsets: ['latin', 'latin-ext', 'vietnamese'],
   display: 'swap',
-  variable: '--font-fraunces',
+  variable: '--font-source-sans',
+})
+
+export const splineMono = Spline_Sans_Mono({
+  subsets: ['latin', 'latin-ext'],
+  display: 'swap',
+  variable: '--font-spline-mono',
 })

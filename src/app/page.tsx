@@ -20,7 +20,7 @@ import { useSearchParams } from 'next/navigation'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 import '@/components/landing-v3/landing.css'
-import { fraunces, interTight } from '@/components/landing-v3/fonts'
+import { literata, sourceSans, splineMono } from '@/components/landing-v3/fonts'
 import { Nav } from '@/components/landing-v3/Nav'
 import { Hero } from '@/components/landing-v3/Hero'
 import {
@@ -62,7 +62,7 @@ export default function LandingPage() {
         <div
           id="main-content"
           data-flow="home"
-          className={`lx ${interTight.variable} ${fraunces.variable} relative min-h-screen overflow-x-clip`}
+          className={`lx ${literata.variable} ${sourceSans.variable} ${splineMono.variable} relative min-h-screen overflow-x-clip`}
         >
           <div className="lx-grain" aria-hidden="true" />
 
