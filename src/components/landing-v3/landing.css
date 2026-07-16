@@ -227,7 +227,22 @@
    fastest way to make a light page look dirty.
    -------------------------------------------------------------------------- */
 .lx-demo-frame {
-  box-shadow: var(--lx-shadow-lg);
+  /* Three layers make it read as a physical pane of glass rather than a bordered
+     div: the long soft drop (height), a 1px tinted ring that crisps the outer
+     boundary against the cream, and an inset top-white highlight — the lit edge
+     a raised surface catches from above. The ring and highlight are what the old
+     single-shadow frame was missing; they cost nothing and read as software. */
+  box-shadow:
+    var(--lx-shadow-lg),
+    0 0 0 1px rgba(26, 61, 43, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* The frame's title bar. A faint top-down mint wash lifts it off the paper body
+   the way a real window chrome sits above its content — the difference between
+   "titlebar" and "a row with a bottom border". */
+.lx-demo-chrome {
+  background: linear-gradient(180deg, var(--lx-mint) 0%, var(--lx-paper) 100%);
 }
 
 @keyframes lx-caret {
@@ -644,6 +659,59 @@
 }
 
 /* ----------------------------------------------------------------------------
+   BUTTONS — the primary CTA carries more looks than anything else on the page,
+   so it is the one control that earns real elevation. A top-lit gradient (a
+   lightened ink edge falling to the base ink) plus an inset hairline of white
+   reads as a raised, physical button rather than a filled rectangle; the drop is
+   tinted forest-ink and pulled inward, never black. Hover deepens the ground and
+   the lift — honest here, because the Framer scale genuinely raises it, unlike a
+   card, which sits flat and must not swell.
+   -------------------------------------------------------------------------- */
+.lx-btn {
+  transition:
+    background 0.2s var(--lx-ease-quart),
+    border-color 0.2s var(--lx-ease-quart),
+    box-shadow 0.3s var(--lx-ease-quart);
+}
+
+.lx-btn-primary {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--lx-ink) 86%, #ffffff) 0%,
+    var(--lx-ink) 100%
+  );
+  color: var(--lx-cream);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 6px 18px -6px rgba(26, 61, 43, 0.42),
+    0 2px 6px -2px rgba(26, 61, 43, 0.26);
+}
+
+.lx-btn-primary:hover {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--lx-ink-deep) 86%, #ffffff) 0%,
+    var(--lx-ink-deep) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 12px 28px -8px rgba(26, 61, 43, 0.5),
+    0 3px 8px -2px rgba(26, 61, 43, 0.3);
+}
+
+.lx-btn-ghost {
+  background: var(--lx-paper);
+  color: var(--lx-ink);
+  border: 1px solid var(--lx-line);
+  box-shadow: var(--lx-shadow-sm);
+}
+
+.lx-btn-ghost:hover {
+  border-color: var(--lx-sage);
+  box-shadow: var(--lx-shadow-md);
+}
+
+/* ----------------------------------------------------------------------------
    CARD — one shared card, with a gradient hairline that only appears on hover.
 
    Supabase's trick, and it is a good one: the resting state is almost nothing
@@ -690,7 +758,11 @@
    So the shadow is static, and the hover is carried by the two things that
    actually change: a 2px lift, and the gradient hairline arriving. */
 .lx-card {
-  box-shadow: var(--lx-shadow-sm);
+  /* Static drop, plus a whisper of inset top-white so the card has dimension at
+     rest — it reads as paper catching light from above, not a flat fill waiting
+     for a cursor. The highlight stays; only the lift and hairline move on hover,
+     so the no-shadow-swell rule above is intact. */
+  box-shadow: var(--lx-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .lx-card:hover,

@@ -352,7 +352,7 @@ export function KaiDemo() {
             "product" from "div with a border". */}
         <div
           dir={script.rtl ? 'rtl' : 'ltr'}
-          className="flex items-center justify-between gap-3 border-b border-[var(--lx-line)] px-4 py-2.5"
+          className="lx-demo-chrome flex items-center justify-between gap-3 border-b border-[var(--lx-line)] px-4 py-2.5"
         >
           <span className="flex items-center gap-2">
             <KaiDot size={22} />

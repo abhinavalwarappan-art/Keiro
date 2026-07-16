@@ -31,10 +31,8 @@ export function MotionLink({ href, children, variant = 'primary', external = fal
         href={href}
         {...externalProps}
         className={[
-          'lx-focus inline-flex min-h-12 items-center justify-center rounded-full px-6 text-base font-semibold transition-colors duration-200',
-          isPrimary
-            ? 'bg-[var(--lx-ink)] text-[var(--lx-cream)] hover:bg-[var(--lx-ink-deep)]'
-            : 'border border-[var(--lx-line)] bg-[var(--lx-paper)] text-[var(--lx-ink)] hover:border-[var(--lx-sage)]',
+          'lx-focus lx-btn inline-flex min-h-12 items-center justify-center rounded-full px-6 text-base font-semibold',
+          isPrimary ? 'lx-btn-primary' : 'lx-btn-ghost',
         ].join(' ')}
       >
         {children}
