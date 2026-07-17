@@ -65,6 +65,7 @@
   "confirm.openChatIn": "We'll open your chat in {language}, so you can tell me what's wrong in your own words. You can change this anytime.",
   "confirm.continueIn": "Continue in {language}",
   "chat.log": "Conversation with Kai",
+  "chat.composer": "Message controls",
   "chat.typing": "Kai is typing…",
   "chat.endSession": "End session and sign out",
   "chat.sessionExpiring": "Your session will expire soon. Prepare your report before it ends.",

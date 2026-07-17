@@ -208,8 +208,10 @@ test.describe('/terms page', () => {
     await expect(page.getByText(/Free Forever/i).first()).toBeAttached()
   })
 
-  test('emergency disclaimer mentions 911', async ({ page }) => {
-    await expect(page.getByText(/call 911/i)).toBeAttached()
+  test('emergency disclaimer tells the reader to call their local emergency number', async ({ page }) => {
+    // Since 1851d1f the terms deliberately say "local emergency number", not a
+    // hardcoded US 911 — most Keiro patients are not calling US services.
+    await expect(page.getByText(/call your local emergency number/i).first()).toBeAttached()
   })
 
   test('back arrow link href points to /', async ({ page }) => {

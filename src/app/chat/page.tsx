@@ -246,7 +246,7 @@ function ChatContent() {
   const [preparedReport, setPreparedReport] = useState<Report | null>(restoredSession?.preparedReport ?? null)
   const [reportError, setReportError] = useState(false)
   const isKaiSpeaking = useSpeechActive()
-  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLElement>(null)
   const kaiReplyInFlightRef = useRef(false)
   const chatAbortRef = useRef<AbortController | null>(null)
   const openingRequestedRef = useRef(restoredHasMessages)
@@ -631,13 +631,13 @@ function ChatContent() {
     return (
       <div className="flex h-dvh flex-col bg-transparent">
         <TopBar kaiState="idle" language={langName} langNative={langNative} />
-        <div data-lenis-prevent className="flex-1 overflow-y-auto">
+        <main id="main-content" data-lenis-prevent className="flex-1 overflow-y-auto">
           <PatientProfileIntake
             langCode={langCode}
             langName={langName}
             onComplete={handleProfileComplete}
           />
-        </div>
+        </main>
       </div>
     )
   }
@@ -665,7 +665,11 @@ function ChatContent() {
         }
       />
 
-      <div ref={scrollRef} data-lenis-prevent className="flex-1 overflow-y-auto">
+      {/* main#main-content on every page: skip-link target + landmark navigation */}
+      <main id="main-content" ref={scrollRef} data-lenis-prevent className="flex-1 overflow-y-auto">
+        {/* sr-only h1: the chat screen's visible chrome is the TopBar, which has
+            no heading — screen-reader users still deserve a page title. */}
+        <h1 className="sr-only">{t('chat.log')}</h1>
         <div
           role="log"
           aria-label={t('chat.log')}
@@ -752,9 +756,11 @@ function ChatContent() {
             )}
           </AnimatePresence>
         </div>
-      </div>
+      </main>
 
-      <div className="border-t border-border-subtle bg-surface">
+      {/* Named section = landmark: the composer sits below <main> so screen
+          readers can still reach it by landmark navigation. */}
+      <section aria-label={t('chat.composer')} className="border-t border-border-subtle bg-surface">
         {preparedReport && (
           <div className="mx-auto w-full max-w-2xl px-4 pt-3">
             <p className="mb-2 text-sm font-medium text-text-secondary">
@@ -803,7 +809,7 @@ function ChatContent() {
             langCode={langCode}
           />
         </div>
-      </div>
+      </section>
     </motion.div>
   )
 }

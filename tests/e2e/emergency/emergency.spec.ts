@@ -42,18 +42,23 @@ test.describe('/emergency page', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'This looks urgent' })).toBeVisible()
   })
 
-  test('shows the "Emergency message in all languages" section heading and 911 badge', async ({ page }) => {
+  test('shows the "Emergency message in all languages" section heading and number badge', async ({ page }) => {
     await page.goto('/emergency')
 
-    // page.tsx lines 97-99: h2 with "Emergency message in all languages"
+    // h2 with "Emergency message in all languages"
     await expect(
       page.getByRole('heading', { name: /emergency message in all languages/i }),
     ).toBeVisible()
 
-    // page.tsx lines 100-102: a <span> badge containing "911"
-    // The badge sits in the same row as the heading; scoped to the translations section.
-    const badge = page.locator('span', { hasText: '911' }).first()
+    // Since 1851d1f the number is locale-resolved, never hardcoded 911: a bare
+    // visit (no ?lang=, no chat session) shows the global GSM fallback 112.
+    const badge = page.locator('span', { hasText: '112' }).first()
     await expect(badge).toBeVisible()
+  })
+
+  test('?lang= resolves the locale-specific emergency number (en-US → 911)', async ({ page }) => {
+    await page.goto('/emergency?lang=en-US')
+    await expect(page.locator('span', { hasText: '911' }).first()).toBeVisible()
   })
 
   test('renders all 15 language translation cards', async ({ page }) => {

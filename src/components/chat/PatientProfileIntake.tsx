@@ -88,7 +88,7 @@ function ChoiceRow<T extends string>({
               aria-pressed={selected}
               onClick={() => onSelect(opt.value)}
               className={cn(
-                'min-h-[36px] rounded-md border px-3.5 py-1.5 text-sm font-medium transition-colors duration-150',
+                'min-h-[44px] rounded-md border px-3.5 py-1.5 text-sm font-medium transition-colors duration-150',
                 selected
                   ? 'border-brand-strong bg-brand-subtle text-brand-ink'
                   : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
@@ -410,7 +410,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                       type="button"
                       onClick={() => setBiologicalSex(opt.value)}
                       className={cn(
-                        'min-h-[40px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
+                        'min-h-[44px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
                         biologicalSex === opt.value
                           ? 'border-brand-strong bg-brand-subtle text-brand-ink'
                           : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
@@ -447,7 +447,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                   onChange={e => setChronicConditions(e.target.value)}
                   rows={2}
                   placeholder={t('intake.chronicPlaceholder')}
-                  className="w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-base text-text-primary placeholder:text-text-placeholder focus:border-brand-strong focus:outline-none focus:ring-2 focus:ring-brand-strong/25"
+                  className="w-full rounded-md border border-border-subtle bg-surface px-3 py-2 text-base text-text-primary placeholder:text-text-placeholder focus:border-brand-ink focus:outline-none focus:ring-2 focus:ring-brand-ink/25"
                 />
               </div>
 
@@ -466,7 +466,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                         aria-pressed={active}
                         onClick={() => toggleLifestyle(opt.key)}
                         className={cn(
-                          'min-h-[40px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
+                          'min-h-[44px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
                           active
                             ? 'border-brand-strong bg-brand-subtle text-brand-ink'
                             : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
@@ -527,7 +527,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                   type="checkbox"
                   checked={consentChecked}
                   onChange={e => setConsentChecked(e.target.checked)}
-                  className="mt-0.5 size-4 shrink-0 rounded border-border-default accent-brand-ink"
+                  className="mt-0.5 size-5 shrink-0 rounded border-border-default accent-brand-ink"
                 />
                 <span className="text-sm leading-relaxed text-text-secondary">
                   {renderConsent(t)}

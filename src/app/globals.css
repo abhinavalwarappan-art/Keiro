@@ -17,10 +17,15 @@
   --border-default: #D6D3D1;
   --border-strong:  #A8A29E;
 
+  /* Text neutrals — measured on white AND on --sunken (the worst-case ground).
+     tertiary was #79716B (4.3:1 on sunken — an AA fail) and placeholder was
+     #A8A29E (2.5:1 — WCAG applies to placeholders too). Both now clear 4.5:1
+     everywhere, ≥5.5:1 on white, for the older low-vision readers this product
+     serves. Hierarchy survives: primary > secondary > tertiary > placeholder. */
   --text-primary:     #1C1917;
   --text-secondary:   #57534E;
-  --text-tertiary:    #79716B;
-  --text-placeholder: #A8A29E;
+  --text-tertiary:    #675F59;
+  --text-placeholder: #6E6862;
   --text-inverse:     #FAFAF9;
 
   /* Brand — teal, used sparingly. `ink` shades are the AA-safe fills/links. */
@@ -192,9 +197,13 @@
     color: var(--text-placeholder);
   }
 
-  /* Focus — visible, on-brand, never removed */
+  /* Focus — visible, on-brand, never removed.
+     Ring is --brand-ink, not --brand-strong: the mint #00e0aa measured 1.75:1
+     on white — invisible to exactly the low-vision keyboard users who depend
+     on it. WCAG 1.4.11 needs ≥3:1; --brand-ink clears 5.9:1 on every app
+     surface. The app is light-only, so one ring colour is safe globally. */
   :focus-visible {
-    outline: 2px solid var(--brand-strong);
+    outline: 2px solid var(--brand-ink);
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -209,7 +218,7 @@
   }
 
   button:focus-visible {
-    outline: 2px solid var(--brand-strong);
+    outline: 2px solid var(--brand-ink);
     outline-offset: 2px;
   }
 
@@ -223,7 +232,7 @@
   }
 
   input:focus-visible, textarea:focus-visible {
-    outline: 2px solid var(--brand-strong);
+    outline: 2px solid var(--brand-ink);
     outline-offset: 1px;
   }
 

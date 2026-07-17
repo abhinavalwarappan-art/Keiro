@@ -177,11 +177,9 @@ export function MeetKaiBand() {
               b: 'If you ask, I will tell you plainly that I am an AI. You have a right to know who you are talking to.',
             },
           ].map((item, i) => (
-            <Reveal key={item.t} delay={i * 0.07}>
-              <li>
-                <h3 className="lx-title text-[var(--band-ink)]">{item.t}</h3>
-                <p className="mt-1 leading-[1.75] text-[var(--band-muted)]">{item.b}</p>
-              </li>
+            <Reveal as="li" key={item.t} delay={i * 0.07}>
+              <h3 className="lx-title text-[var(--band-ink)]">{item.t}</h3>
+              <p className="mt-1 leading-[1.75] text-[var(--band-muted)]">{item.b}</p>
             </Reveal>
           ))}
         </ul>

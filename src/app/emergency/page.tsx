@@ -82,7 +82,7 @@ export default function EmergencyPage() {
 
   return (
     <div className="min-h-screen bg-transparent">
-      <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-4 py-4 sm:py-6">
+      <main id="main-content" className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-4 py-4 sm:py-6">
         {/* Header — the one place red owns the screen */}
         <section className="overflow-hidden rounded-2xl border border-error/20 bg-error text-center shadow-[0_18px_45px_rgba(220,38,38,0.22)]">
           <div className="relative px-5 py-8">
@@ -106,7 +106,10 @@ export default function EmergencyPage() {
               </motion.div>
             </div>
             <h1 className="text-2xl font-semibold tracking-tight text-white text-balance">This looks urgent</h1>
-            <p className="mt-2 text-sm font-medium text-white/85">Please get help now</p>
+            {/* Full white, not white/85: on the red ground /85 measured 3.8:1 —
+                below AA — and this line is the instruction on a life-critical
+                screen shown to stressed, often older, often low-vision users. */}
+            <p className="mt-2 text-sm font-medium text-white">Please get help now</p>
           </div>
         </section>
 

@@ -14,13 +14,13 @@ export default function PrivacyPage() {
       className="flex flex-col min-h-screen"
       style={{ maxWidth: 640, margin: '0 auto', background: 'white' }}
     >
-      <div
+      <header
         className="flex items-center gap-3 px-6 py-4 sticky top-0 z-10"
         style={{ background: 'white', borderBottom: '1px solid var(--border-subtle)' }}
       >
         <Link
           href="/"
-          className="w-8 h-8 rounded-lg flex items-center justify-center"
+          className="w-11 h-11 rounded-lg flex items-center justify-center"
           style={{ background: 'var(--brand-subtle)' }}
           aria-label="Back to home"
         >
@@ -29,9 +29,10 @@ export default function PrivacyPage() {
         <h1 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
           Privacy Policy
         </h1>
-      </div>
+      </header>
 
-      <div className="px-6 py-8 max-w-none">
+      {/* main#main-content on every page: skip-link target + landmark navigation */}
+      <main id="main-content" className="px-6 py-8 max-w-none">
         <p className="text-xs mb-8" style={{ color: 'var(--text-secondary)' }}>
           Last updated: {LAST_UPDATED}
         </p>
@@ -185,7 +186,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             If you believe a child under 13 has provided us information, please contact us at{' '}
-            <a href="mailto:privacy@keiro.app" style={{ color: 'var(--brand-ink)' }}>
+            <a href="mailto:privacy@keiro.app" className="underline" style={{ color: 'var(--brand-ink)' }}>
               privacy@keiro.app
             </a>{' '}
             and we will delete it immediately.
@@ -243,7 +244,7 @@ export default function PrivacyPage() {
           <p>
             If you have any question about this policy, or want to exercise any of your rights,
             email us at:{' '}
-            <a href="mailto:privacy@keiro.app" style={{ color: 'var(--brand-ink)' }}>
+            <a href="mailto:privacy@keiro.app" className="underline" style={{ color: 'var(--brand-ink)' }}>
               privacy@keiro.app
             </a>
             . We will reply within 10 business days.
@@ -258,7 +259,7 @@ export default function PrivacyPage() {
             {' · '}Keiro · Free forever
           </p>
         </div>
-      </div>
+      </main>
     </motion.div>
   )
 }

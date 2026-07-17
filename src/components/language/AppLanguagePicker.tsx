@@ -48,14 +48,14 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
       </header>
 
       <div className="shrink-0 px-5 pb-3">
-        <div className="flex items-center gap-3 rounded-xl border border-white/15 bg-white/8 px-4 py-3 backdrop-blur-md">
+        <div className="flex items-center gap-3 rounded-xl border border-white/15 bg-white/8 px-4 py-1 backdrop-blur-md">
           <Search size={18} className="shrink-0 text-white/45" aria-hidden />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search languages…"
-            className="flex-1 bg-transparent text-base text-white placeholder:text-white/35 focus:outline-none"
+            className="min-h-[44px] flex-1 bg-transparent text-base text-white placeholder:text-white/35 focus:outline-none"
             aria-label="Search languages"
             autoComplete="off"
             enterKeyHint="search"

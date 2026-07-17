@@ -23,13 +23,16 @@
 
      Pick by ROLE, and never by eye:
        --lx-green         fills only. Never text. Contrast rules do not apply.
-       --lx-green-accent  green text at display size (≥24px). 3.93:1 — AA Large.
-       --lx-green-ink     green text at body size, and every link. 6.71:1 — AA. */
+       --lx-green-accent  green text at display size (≥24px). 4.8:1 — AAA Large.
+       --lx-green-ink     green text at body size, and every link. 7.2:1 — AAA.
+
+     Ratios target AAA (7:1 body, 4.5:1 large), not the AA floor: the core
+     audience skews older and low-vision, so "barely passes" is not enough. */
   --lx-ink: #1a3d2b;           /* headings, primary button ground */
   --lx-green: #2da866;         /* FILLS ONLY — rings, rules, chips, ticks */
-  --lx-green-accent: #1f8f55;  /* LARGE TEXT — 3.93:1 on cream, AA Large */
-  --lx-green-ink: #14663c;     /* BODY TEXT + LINKS — 6.71:1 on cream, AA */
-  --lx-sage: #5dcaa5;          /* light text on the deep band only (5.99:1) */
+  --lx-green-accent: #187f48;  /* LARGE TEXT — 4.8:1 on cream, AAA Large */
+  --lx-green-ink: #126137;     /* BODY TEXT + LINKS — 7.2:1 on cream, AAA */
+  --lx-sage: #86d9bc;          /* light text on the deep band only (7.3:1) */
   --lx-mint: #edfaf4;          /* card + section surfaces */
   --lx-line: #c5edd8;          /* borders */
 
@@ -255,9 +258,13 @@
   }
 }
 
-/* Soft focus ring used across every interactive element on the page. */
+/* Soft focus ring used across every interactive element on the page.
+   Ring colour is band-aware: --lx-green measured only 2.91:1 on cream — below
+   the 3:1 WCAG 1.4.11 floor for focus indicators, which matters doubly for the
+   keyboard-navigating, low-vision users this product exists for. Each band
+   palette sets --band-focus to a colour that clears 3:1 on its own ground. */
 .lx-focus:focus-visible {
-  outline: 3px solid var(--lx-green);
+  outline: 3px solid var(--band-focus, var(--lx-green-ink));
   outline-offset: 3px;
   border-radius: 12px;
 }
@@ -282,6 +289,7 @@
   --band-muted: var(--lx-muted);
   --band-line: var(--lx-line);
   --band-card: var(--lx-paper);
+  --band-focus: var(--lx-green-ink);
 }
 
 .lx-band-mint {
@@ -291,17 +299,22 @@
   --band-muted: var(--lx-muted);
   --band-line: var(--lx-line);
   --band-card: var(--lx-paper);
+  --band-focus: var(--lx-green-ink);
 }
 
 /* Deep band. Text is near-white and hairlines are white-alpha, so anything
-   dropped in here stays legible without per-element overrides. */
+   dropped in here stays legible without per-element overrides.
+   --band-muted is 0.72 alpha, not lower: 0.62 measured 5.7:1, and muted copy
+   in the deep band is still body-size prose that older readers need. 0.72
+   composites to ~7.0:1 on --lx-ink. */
 .lx-band-deep {
   --band-bg: var(--lx-ink);
   --band-ink: #ffffff;
   --band-body: rgba(255, 255, 255, 0.82);
-  --band-muted: rgba(255, 255, 255, 0.62);
+  --band-muted: rgba(255, 255, 255, 0.72);
   --band-line: rgba(255, 255, 255, 0.16);
   --band-card: rgba(255, 255, 255, 0.08);
+  --band-focus: var(--lx-sage);
 }
 
 /* Glass card — only legible over .lx-band-deep. */

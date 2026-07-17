@@ -38,11 +38,18 @@ type RevealProps = {
   variant?: RevealVariant
   delay?: number
   className?: string
+  /* Render as a list item when the Reveal sits directly inside a <ul>/<ol>.
+     A <ul> whose direct children are wrapper <div>s is invalid list markup
+     (axe: `list`/`listitem`) — screen readers stop announcing "list, N items",
+     and browser translation tools can mis-segment the content. The reveal
+     wrapper must BE the <li>, never sit between the list and its items. */
+  as?: 'div' | 'li'
 }
 
-export function Reveal({ children, variant = 'up', delay = 0, className }: RevealProps) {
+export function Reveal({ children, variant = 'up', delay = 0, className, as = 'div' }: RevealProps) {
+  const Tag = as === 'li' ? motion.li : motion.div
   return (
-    <motion.div
+    <Tag
       className={className}
       variants={VARIANTS[variant]}
       initial="hidden"
@@ -53,6 +60,6 @@ export function Reveal({ children, variant = 'up', delay = 0, className }: Revea
       transition={{ duration: DURATION_MOVE, ease: EASE_OUT_QUART, delay }}
     >
       {children}
-    </motion.div>
+    </Tag>
   )
 }

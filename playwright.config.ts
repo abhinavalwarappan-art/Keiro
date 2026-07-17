@@ -41,17 +41,17 @@ export default defineConfig({
     // One real anonymous sign-in, saved to GUEST_STATE.
     { name: 'setup', testMatch: /auth\.setup\.ts$/ },
 
-    // Everything except the chat specs runs unauthenticated, as authored.
+    // Everything except the session-gated specs runs unauthenticated, as authored.
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: /[\\/]chat[\\/]/,
+      testIgnore: /[\\/](chat|a11y-authed)[\\/]/,
     },
 
-    // Chat specs reuse the single shared guest session (no per-test sign-in).
+    // Chat + authed-a11y specs reuse the single shared guest session (no per-test sign-in).
     {
       name: 'chromium-authed',
-      testMatch: /[\\/]chat[\\/].*\.spec\.ts$/,
+      testMatch: /[\\/](chat|a11y-authed)[\\/].*\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'], storageState: GUEST_STATE },
       dependencies: ['setup'],
     },

@@ -235,7 +235,6 @@ export default function SettingsPage() {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      id="main-content"
       className="flex min-h-dvh flex-col bg-transparent"
     >
       <header className="sticky top-0 z-10 flex min-h-14 items-center gap-3 border-b border-border-subtle bg-surface px-4">
@@ -249,7 +248,9 @@ export default function SettingsPage() {
         <h1 className="text-base font-semibold text-text-primary">Settings</h1>
       </header>
 
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 p-4 pb-10">
+      {/* <main>, not a div with the id: the skip link needs the id AND
+          screen-reader users need the main landmark (was landmark-one-main). */}
+      <main id="main-content" className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 p-4 pb-10">
         {loading ? (
           <>
             <div className="skeleton h-24 rounded-lg" />
@@ -327,7 +328,7 @@ export default function SettingsPage() {
                     aria-checked={profile.romanization_enabled}
                     aria-label="Show romanized text"
                     onClick={handleRomanizationToggle}
-                    className="w-12 h-7 rounded-full relative flex-shrink-0"
+                    className="w-12 h-7 rounded-full relative flex-shrink-0 after:absolute after:-inset-2"
                     style={{ background: profile.romanization_enabled ? C.brand : C.border, transition: 'background 0.2s' }}
                   >
                     <motion.span
@@ -352,7 +353,7 @@ export default function SettingsPage() {
                   aria-checked={analyticsOn}
                   aria-label="Anonymous analytics"
                   onClick={handleAnalyticsToggle}
-                  className="w-12 h-7 rounded-full relative flex-shrink-0"
+                  className="w-12 h-7 rounded-full relative flex-shrink-0 after:absolute after:-inset-2"
                   style={{ background: analyticsOn ? C.brand : C.border, transition: 'background 0.2s' }}
                 >
                   <motion.span
@@ -428,7 +429,7 @@ export default function SettingsPage() {
             </div>
           </>
         )}
-      </div>
+      </main>
 
       <AnimatePresence>
         {showFeedback && (

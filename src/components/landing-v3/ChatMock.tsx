@@ -111,7 +111,10 @@ export function ReportMock() {
   return (
     <div className="lx-demo-frame rounded-[16px] border border-[var(--band-line)] bg-[var(--lx-paper)] p-5">
       <div className="flex items-baseline justify-between gap-3 border-b-[1.5px] border-[var(--lx-ink)] pb-3">
-        <h4 className="lx-heading text-[1.15rem] text-[var(--lx-ink)]">Intake summary</h4>
+        {/* <p>, not <h4>: this titles a decorative UI specimen, not a document
+            section — as a heading it skipped a level (h2 → h4) in the page
+            outline that screen-reader users navigate by. */}
+        <p className="lx-heading text-[1.15rem] text-[var(--lx-ink)]">Intake summary</p>
         <span className="lx-label text-[0.625rem] text-[var(--lx-muted)]">English</span>
       </div>
 

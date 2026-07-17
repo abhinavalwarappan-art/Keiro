@@ -26,14 +26,16 @@ export default function LanguageSelector({ selected, onSelect, showRomanization 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="shrink-0 border-b border-border-subtle bg-surface px-4 py-3">
-        <div className="flex items-center gap-3 rounded-md border border-border-subtle bg-sunken px-4 py-2.5 transition-[border-color] duration-150 focus-within:border-brand-strong">
+        <div className="flex items-center gap-3 rounded-md border border-border-subtle bg-sunken px-4 py-1 transition-[border-color] duration-150 focus-within:border-brand-ink">
           <Search size={16} className="shrink-0 text-text-tertiary" aria-hidden />
+          {/* min-h keeps the field itself a ≥44px target — the padded wrapper
+              isn't clickable, so its size doesn't count for touch. */}
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search languages…"
-            className="flex-1 bg-transparent text-base text-text-primary placeholder:text-text-placeholder focus:outline-none"
+            className="min-h-[44px] flex-1 bg-transparent text-base text-text-primary placeholder:text-text-placeholder focus:outline-none"
             aria-label="Search languages"
           />
         </div>

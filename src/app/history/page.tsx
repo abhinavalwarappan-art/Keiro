@@ -91,7 +91,8 @@ function HistoryInner() {
         <h1 className="text-base font-semibold text-text-primary">Past visits</h1>
       </header>
 
-      <div className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
+      {/* main#main-content on every page: skip-link target + landmark navigation */}
+      <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
         {loading ? (
           /* Mirrors the loaded report rows exactly — no layout shift */
           <div className="flex flex-col gap-3">
@@ -161,7 +162,7 @@ function HistoryInner() {
             </AnimatePresence>
           </div>
         )}
-      </div>
+      </main>
     </motion.div>
   )
 }

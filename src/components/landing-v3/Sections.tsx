@@ -192,18 +192,23 @@ export type Stat = {
 export function StatRow({ stats }: { stats: Stat[] }) {
   return (
     <dl className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      {/* The Reveal IS the dl's group wrapper: <dl> allows one level of <div>
+          around each dt/dd pair, but a second nested div breaks the semantics
+          (axe: definition-list/dlitem). Same rule applies to every dl below. */}
       {stats.map((stat, i) => (
-        <Reveal key={stat.label} delay={i * 0.08}>
-          <div className="border-t-2 border-[var(--lx-green)] pt-5 sm:border-l-2 sm:border-t-0 sm:pl-6 sm:pt-0">
-            <dt className="lx-display text-[clamp(2.4rem,5vw,3.4rem)] leading-none text-[var(--band-ink)]">
-              {stat.prefix}
-              <CountUp value={stat.value} suffix={stat.suffix} />
-            </dt>
-            <dd className="mt-3">
-              <span className="block font-semibold text-[var(--band-ink)]">{stat.label}</span>
-              <span className="mt-1 block leading-[1.7] text-[var(--band-muted)]">{stat.note}</span>
-            </dd>
-          </div>
+        <Reveal
+          key={stat.label}
+          delay={i * 0.08}
+          className="border-t-2 border-[var(--lx-green)] pt-5 sm:border-l-2 sm:border-t-0 sm:pl-6 sm:pt-0"
+        >
+          <dt className="lx-display text-[clamp(2.4rem,5vw,3.4rem)] leading-none text-[var(--band-ink)]">
+            {stat.prefix}
+            <CountUp value={stat.value} suffix={stat.suffix} />
+          </dt>
+          <dd className="mt-3">
+            <span className="block font-semibold text-[var(--band-ink)]">{stat.label}</span>
+            <span className="mt-1 block leading-[1.7] text-[var(--band-muted)]">{stat.note}</span>
+          </dd>
         </Reveal>
       ))}
     </dl>
@@ -225,25 +230,23 @@ export function StatCards({ stats }: { stats: Stat[] }) {
   return (
     <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat, i) => (
-        <Reveal key={stat.label} delay={i * 0.07} className="h-full">
-          <div className="lx-card group flex h-full flex-col p-6">
-            <dt className="lx-display flex items-baseline text-[clamp(2.6rem,4.6vw,3.5rem)] leading-none">
-              <span className="lx-grad-text">
-                {stat.prefix}
-                <CountUp value={stat.value} suffix={stat.suffix} />
-              </span>
-            </dt>
-            <dd className="mt-5 flex flex-1 flex-col">
-              <span className="text-base font-semibold text-[var(--band-ink)]">{stat.label}</span>
-              <span className="mt-2 text-[0.95rem] leading-[1.7] text-[var(--band-muted)]">
-                {stat.note}
-              </span>
-            </dd>
-            <span
-              className="mt-6 h-[3px] w-10 rounded-full bg-[var(--lx-green)] opacity-40 transition-all duration-500 group-hover:w-full group-hover:opacity-100"
-              aria-hidden="true"
-            />
-          </div>
+        <Reveal key={stat.label} delay={i * 0.07} className="lx-card group flex h-full flex-col p-6">
+          <dt className="lx-display flex items-baseline text-[clamp(2.6rem,4.6vw,3.5rem)] leading-none">
+            <span className="lx-grad-text">
+              {stat.prefix}
+              <CountUp value={stat.value} suffix={stat.suffix} />
+            </span>
+          </dt>
+          <dd className="mt-5 flex flex-1 flex-col">
+            <span className="text-base font-semibold text-[var(--band-ink)]">{stat.label}</span>
+            <span className="mt-2 text-[0.95rem] leading-[1.7] text-[var(--band-muted)]">
+              {stat.note}
+            </span>
+          </dd>
+          <span
+            className="mt-6 h-[3px] w-10 rounded-full bg-[var(--lx-green)] opacity-40 transition-all duration-500 group-hover:w-full group-hover:opacity-100"
+            aria-hidden="true"
+          />
         </Reveal>
       ))}
     </dl>
@@ -269,20 +272,22 @@ export function SpecRows({ specs }: { specs: Spec[] }) {
   return (
     <dl className="border-t border-[var(--band-line)]">
       {specs.map((spec, i) => (
-        <Reveal key={spec.label} delay={i * 0.06}>
-          <div className="grid items-center gap-4 border-b border-[var(--band-line)] py-7 sm:grid-cols-[7rem_1fr] sm:gap-8 lg:grid-cols-[8rem_1.4fr_1fr]">
-            {/* Display-size text, so it takes the AA-Large green, not the fill. */}
-            <dt className="lx-display text-[clamp(1.9rem,3.4vw,2.6rem)] leading-none text-[var(--lx-green-accent)]">
-              {spec.figure}
-            </dt>
-            <dd className="min-w-0">
-              <span className="block font-semibold text-[var(--band-ink)]">{spec.label}</span>
-              <span className="mt-1.5 block leading-[1.7] text-[var(--band-muted)]">
-                {spec.note}
-              </span>
-            </dd>
-            <dd className="min-w-0 lg:justify-self-end">{spec.demo}</dd>
-          </div>
+        <Reveal
+          key={spec.label}
+          delay={i * 0.06}
+          className="grid items-center gap-4 border-b border-[var(--band-line)] py-7 sm:grid-cols-[7rem_1fr] sm:gap-8 lg:grid-cols-[8rem_1.4fr_1fr]"
+        >
+          {/* Display-size text, so it takes the AAA-Large green, not the fill. */}
+          <dt className="lx-display text-[clamp(1.9rem,3.4vw,2.6rem)] leading-none text-[var(--lx-green-accent)]">
+            {spec.figure}
+          </dt>
+          <dd className="min-w-0">
+            <span className="block font-semibold text-[var(--band-ink)]">{spec.label}</span>
+            <span className="mt-1.5 block leading-[1.7] text-[var(--band-muted)]">
+              {spec.note}
+            </span>
+          </dd>
+          <dd className="min-w-0 lg:justify-self-end">{spec.demo}</dd>
         </Reveal>
       ))}
     </dl>
@@ -300,8 +305,12 @@ export function NumberedSteps({ steps }: { steps: Step[] }) {
   return (
     <ol className="space-y-5">
       {steps.map((step, i) => (
-        <Reveal key={step.n} delay={i * 0.07}>
-          <li className="grid gap-6 rounded-[16px] border border-[var(--band-line)] bg-[var(--band-card)] p-6 sm:p-8 lg:grid-cols-[3.5rem_1fr_1fr] lg:gap-8">
+        <Reveal
+          as="li"
+          key={step.n}
+          delay={i * 0.07}
+          className="grid gap-6 rounded-[16px] border border-[var(--band-line)] bg-[var(--band-card)] p-6 sm:p-8 lg:grid-cols-[3.5rem_1fr_1fr] lg:gap-8"
+        >
             <span
               className="lx-mono text-[2rem] leading-none text-[var(--lx-green)] opacity-50"
               aria-hidden="true"
@@ -315,7 +324,6 @@ export function NumberedSteps({ steps }: { steps: Step[] }) {
               <p className="mt-3 leading-[1.8] text-[var(--band-muted)]">{step.body}</p>
             </div>
             <div className="min-w-0">{step.payload}</div>
-          </li>
         </Reveal>
       ))}
     </ol>
@@ -336,12 +344,14 @@ export function ExpandableSteps({ items }: { items: Expandable[] }) {
       {items.map((item, i) => {
         const isOpen = open === i
         return (
-          <Reveal key={item.n} delay={i * 0.06}>
-            <li
-              className={`overflow-hidden rounded-[16px] border bg-[var(--band-card)] transition-colors duration-300 ${
-                isOpen ? 'border-[var(--lx-green)]' : 'border-[var(--band-line)]'
-              }`}
-            >
+          <Reveal
+            as="li"
+            key={item.n}
+            delay={i * 0.06}
+            className={`overflow-hidden rounded-[16px] border bg-[var(--band-card)] transition-colors duration-300 ${
+              isOpen ? 'border-[var(--lx-green)]' : 'border-[var(--band-line)]'
+            }`}
+          >
               <h3>
                 <button
                   type="button"
@@ -378,7 +388,6 @@ export function ExpandableSteps({ items }: { items: Expandable[] }) {
                   <div className="border-t border-[var(--band-line)] p-5 sm:p-6">{item.detail}</div>
                 </div>
               </div>
-            </li>
           </Reveal>
         )
       })}
@@ -393,8 +402,12 @@ export function IndexGrid({ items }: { items: { n: string; label: string }[] }) 
   return (
     <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item, i) => (
-        <Reveal key={item.n} delay={Math.min(i, 8) * 0.04}>
-          <li className="flex h-full items-baseline gap-4 rounded-[12px] border border-[var(--band-line)] bg-[var(--band-card)] p-4">
+        <Reveal
+          as="li"
+          key={item.n}
+          delay={Math.min(i, 8) * 0.04}
+          className="flex h-full items-baseline gap-4 rounded-[12px] border border-[var(--band-line)] bg-[var(--band-card)] p-4"
+        >
             <span
               className="lx-mono shrink-0 text-sm text-[var(--lx-green)] opacity-60"
               aria-hidden="true"
@@ -402,7 +415,6 @@ export function IndexGrid({ items }: { items: { n: string; label: string }[] }) 
               {item.n}
             </span>
             <span className="leading-[1.6] text-[var(--band-body)]">{item.label}</span>
-          </li>
         </Reveal>
       ))}
     </ul>
@@ -426,8 +438,7 @@ export function NumberCards({ items }: { items: NumberCard[] }) {
   return (
     <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {items.map((item, i) => (
-        <Reveal key={item.n} delay={i * 0.07} className="h-full">
-          <li className="lx-card group flex h-full flex-col p-6">
+        <Reveal as="li" key={item.n} delay={i * 0.07} className="lx-card group flex h-full flex-col p-6">
             <div className="flex items-center gap-3">
               <span
                 className="lx-mono text-sm leading-none text-[var(--lx-green)]"
@@ -446,7 +457,6 @@ export function NumberCards({ items }: { items: NumberCard[] }) {
             <p className="mt-3 text-[0.95rem] leading-[1.75] text-[var(--band-muted)]">
               {item.body}
             </p>
-          </li>
         </Reveal>
       ))}
     </ol>
@@ -467,16 +477,19 @@ export function CheckList({ items }: { items: string[] }) {
   return (
     <ul className="grid gap-x-10 gap-y-1 sm:grid-cols-2">
       {items.map((item, i) => (
-        <Reveal key={item} delay={Math.min(i, 6) * 0.05}>
-          <li className="flex items-start gap-3.5 border-b border-[var(--band-line)] py-4">
-            <span
-              className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
-              aria-hidden="true"
-            >
-              <IconCheck size={11} strokeWidth={2} />
-            </span>
-            <span className="leading-[1.7] text-[var(--band-body)]">{item}</span>
-          </li>
+        <Reveal
+          as="li"
+          key={item}
+          delay={Math.min(i, 6) * 0.05}
+          className="flex items-start gap-3.5 border-b border-[var(--band-line)] py-4"
+        >
+          <span
+            className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
+            aria-hidden="true"
+          >
+            <IconCheck size={11} strokeWidth={2} />
+          </span>
+          <span className="leading-[1.7] text-[var(--band-body)]">{item}</span>
         </Reveal>
       ))}
     </ul>
@@ -547,14 +560,16 @@ function LedgerColumn({
       </p>
       <ul className={twoUp ? 'mt-6 space-y-5' : 'mt-8 space-y-0'}>
         {items.map((item, i) => (
-          <Reveal key={item.t} delay={Math.min(i, 6) * 0.06}>
-            <li
-              className={
-                twoUp
-                  ? 'flex gap-4'
-                  : 'flex gap-5 border-b border-[var(--band-line)] py-6 first:border-t'
-              }
-            >
+          <Reveal
+            as="li"
+            key={item.t}
+            delay={Math.min(i, 6) * 0.06}
+            className={
+              twoUp
+                ? 'flex gap-4'
+                : 'flex gap-5 border-b border-[var(--band-line)] py-6 first:border-t'
+            }
+          >
               <span
                 aria-hidden="true"
                 className={`mt-1 grid shrink-0 place-items-center rounded-full ${
@@ -587,7 +602,6 @@ function LedgerColumn({
                   {item.b}
                 </span>
               </span>
-            </li>
           </Reveal>
         ))}
       </ul>
@@ -653,20 +667,23 @@ export function LandscapeRows({ rows }: { rows: Landscape[] }) {
 
       <ul>
         {rows.map((row, i) => (
-          <Reveal key={row.option} delay={Math.min(i, 6) * 0.05}>
-            <li className="grid gap-2 border-b border-[var(--band-line)] py-6 lg:grid-cols-[1fr_1.2fr_1.2fr] lg:gap-8">
-              <h3 className="lx-title text-lg text-[var(--band-ink)] sm:text-xl">
-                {row.option}
-              </h3>
-              <p className="leading-[1.75] text-[var(--band-body)]">{row.gives}</p>
-              <p className="flex gap-2.5 leading-[1.75] text-[var(--band-muted)]">
-                <span
-                  aria-hidden="true"
-                  className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--lx-sage)]"
-                />
-                {row.runsOut}
-              </p>
-            </li>
+          <Reveal
+            as="li"
+            key={row.option}
+            delay={Math.min(i, 6) * 0.05}
+            className="grid gap-2 border-b border-[var(--band-line)] py-6 lg:grid-cols-[1fr_1.2fr_1.2fr] lg:gap-8"
+          >
+            <h3 className="lx-title text-lg text-[var(--band-ink)] sm:text-xl">
+              {row.option}
+            </h3>
+            <p className="leading-[1.75] text-[var(--band-body)]">{row.gives}</p>
+            <p className="flex gap-2.5 leading-[1.75] text-[var(--band-muted)]">
+              <span
+                aria-hidden="true"
+                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--lx-sage)]"
+              />
+              {row.runsOut}
+            </p>
           </Reveal>
         ))}
       </ul>
@@ -701,16 +718,14 @@ export function ContrastPair({
         </p>
         <ul className="mt-6 space-y-5">
           {rows.map((row, i) => (
-            <Reveal key={row.theirs} delay={i * 0.06}>
-              <li className="flex gap-3 leading-[1.75] text-[var(--band-muted)]">
-                <span
-                  aria-hidden="true"
-                  className="mt-1 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full border border-[var(--band-line)] text-[var(--band-muted)] opacity-70"
-                >
-                  <IconX size={9} strokeWidth={1.75} />
-                </span>
-                {row.theirs}
-              </li>
+            <Reveal as="li" key={row.theirs} delay={i * 0.06} className="flex gap-3 leading-[1.75] text-[var(--band-muted)]">
+              <span
+                aria-hidden="true"
+                className="mt-1 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full border border-[var(--band-line)] text-[var(--band-muted)] opacity-70"
+              >
+                <IconX size={9} strokeWidth={1.75} />
+              </span>
+              {row.theirs}
             </Reveal>
           ))}
         </ul>
@@ -722,16 +737,14 @@ export function ContrastPair({
         </p>
         <ul className="mt-6 space-y-5">
           {rows.map((row, i) => (
-            <Reveal key={row.ours} delay={i * 0.06}>
-              <li className="flex gap-3 leading-[1.75] text-[var(--band-body)]">
-                <span
-                  aria-hidden="true"
-                  className="mt-1 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
-                >
-                  <IconCheck size={9} strokeWidth={2.25} />
-                </span>
-                {row.ours}
-              </li>
+            <Reveal as="li" key={row.ours} delay={i * 0.06} className="flex gap-3 leading-[1.75] text-[var(--band-body)]">
+              <span
+                aria-hidden="true"
+                className="mt-1 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
+              >
+                <IconCheck size={9} strokeWidth={2.25} />
+              </span>
+              {row.ours}
             </Reveal>
           ))}
         </ul>
@@ -869,13 +882,11 @@ export function QaColumns({ items }: { items: { q: string; a: string }[] }) {
   return (
     <dl className="grid gap-x-12 gap-y-8 sm:grid-cols-2">
       {items.map((item, i) => (
-        <Reveal key={item.q} delay={Math.min(i, 6) * 0.06}>
-          <div className="border-t border-[var(--band-line)] pt-5">
-            <dt className="lx-title text-lg leading-[1.35] text-[var(--band-ink)]">
-              {item.q}
-            </dt>
-            <dd className="mt-2.5 leading-[1.8] text-[var(--band-muted)]">{item.a}</dd>
-          </div>
+        <Reveal key={item.q} delay={Math.min(i, 6) * 0.06} className="border-t border-[var(--band-line)] pt-5">
+          <dt className="lx-title text-lg leading-[1.35] text-[var(--band-ink)]">
+            {item.q}
+          </dt>
+          <dd className="mt-2.5 leading-[1.8] text-[var(--band-muted)]">{item.a}</dd>
         </Reveal>
       ))}
     </dl>

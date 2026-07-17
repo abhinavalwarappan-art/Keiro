@@ -200,7 +200,14 @@ export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleP
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="max-w-[75%] rounded-lg rounded-br-sm bg-brand-ink px-4 py-2.5 text-base leading-relaxed text-white">
+        {/* lang + dir: message text is in the patient's language, not the page
+            default — screen readers pick the pronunciation rules (WCAG 3.1.2)
+            and browser translators segment correctly off this attribute. */}
+        <div
+          lang={langCode}
+          dir="auto"
+          className="max-w-[75%] rounded-lg rounded-br-sm bg-brand-ink px-4 py-2.5 text-base leading-relaxed text-white"
+        >
           {displayContent}
         </div>
       </motion.div>
@@ -217,7 +224,7 @@ export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleP
       <KaiAvatar pixels={32} />
 
       <div className="min-w-0 flex-1 pt-1">
-        <div className="max-w-[65ch] text-base leading-relaxed text-text-primary">
+        <div lang={langCode} dir="auto" className="max-w-[65ch] text-base leading-relaxed text-text-primary">
           <SmoothKaiText
             text={displayContent}
             shouldAnimate={shouldRevealKaiText && !reduceMotion}

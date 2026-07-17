@@ -97,7 +97,7 @@ function AuthContent() {
 
   return (
     <div className="flex h-dvh min-h-0 w-full flex-col bg-transparent">
-      <div className="z-10 flex shrink-0 items-center gap-3 px-4 py-3">
+      <header className="z-10 flex shrink-0 items-center gap-3 px-4 py-3">
         <button
           type="button"
           onClick={() => router.back()}
@@ -110,9 +110,11 @@ function AuthContent() {
         <span className="rounded-full border border-border-subtle bg-sunken px-2.5 py-1 text-xs font-medium text-text-secondary">
           {langNative}
         </span>
-      </div>
+      </header>
 
-      <div
+      {/* main#main-content on every page: skip-link target + landmark navigation */}
+      <main
+        id="main-content"
         data-lenis-prevent
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-8 pb-10"
       >
@@ -170,7 +172,7 @@ function AuthContent() {
             <LegalLine t={t} />
           </p>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

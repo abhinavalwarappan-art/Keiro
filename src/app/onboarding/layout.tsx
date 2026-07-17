@@ -8,11 +8,13 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div id="main-content" className="relative min-h-dvh bg-black">
+    /* <main>, not <div>: the id alone satisfied the skip link but left the page
+       with no main landmark for screen-reader navigation. */
+    <main id="main-content" className="relative min-h-dvh bg-black">
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
         <StarrySkyBackground />
       </div>
       <div className="relative z-[1]">{children}</div>
-    </div>
+    </main>
   )
 }

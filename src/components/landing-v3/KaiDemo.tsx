@@ -323,13 +323,15 @@ export function KaiDemo() {
         aria-label="Choose a language to see the demonstration in"
         className="mb-3 flex flex-wrap gap-1.5"
       >
+        {/* min-h-11 (44px): these chips are THE hero interaction, tapped by
+            the exact users with reduced fine motor control this site is for. */}
         {SCRIPTS.map((s, i) => (
           <button
             key={s.code}
             type="button"
             onClick={() => pick(i)}
             aria-pressed={i === active}
-            className={`lx-focus lx-native inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors duration-150 ${
+            className={`lx-focus lx-native inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-sm transition-colors duration-150 ${
               i === active
                 ? 'border-transparent bg-[var(--lx-ink)] text-white'
                 : 'border-[var(--lx-line)] bg-[var(--lx-paper)]/80 text-[var(--lx-body)] hover:border-[var(--lx-green)]'

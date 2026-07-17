@@ -12,7 +12,11 @@ import Link from 'next/link'
 
 export function Footer() {
   return (
-    <footer className="relative bg-[var(--lx-ink)] px-5 py-14 text-white/70 sm:px-8 md:py-16 lg:px-16">
+    /* Text opacities are measured on --lx-ink, not eyeballed: /75 composites to
+       7.5:1 (AAA). The old /50 labels (4.3:1) and /45 bottom row (3.7:1) were
+       the site's only recurring AA contrast failures. Hierarchy now comes from
+       size and case, not from dimming text below legibility. */
+    <footer className="relative bg-[var(--lx-ink)] px-5 py-14 text-white/75 sm:px-8 md:py-16 lg:px-16">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-10 md:grid-cols-4">
           <div>
@@ -27,7 +31,7 @@ export function Footer() {
               place, without the About grouping. */}
           <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-2 md:col-span-2 md:grid-cols-2">
             <div>
-              <h3 className="lx-label text-xs text-white/50">
+              <h3 className="lx-label text-xs text-white/75">
                 Keiro
               </h3>
               <ul className="mt-5 space-y-1">
@@ -53,7 +57,7 @@ export function Footer() {
             </div>
 
             <div>
-              <h3 className="lx-label text-xs text-white/50">
+              <h3 className="lx-label text-xs text-white/75">
                 Trust &amp; contact
               </h3>
               <ul className="mt-5 space-y-1">
@@ -82,7 +86,7 @@ export function Footer() {
           </nav>
 
           <div>
-            <h3 className="lx-label text-xs text-white/50">
+            <h3 className="lx-label text-xs text-white/75">
               Please read this
             </h3>
             <p className="mt-5 leading-[1.8]">
@@ -98,7 +102,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/45 md:flex-row md:items-center md:justify-between">
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/75 md:flex-row md:items-center md:justify-between">
           <div>© {new Date().getFullYear()} Keiro</div>
           <div>Built for patients who need to be understood.</div>
         </div>

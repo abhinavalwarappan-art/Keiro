@@ -418,7 +418,9 @@ function ReportContent() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
+      <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
+        {/* Matches the loaded state's visible h1 so the page always has one */}
+        <h1 className="sr-only">Medical intake report</h1>
         <div className="mb-8">
           <div className="skeleton mb-1 h-3 w-32 rounded-sm" />
           <div className="mb-3 h-px bg-border-subtle" />
@@ -432,24 +434,24 @@ function ReportContent() {
           <SkeletonRow />
           <SkeletonRow />
         </div>
-      </div>
+      </main>
     )
   }
 
   if (error || !report) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <main id="main-content" className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <Kai size="md" state="idle" interactive={false} />
-        <p className="mt-4 text-base font-semibold text-text-primary">
+        <h1 className="mt-4 text-base font-semibold text-text-primary">
           {error === 'loadFailed' ? t('report.loadFailed') : t('report.notFound')}
-        </p>
+        </h1>
         <button
           onClick={() => router.push('/history')}
           className="mt-6 min-h-[44px] rounded-md bg-brand-ink px-6 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover"
         >
           {t('report.viewPastVisits')}
         </button>
-      </div>
+      </main>
     )
   }
 
@@ -494,7 +496,8 @@ function ReportContent() {
         </span>
       </header>
 
-      <div className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
+      {/* main#main-content on every page: skip-link target + landmark navigation */}
+      <main id="main-content" className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
         <div className="mb-6 flex items-start gap-3">
           <Kai size="sm" state={speaking ? 'talking' : 'happy'} interactive={false} />
           <div className="pt-1">
@@ -714,7 +717,7 @@ function ReportContent() {
             </button>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Share link modal */}
       {showQr && (

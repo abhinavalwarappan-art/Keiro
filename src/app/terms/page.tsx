@@ -14,14 +14,21 @@ export default function TermsPage() {
       className="flex flex-col min-h-screen"
       style={{ maxWidth: 640, margin: '0 auto', background: 'white' }}
     >
-      <div className="flex items-center gap-3 px-6 py-4 sticky top-0 z-10" style={{ background: 'white', borderBottom: '1px solid var(--border-subtle)' }}>
-        <Link href="/" className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--brand-subtle)' }}>
-          <ArrowLeft size={16} style={{ color: 'var(--brand-ink)' }} />
+      <header className="flex items-center gap-3 px-6 py-4 sticky top-0 z-10" style={{ background: 'white', borderBottom: '1px solid var(--border-subtle)' }}>
+        <Link
+          href="/"
+          aria-label="Back to home"
+          className="w-11 h-11 rounded-lg flex items-center justify-center"
+          style={{ background: 'var(--brand-subtle)' }}
+        >
+          <ArrowLeft size={16} aria-hidden="true" style={{ color: 'var(--brand-ink)' }} />
         </Link>
         <h1 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>Terms of Use</h1>
-      </div>
+      </header>
 
-      <div className="px-6 py-8">
+      {/* main#main-content on every page: it is the skip-link target from the
+          root layout, and screen-reader users navigate by landmark. */}
+      <main id="main-content" className="px-6 py-8">
         <div className="text-xs mb-8" style={{ color: 'var(--text-secondary)' }}>Last updated: {LAST_UPDATED}</div>
 
         <Section title="1. What Keiro Is">
@@ -155,8 +162,10 @@ export default function TermsPage() {
         <Section title="13. Contact">
           <p>
             Questions about these terms? Contact us at:{' '}
+            {/* Underlined: colour alone can't mark a link inside body text (WCAG 1.4.1) */}
             <a
               href="mailto:keiro.contact@gmail.com"
+              className="underline"
               style={{ color: 'var(--brand-ink)' }}
               rel="noopener noreferrer"
             >
@@ -172,7 +181,7 @@ export default function TermsPage() {
             Keiro · Free forever
           </p>
         </div>
-      </div>
+      </main>
     </motion.div>
   )
 }
