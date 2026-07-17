@@ -40,22 +40,36 @@ const nextConfig: NextConfig = {
     ]
   },
   async headers() {
-    // Sentry and Next.js RSC require 'unsafe-inline'/'unsafe-eval' in script-src.
-    // Nonce-based CSP would be the ideal upgrade path once Sentry supports it fully.
+    const isDev = process.env.NODE_ENV !== 'production'
+    // 'unsafe-inline' stays: static prerendering emits Next's bootstrap scripts
+    // inline without nonces, and nonce-based CSP requires forcing every page
+    // dynamic (evaluated and declined — it kills CDN caching on the marketing
+    // site). 'unsafe-eval' is dev-only: only next dev's runtime needs eval.
     const csp = [
       "default-src 'self'",
       // PostHog lazily loads feature bundles from its assets CDN
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.posthog.com",
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://*.posthog.com`,
+      // framer-motion/GSAP write style attributes at runtime
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
+      "img-src 'self' data:",
       "font-src 'self' data:",
       // Supabase (auth + DB), Sentry errors, PostHog analytics — other API calls are server-side
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.posthog.com",
       "media-src 'self' blob:",
       "frame-ancestors 'none'",
+      "form-action 'self'",
       "object-src 'none'",
       "base-uri 'self'",
+      // Auto-upgrade any stray http:// subresource; prod-only so it can't
+      // rewrite http://localhost requests during next dev.
+      ...(isDev ? [] : ['upgrade-insecure-requests']),
     ].join('; ')
+
+    // Vercel's static layer serves prerendered pages and public/ assets with
+    // `access-control-allow-origin: *`. Public content carries no credentials,
+    // but universal CORS on documents is broader than needed (and scanner-
+    // flagged) — pin it to the canonical origin instead.
+    const siteOrigin = (process.env.NEXT_PUBLIC_SITE_URL || 'https://keiro.space').replace(/\/$/, '')
 
     return [
       {
@@ -64,9 +78,19 @@ const nextConfig: NextConfig = {
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(self), geolocation=()' },
+          {
+            key: 'Permissions-Policy',
+            // microphone=(self) is required by voice input; everything else is locked down
+            value: 'camera=(), microphone=(self), geolocation=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), display-capture=()',
+          },
           // HSTS: tell browsers to only use HTTPS for the next year (preload-eligible)
           { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains; preload' },
+          // No OAuth popups or cross-origin openers anywhere in the app
+          // (window.open is only used for same-origin blob: PDFs), so severing
+          // opener relationships is free XS-Leak protection.
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
+          { key: 'Access-Control-Allow-Origin', value: siteOrigin },
           { key: 'Content-Security-Policy', value: csp },
         ],
       },

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import type { User } from '@supabase/supabase-js'
+import { AUTH_COOKIE_OPTIONS } from './cookieOptions'
 
 /**
  * Creates a Supabase client bound to the proxy request/response pair and
@@ -23,6 +24,7 @@ export async function updateSession(
     supabaseUrl,
     supabaseAnonKey,
     {
+      cookieOptions: AUTH_COOKIE_OPTIONS,
       cookies: {
         getAll() {
           return request.cookies.getAll()
