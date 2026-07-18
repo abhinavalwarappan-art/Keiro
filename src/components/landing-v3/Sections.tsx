@@ -1,39 +1,39 @@
 'use client'
 
-/* A library of *distinct* section archetypes.
+/* The shared section library for v4 "THE LEDGER" (see DESIGN.md).
 
-   The old site had one block type (heading + paragraphs) repeated down every
-   page, which is why every page looked like the same file with the words
-   swapped. These are the alternatives. The rule when composing a page: never use
-   the same archetype twice in a row, and no two pages share a spine.
+   The site is typeset as the document it produces: chart-paper grounds,
+   hairline rules, mono running heads and margin annotations, asymmetric
+   composition, near-zero shadows. Nothing in this file is a card grid and
+   nothing is a stock accordion — every archetype is a *ruled register* of one
+   kind or another, so a page composed from these reads as one kept document
+   rather than a stack of widgets.
 
-   Every section is wrapped in a <Band>, which remaps its own colour scheme — so
-   rhythm comes from the *ground* changing, not just the layout. */
+   API compatibility is a hard contract: every export keeps its name and its
+   prop signature (call sites in src/app/* compile unchanged). New work may use
+   the additions (RunHead, BandHeading's `folio`) but nothing was removed.
+
+   Colour is role-locked (DESIGN.md §3). Green text at body size is
+   --lx-green-ink only; green text ≥24px is --lx-green-display (what .lx-accent
+   uses); --lx-green-fill is FILLS ONLY (ticks, bars, emphasis rules), never
+   text; amber --lx-signal-ink is the mono annotation layer only. On the deep
+   plate everything reads through the --band-* remaps, plus the few
+   [.lx-band-deep_&] overrides below where a literal green/amber token would
+   otherwise fail contrast. */
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { useInView } from 'framer-motion'
 import { LANGUAGES } from '@/lib/languages'
 import { Reveal } from './Reveal'
 import { IconCheck, IconPlus, IconX } from './icons'
+
+/* Entrance stagger is deliberately different per archetype (48–90ms) so the
+   site never settles into one metronome. Each component owns its own beat. */
 
 /* ── Band — the primitive every section sits on ──────────────────────────── */
 
 type Palette = 'cream' | 'mint' | 'deep'
 
-/* `flow` drops the page's gradient light-field behind the section — a huge radial
-   that resolves into this band's own ground, so it has no visible seam.
-
-     'glow' — anchored below the bottom edge; light rises INTO the section. This
-              is the one to spend on the page's dark peak.
-     'hero' — anchored above the top edge; light falls from behind the nav and has
-              dissolved into the ground by the seam. Any section that opens a page.
-
-   Use it sparingly. The whole point of the technique is that the colour is
-   rationed and spent at the peak, not spread evenly down the page — stripe.com
-   ships exactly one chromatic section on its entire homepage, and that restraint
-   is what makes it land.
-
-   `rails` draws the 1px vertical guide lines on the content column. */
 export function Band({
   children,
   palette = 'cream',
@@ -44,24 +44,21 @@ export function Band({
 }: {
   children: ReactNode
   palette?: Palette
+  /* Accepted for source compatibility only. The nine-palette lx-flow gradient
+     system is retired (DESIGN.md §3) — this prop renders NOTHING. */
   flow?: 'glow' | 'hero'
   rails?: boolean
   id?: string
   className?: string
 }) {
+  void flow
   return (
     <section
       id={id}
-      className={`lx-band lx-band-${palette} lx-section relative overflow-hidden border-y border-[var(--band-line)] px-5 sm:px-8 lg:px-16 ${
+      className={`lx-band lx-band-${palette} lx-section relative border-y border-[var(--band-line)] px-5 sm:px-8 lg:px-10 ${
         id ? 'scroll-mt-24' : ''
       } ${className}`}
     >
-      {flow && (
-        <div
-          className={`lx-flow lx-flow-drift ${flow === 'hero' ? 'lx-flow-hero' : ''}`}
-          aria-hidden="true"
-        />
-      )}
       <div className={`lx-above mx-auto max-w-6xl ${rails ? 'lx-rails px-6 sm:px-10' : ''}`}>
         {children}
       </div>
@@ -69,58 +66,80 @@ export function Band({
   )
 }
 
-/* Emphasised phrase — italic serif in the accent colour. Used on the trailing
-   clause of a heading so no heading is a flat slab of one weight. */
+/* ── RunHead — the running head every major section opens with ───────────────
+   Top hairline + mono folio flush-left ("02 · METHOD") + optional mono meta
+   flush-right. Sections are separated by chart structure, not by background
+   swaps alone — this is the piece that does it. */
+
+export function RunHead({ folio, meta }: { folio: string; meta?: string }) {
+  return (
+    <div className="lx-runhead">
+      <span className="lx-label text-[0.6875rem] text-[var(--band-ink)]">{folio}</span>
+      {meta && <span className="lx-label text-[0.6875rem] text-[var(--band-muted)]">{meta}</span>}
+    </div>
+  )
+}
+
+/* Emphasised phrase inside a heading: the display green + weight, upright.
+   Bricolage has no italic — never synthesize an oblique on the display face. */
 export function Accent({ children }: { children: ReactNode }) {
   return <span className="lx-accent">{children}</span>
 }
 
-/* The SECOND emphasis register.
-
-   `Accent` was the only one we had, so every heading on every page was built
-   identically — plain words, then a green italic phrase. Eight pages of that is
-   a template, however different the words are. `GradWord` fills the emphasised
-   word with the brand gradient instead of colouring it, and stays upright rather
-   than italic. Pages pick one register and hold it, so a heading tells you which
-   page you are on. */
+/* Retired second register, kept for compatibility: landing.css maps
+   .lx-grad-text to exactly the accent look. Do not use in new work. */
 export function GradWord({ children }: { children: ReactNode }) {
   return <span className="lx-grad-text">{children}</span>
 }
 
-export function BandHeading({ children, lede }: { children: ReactNode; lede?: ReactNode }) {
+/* ── BandHeading — h2 tight to its lede ──────────────────────────────────────
+   Rhythm is contrast: the heading sits tight (12px) to its lede and far from
+   whatever came before. Pass `folio` to open the section with a RunHead
+   (48px above the heading). */
+
+export function BandHeading({
+  children,
+  lede,
+  folio,
+  meta,
+}: {
+  children: ReactNode
+  lede?: ReactNode
+  folio?: string
+  meta?: string
+}) {
   return (
-    <Reveal className="max-w-3xl">
-      <h2 className="lx-heading text-balance text-[clamp(1.7rem,3.8vw,2.5rem)] text-[var(--band-ink)]">
+    <Reveal>
+      {folio && <RunHead folio={folio} meta={meta} />}
+      <h2
+        className={`lx-heading max-w-3xl text-balance text-[clamp(1.75rem,3.8vw,2.6rem)] text-[var(--band-ink)] ${
+          folio ? 'mt-12' : ''
+        }`}
+      >
         {children}
       </h2>
       {lede && (
-        <p className="mt-5 text-pretty text-lg leading-[1.8] text-[var(--band-muted)]">{lede}</p>
+        <p className="mt-3 max-w-2xl text-pretty text-lg leading-[1.75] text-[var(--band-muted)]">
+          {lede}
+        </p>
       )}
     </Reveal>
   )
 }
 
-/* ── 1. Thesis — oversized statement, one paragraph, no visual ───────────────
-   Kyndryl's palate cleanser. Deploy between two dense sections; it buys rhythm
-   for almost nothing. */
+/* ── 1. Thesis — the oversized statement, set hard-left ──────────────────────
+   Display voice, asymmetric (never centered), with a hanging hairline tick in
+   the left margin at lg — the chart's way of saying "this line is indexed".
+   `serif` switches to the aside voice (Plex Sans italic): the human beat, used
+   only where the page stops explaining and says something personal. */
 
 export function Thesis({
   statement,
   body,
-  /* Pages that open on a Thesis instead of a PageHero (/about) must render it as
-     the h1 — otherwise the page ships with no h1 at all, which breaks both the
-     document outline for screen readers and the SEO title signal. */
+  /* Pages that open on a Thesis instead of a PageHero (/about) must render it
+     as the h1 — otherwise the page ships without one, which breaks both the
+     document outline and the SEO title signal. */
   as = 'p',
-  /* THE SERIF. Off by default.
-
-     Fraunces used to set every heading on the site, which is exactly why the site
-     read as a magazine rather than as software. It survives in this one prop, and
-     it is switched on in precisely two places: the mission statement on /about and
-     the "she is 72" quote on /accessibility.
-
-     The rule is: use it where a deliberate break in voice IS the point — where the
-     page stops explaining a product and says something human. Anywhere else it is
-     just decoration, and decoration is what we spent this pass removing. */
   serif = false,
 }: {
   statement: ReactNode
@@ -130,24 +149,29 @@ export function Thesis({
 }) {
   const Tag = as
   return (
-    <Reveal className="mx-auto max-w-4xl">
+    <Reveal className="relative max-w-4xl">
+      <span
+        aria-hidden="true"
+        className="absolute -left-10 top-[0.55em] hidden h-px w-6 bg-[var(--band-line-strong)] lg:block"
+      />
       <Tag
         className={`${
-          serif ? 'lx-serif' : 'lx-heading'
-        } text-balance text-[clamp(1.6rem,4vw,2.75rem)] text-[var(--band-ink)]`}
+          serif ? 'lx-serif' : 'lx-display'
+        } text-balance text-[clamp(1.75rem,4.2vw,3rem)] text-[var(--band-ink)]`}
       >
         {statement}
       </Tag>
       {body && (
-        <p className="mt-7 max-w-2xl text-lg leading-[1.85] text-[var(--band-muted)]">{body}</p>
+        <p className="mt-7 max-w-2xl text-lg leading-[1.75] text-[var(--band-muted)]">{body}</p>
       )}
     </Reveal>
   )
 }
 
-/* ── 2. StatRow — hairline-separated figures that count up ───────────────────
-   Boxes make numbers feel like a pitch deck; vertical hairlines don't. Numbers
-   land in sequence (Tucuvi stagger the *duration*, not the start). */
+/* ── 2. StatRow — one ruled tabular strip ────────────────────────────────────
+   Mono column heads carrying the carbon-copy edge, ink figures beneath in the
+   display face (lining tabular nums come with it), hairline column rules at
+   lg. A chart row, not a row of stat cards. */
 
 function CountUp({ value, suffix = '' }: { value: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
@@ -156,15 +180,15 @@ function CountUp({ value, suffix = '' }: { value: number; suffix?: string }) {
 
   useEffect(() => {
     if (!inView) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setShown(value)
-      return
-    }
+    /* Reduced motion: no count-up — the final figure commits on the first
+       frame. Routed through the same rAF path so no setState runs
+       synchronously in the effect body (react-hooks/set-state-in-effect). */
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const duration = 1100
     const start = performance.now()
     let frame = 0
     const tick = (now: number) => {
-      const p = Math.min((now - start) / duration, 1)
+      const p = reduced ? 1 : Math.min((now - start) / duration, 1)
       // easeOutCubic — fast out of the gate, settles gently
       setShown(Math.round(value * (1 - Math.pow(1 - p, 3))))
       if (p < 1) frame = requestAnimationFrame(tick)
@@ -191,148 +215,160 @@ export type Stat = {
 
 export function StatRow({ stats }: { stats: Stat[] }) {
   return (
-    <dl className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+    <dl className="grid gap-x-10 border-t border-[var(--band-line-strong)] sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-0">
       {/* The Reveal IS the dl's group wrapper: <dl> allows one level of <div>
           around each dt/dd pair, but a second nested div breaks the semantics
           (axe: definition-list/dlitem). Same rule applies to every dl below. */}
       {stats.map((stat, i) => (
         <Reveal
           key={stat.label}
-          delay={i * 0.08}
-          className="border-t-2 border-[var(--lx-green)] pt-5 sm:border-l-2 sm:border-t-0 sm:pl-6 sm:pt-0"
+          delay={i * 0.09}
+          className="border-b border-[var(--band-line)] py-6 lg:border-b-0 lg:border-e lg:px-7 lg:first:ps-0 lg:last:border-e-0 lg:last:pe-0"
         >
-          <dt className="lx-display text-[clamp(2.4rem,5vw,3.4rem)] leading-none text-[var(--band-ink)]">
-            {stat.prefix}
-            <CountUp value={stat.value} suffix={stat.suffix} />
+          <dt className="lx-label lx-cc-edge block pb-2 text-[0.6875rem] text-[var(--band-muted)]">
+            {stat.label}
           </dt>
-          <dd className="mt-3">
-            <span className="block font-semibold text-[var(--band-ink)]">{stat.label}</span>
-            <span className="mt-1 block leading-[1.7] text-[var(--band-muted)]">{stat.note}</span>
-          </dd>
-        </Reveal>
-      ))}
-    </dl>
-  )
-}
-
-/* ── 2b. StatCards — the same figures, as objects rather than as a ruled row ──
-
-   The hairline StatRow works when the numbers are all different. On /for-clinics
-   three of the four figures are literally zero, and four huge numerals separated
-   by rules just read as "0 0 0 5" — a row of nothing, which is the opposite of
-   the point (the zeros ARE the pitch: zero setup, zero cost).
-
-   So: give each figure its own card, and let the label carry the meaning while
-   the numeral supports it. `prefix` exists so a zero can be a *price* ($0) and
-   stop looking like a missing value. */
-
-export function StatCards({ stats }: { stats: Stat[] }) {
-  return (
-    <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, i) => (
-        <Reveal key={stat.label} delay={i * 0.07} className="lx-card group flex h-full flex-col p-6">
-          <dt className="lx-display flex items-baseline text-[clamp(2.6rem,4.6vw,3.5rem)] leading-none">
-            <span className="lx-grad-text">
+          <dd className="mt-5">
+            <span className="lx-display block text-[clamp(2.5rem,5vw,3.5rem)] text-[var(--band-ink)]">
               {stat.prefix}
               <CountUp value={stat.value} suffix={stat.suffix} />
             </span>
-          </dt>
-          <dd className="mt-5 flex flex-1 flex-col">
-            <span className="text-base font-semibold text-[var(--band-ink)]">{stat.label}</span>
-            <span className="mt-2 text-[0.95rem] leading-[1.7] text-[var(--band-muted)]">
+            <span className="mt-3 block max-w-[28ch] text-[0.95rem] leading-[1.7] text-[var(--band-muted)]">
               {stat.note}
             </span>
           </dd>
-          <span
-            className="mt-6 h-[3px] w-10 rounded-full bg-[var(--lx-green)] opacity-40 transition-all duration-500 group-hover:w-full group-hover:opacity-100"
-            aria-hidden="true"
-          />
         </Reveal>
       ))}
     </dl>
   )
 }
 
-/* ── 2c. SpecRows — figures that demonstrate themselves ──────────────────────
+/* ── 2b. StatCards — the same signature, as ledger cells with uneven weight ──
+   No boxes: hairline-divided cells on the band's own ground. The figures take
+   the display green (they are all ≥24px) and the FIRST figure is set a full
+   size class larger — a ledger has a lead entry, a template does not. */
 
-   /accessibility used the same StatRow as /about, which was the single clearest
-   reason the two pages felt like one file with the words swapped. But it was also
-   just wrong: /about's numbers are an *argument* (67 million people), while
-   /accessibility's are a *specification* (44px, 18px). A specification should be
-   set like one.
+export function StatCards({ stats }: { stats: Stat[] }) {
+  return (
+    <dl className="grid gap-x-10 border-t border-[var(--band-line-strong)] sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-0">
+      {stats.map((stat, i) => (
+        <Reveal
+          key={stat.label}
+          delay={i * 0.075}
+          className="border-b border-[var(--band-line)] py-7 lg:border-b-0 lg:border-e lg:px-7 lg:first:ps-0 lg:last:border-e-0 lg:last:pe-0"
+        >
+          <dt
+            className={`lx-display text-[var(--lx-green-display)] [.lx-band-deep_&]:text-[var(--lx-deep-mint)] ${
+              i === 0
+                ? 'text-[clamp(3.2rem,6.5vw,4.5rem)]'
+                : 'text-[clamp(2.2rem,4.2vw,3rem)]'
+            }`}
+          >
+            {stat.prefix}
+            <CountUp value={stat.value} suffix={stat.suffix} />
+            <span aria-hidden="true" className="mt-3 block h-[2px] w-8 bg-[var(--lx-green-fill)]" />
+          </dt>
+          <dd className="mt-4">
+            <span className="lx-label block text-[0.6875rem] text-[var(--band-ink)]">
+              {stat.label}
+            </span>
+            <span className="mt-2 block text-[0.95rem] leading-[1.7] text-[var(--band-muted)]">
+              {stat.note}
+            </span>
+          </dd>
+        </Reveal>
+      ))}
+    </dl>
+  )
+}
 
-   And a spec sheet on an accessibility page can do something no other page can:
-   prove itself. The 44px row contains a real 44px target. The 18px row is set at
-   18px. If we ever break the promise, the page breaks visibly — which is a much
-   better guarantee than a badge. */
+/* ── 2c. SpecRows — the audit sheet: figures that demonstrate themselves ─────
+   A mono header row under a carbon-copy edge, then ruled rows: measured value
+   in the chart mono, the commitment beside it, and a LIVE demo in the third
+   column. If we ever break the promise, the page breaks visibly. */
 
 export type Spec = { figure: string; label: string; note: string; demo: ReactNode }
 
 export function SpecRows({ specs }: { specs: Spec[] }) {
   return (
-    <dl className="border-t border-[var(--band-line)]">
-      {specs.map((spec, i) => (
-        <Reveal
-          key={spec.label}
-          delay={i * 0.06}
-          className="grid items-center gap-4 border-b border-[var(--band-line)] py-7 sm:grid-cols-[7rem_1fr] sm:gap-8 lg:grid-cols-[8rem_1.4fr_1fr]"
-        >
-          {/* Display-size text, so it takes the AAA-Large green, not the fill. */}
-          <dt className="lx-display text-[clamp(1.9rem,3.4vw,2.6rem)] leading-none text-[var(--lx-green-accent)]">
-            {spec.figure}
-          </dt>
-          <dd className="min-w-0">
-            <span className="block font-semibold text-[var(--band-ink)]">{spec.label}</span>
-            <span className="mt-1.5 block leading-[1.7] text-[var(--band-muted)]">
-              {spec.note}
-            </span>
-          </dd>
-          <dd className="min-w-0 lg:justify-self-end">{spec.demo}</dd>
-        </Reveal>
-      ))}
-    </dl>
+    <div>
+      <div className="lx-cc-edge hidden gap-8 pb-2 sm:grid sm:grid-cols-[8rem_1fr] lg:grid-cols-[8rem_1.4fr_1fr]">
+        <p className="lx-label text-[0.6875rem] text-[var(--band-muted)]">Measured</p>
+        <p className="lx-label text-[0.6875rem] text-[var(--band-muted)]">Commitment</p>
+        <p className="lx-label hidden text-[0.6875rem] text-[var(--band-muted)] lg:block">
+          Live on this page
+        </p>
+      </div>
+      <dl>
+        {specs.map((spec, i) => (
+          <Reveal
+            key={spec.label}
+            delay={i * 0.055}
+            className="grid items-center gap-4 border-b border-[var(--band-line)] py-6 sm:grid-cols-[8rem_1fr] sm:gap-8 lg:grid-cols-[8rem_1.4fr_1fr]"
+          >
+            {/* Body-size green, so it takes green-ink (7.4:1), never the fill. */}
+            <dt className="lx-mono text-[1.45rem] text-[var(--lx-green-ink)] [.lx-band-deep_&]:text-[var(--lx-deep-mint)]">
+              {spec.figure}
+            </dt>
+            <dd className="min-w-0">
+              <span className="lx-title block text-[1.05rem] text-[var(--band-ink)]">
+                {spec.label}
+              </span>
+              <span className="mt-1.5 block text-[0.95rem] leading-[1.7] text-[var(--band-muted)]">
+                {spec.note}
+              </span>
+            </dd>
+            <dd className="min-w-0 lg:justify-self-end">{spec.demo}</dd>
+          </Reveal>
+        ))}
+      </dl>
+    </div>
   )
 }
 
-/* ── 3. NumberedSteps — number | copy | bespoke payload ──────────────────────
-   The payload is a slot, and each step passes a *different* one. That is the
-   whole point: three cards with three identical layouts is the thing we are
-   trying to get away from. */
+/* ── 3. NumberedSteps — oversized display digits in the margin ───────────────
+   Ruled rows on a strong top rule. The numeral is set at chart-watermark scale
+   in the rule tone (decorative, aria-hidden), with a mono "of 03" annotation
+   beneath — the protocol knows how long it is. Each step's payload slot stays
+   bespoke. */
 
 export type Step = { n: string; title: ReactNode; body: string; payload: ReactNode }
 
 export function NumberedSteps({ steps }: { steps: Step[] }) {
+  const total = String(steps.length).padStart(2, '0')
   return (
-    <ol className="space-y-5">
+    <ol className="border-t border-[var(--band-line-strong)]">
       {steps.map((step, i) => (
         <Reveal
           as="li"
           key={step.n}
-          delay={i * 0.07}
-          className="grid gap-6 rounded-[16px] border border-[var(--band-line)] bg-[var(--band-card)] p-6 sm:p-8 lg:grid-cols-[3.5rem_1fr_1fr] lg:gap-8"
+          delay={i * 0.08}
+          className="grid gap-6 border-b border-[var(--band-line)] py-8 sm:py-10 lg:grid-cols-[6rem_1.05fr_1fr] lg:gap-10"
         >
-            <span
-              className="lx-mono text-[2rem] leading-none text-[var(--lx-green)] opacity-50"
-              aria-hidden="true"
-            >
+          <div aria-hidden="true">
+            <span className="lx-display block text-[2rem] text-[var(--band-line-strong)] lg:text-[clamp(3.25rem,5vw,4.5rem)]">
               {step.n}
             </span>
-            <div>
-              <h3 className="lx-title text-xl text-[var(--band-ink)] sm:text-2xl">
-                {step.title}
-              </h3>
-              <p className="mt-3 leading-[1.8] text-[var(--band-muted)]">{step.body}</p>
-            </div>
-            <div className="min-w-0">{step.payload}</div>
+            <span className="lx-mono mt-1 hidden text-xs text-[var(--band-muted)] lg:block">
+              / {total}
+            </span>
+          </div>
+          <div>
+            <h3 className="lx-title text-xl text-[var(--band-ink)] sm:text-2xl">{step.title}</h3>
+            <p className="mt-3 max-w-prose leading-[1.75] text-[var(--band-muted)]">{step.body}</p>
+          </div>
+          <div className="min-w-0">{step.payload}</div>
         </Reveal>
       ))}
     </ol>
   )
 }
 
-/* ── 4. ExpandableSteps — click to open, one at a time ───────────────────────
-   First item opens by default so the section is never a row of closed doors.
-   Animates grid-template-rows (0fr -> 1fr), not max-height. */
+/* ── 4. ExpandableSteps — a disclosure register, not an accordion of cards ───
+   Ruled rows; the open row is marked by a 2px green-fill rule arriving at the
+   start edge (a fill-as-emphasis, never the only signal — the plus rotates and
+   the panel is visible). First item opens by default so the section is never a
+   row of closed doors. Animates grid-template-rows, never max-height. */
 
 export type Expandable = { n: string; title: string; summary: string; detail: ReactNode }
 
@@ -340,7 +376,7 @@ export function ExpandableSteps({ items }: { items: Expandable[] }) {
   const [open, setOpen] = useState(0)
 
   return (
-    <ol className="space-y-3">
+    <ol className="border-t border-[var(--band-line-strong)]">
       {items.map((item, i) => {
         const isOpen = open === i
         return (
@@ -348,46 +384,50 @@ export function ExpandableSteps({ items }: { items: Expandable[] }) {
             as="li"
             key={item.n}
             delay={i * 0.06}
-            className={`overflow-hidden rounded-[16px] border bg-[var(--band-card)] transition-colors duration-300 ${
-              isOpen ? 'border-[var(--lx-green)]' : 'border-[var(--band-line)]'
-            }`}
+            className="relative border-b border-[var(--band-line)]"
           >
-              <h3>
-                <button
-                  type="button"
-                  aria-expanded={isOpen}
-                  aria-controls={`step-panel-${i}`}
-                  onClick={() => setOpen(isOpen ? -1 : i)}
-                  className="lx-focus flex w-full items-center gap-4 p-5 text-left sm:gap-6 sm:p-6"
+            <span
+              aria-hidden="true"
+              className={`absolute inset-y-0 -start-4 w-[2px] bg-[var(--lx-green-fill)] motion-safe:transition-opacity motion-safe:duration-300 sm:-start-5 ${
+                isOpen ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+            <h3>
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={`step-panel-${i}`}
+                onClick={() => setOpen(isOpen ? -1 : i)}
+                className="lx-focus flex min-h-11 w-full items-baseline gap-4 py-5 text-left sm:gap-6"
+              >
+                <span
+                  className="lx-display w-12 shrink-0 text-[1.6rem] text-[var(--band-ink)]"
+                  aria-hidden="true"
                 >
-                  <span
-                    className="lx-mono shrink-0 text-lg leading-none text-[var(--lx-green)] opacity-60"
-                    aria-hidden="true"
-                  >
-                    {item.n}
+                  {item.n}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="lx-title block text-lg text-[var(--band-ink)] sm:text-xl">
+                    {item.title}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="lx-title block text-lg text-[var(--band-ink)] sm:text-xl">
-                      {item.title}
-                    </span>
-                    <span className="mt-1 block text-[var(--band-muted)]">{item.summary}</span>
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={`grid h-6 w-6 shrink-0 place-items-center text-[var(--lx-green)] transition-transform duration-300 ${
-                      isOpen ? 'rotate-45' : ''
-                    }`}
-                  >
-                    <IconPlus size={16} />
-                  </span>
-                </button>
-              </h3>
+                  <span className="mt-1 block text-[var(--band-muted)]">{item.summary}</span>
+                </span>
+                <span
+                  aria-hidden="true"
+                  className={`grid h-6 w-6 shrink-0 place-items-center self-center text-[var(--lx-green-ink)] motion-safe:transition-transform motion-safe:duration-300 ${
+                    isOpen ? 'rotate-45' : ''
+                  }`}
+                >
+                  <IconPlus size={16} />
+                </span>
+              </button>
+            </h3>
 
-              <div className="lx-reveal-grid" data-open={isOpen} id={`step-panel-${i}`}>
-                <div>
-                  <div className="border-t border-[var(--band-line)] p-5 sm:p-6">{item.detail}</div>
-                </div>
+            <div className="lx-reveal-grid" data-open={isOpen} id={`step-panel-${i}`}>
+              <div>
+                <div className="pb-6 sm:ps-[4.5rem]">{item.detail}</div>
               </div>
+            </div>
           </Reveal>
         )
       })}
@@ -395,87 +435,73 @@ export function ExpandableSteps({ items }: { items: Expandable[] }) {
   )
 }
 
-/* ── 5. IndexGrid — dense, image-free proof of breadth ───────────────────────
-   Numbers are the visual. Cheaper and better than any icon set we'd ship. */
+/* ── 5. IndexGrid — ruled index rows: number · rule · label ──────────────────
+   No boxes. A short hairline tick between the mono numeral and the entry, the
+   way a chart keys its figures. Works on the deep plate through --band-*. */
 
 export function IndexGrid({ items }: { items: { n: string; label: string }[] }) {
   return (
-    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid border-t border-[var(--band-line-strong)] sm:grid-cols-2 sm:gap-x-14">
       {items.map((item, i) => (
         <Reveal
           as="li"
           key={item.n}
-          delay={Math.min(i, 8) * 0.04}
-          className="flex h-full items-baseline gap-4 rounded-[12px] border border-[var(--band-line)] bg-[var(--band-card)] p-4"
+          delay={Math.min(i, 8) * 0.048}
+          className="flex items-baseline gap-4 border-b border-[var(--band-line)] py-4"
         >
-            <span
-              className="lx-mono shrink-0 text-sm text-[var(--lx-green)] opacity-60"
-              aria-hidden="true"
-            >
-              {item.n}
-            </span>
-            <span className="leading-[1.6] text-[var(--band-body)]">{item.label}</span>
+          <span className="lx-mono shrink-0 text-sm text-[var(--band-muted)]" aria-hidden="true">
+            {item.n}
+          </span>
+          <span
+            aria-hidden="true"
+            className="h-px w-5 shrink-0 self-center bg-[var(--band-line)]"
+          />
+          <span className="leading-[1.6] text-[var(--band-body)]">{item.label}</span>
         </Reveal>
       ))}
     </ul>
   )
 }
 
-/* ── 5b. NumberCards — a numbered set that is allowed to be four-across ───────
-
-   IndexGrid tops out at three columns, so a set of four items renders as a row
-   of three and one orphan sitting alone under it. That is what "the four things
-   that matter most" looked like on /privacy-safety, and it read as a mistake.
-
-   The fix is not only the column count. Four columns of a single 40-word
-   paragraph would be four narrow grey slabs. Each item needs a short title
-   carrying the claim, with the paragraph *supporting* it — so the row scans as
-   four statements at a glance and rewards reading second. */
+/* ── 5b. NumberCards — four claims as one ruled broadsheet row ───────────────
+   The signature (numbered title + body, four-across at lg) survives; the boxes
+   do not. Hairline column rules, mono numeral over a carbon-copy edge, title
+   carrying the claim. */
 
 export type NumberCard = { n: string; title: string; body: string }
 
 export function NumberCards({ items }: { items: NumberCard[] }) {
   return (
-    <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <ol className="grid gap-x-10 border-t border-[var(--band-line-strong)] sm:grid-cols-2 lg:grid-cols-4 lg:gap-x-0">
       {items.map((item, i) => (
-        <Reveal as="li" key={item.n} delay={i * 0.07} className="lx-card group flex h-full flex-col p-6">
-            <div className="flex items-center gap-3">
-              <span
-                className="lx-mono text-sm leading-none text-[var(--lx-green)]"
-                aria-hidden="true"
-              >
-                {item.n}
-              </span>
-              <span
-                className="h-px flex-1 bg-[var(--band-line)] transition-colors duration-500 group-hover:bg-[var(--lx-green)]"
-                aria-hidden="true"
-              />
-            </div>
-            <h3 className="lx-title mt-5 text-xl leading-[1.25] text-[var(--band-ink)]">
-              {item.title}
-            </h3>
-            <p className="mt-3 text-[0.95rem] leading-[1.75] text-[var(--band-muted)]">
-              {item.body}
-            </p>
+        <Reveal
+          as="li"
+          key={item.n}
+          delay={i * 0.068}
+          className="border-b border-[var(--band-line)] py-6 lg:border-b-0 lg:border-e lg:px-6 lg:first:ps-0 lg:last:border-e-0 lg:last:pe-0"
+        >
+          <span
+            className="lx-label lx-cc-edge block pb-2 text-[0.6875rem] text-[var(--band-muted)]"
+            aria-hidden="true"
+          >
+            {item.n}
+          </span>
+          <h3 className="lx-title mt-4 text-lg text-[var(--band-ink)]">{item.title}</h3>
+          <p className="mt-2 text-[0.95rem] leading-[1.7] text-[var(--band-muted)]">{item.body}</p>
         </Reveal>
       ))}
     </ol>
   )
 }
 
-/* ── 5c. CheckList — commitments, not cards ──────────────────────────────────
-
-   /about and /accessibility both had a six-item numbered grid, which is a large
-   part of why they read as the same page. They are not the same kind of list:
-   /about's six are *rules we chose* (numbered, ordered, a manifesto), and
-   /accessibility's six are *promises kept* (unordered, checkable). So one stays
-   an IndexGrid and the other becomes this: no boxes at all, just a tick and a
-   line, in two columns. Fewer containers, which is also the right call on the one
-   page that should feel effortless to read. */
+/* ── 5c. CheckList — promises kept, as ruled lines ───────────────────────────
+   Green-fill ticks (the one thing --lx-green-fill exists for) on ink
+   hairlines. No containers at all: the least-decorated archetype, on purpose,
+   for the page that should feel effortless to read. */
 
 export function CheckList({ items }: { items: string[] }) {
   return (
-    <ul className="grid gap-x-10 gap-y-1 sm:grid-cols-2">
+    <ul className="grid gap-x-14 border-t border-[var(--band-line)] sm:grid-cols-2">
       {items.map((item, i) => (
         <Reveal
           as="li"
@@ -483,11 +509,8 @@ export function CheckList({ items }: { items: string[] }) {
           delay={Math.min(i, 6) * 0.05}
           className="flex items-start gap-3.5 border-b border-[var(--band-line)] py-4"
         >
-          <span
-            className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
-            aria-hidden="true"
-          >
-            <IconCheck size={11} strokeWidth={2} />
+          <span aria-hidden="true" className="mt-1.5 shrink-0 text-[var(--lx-green-fill)]">
+            <IconCheck size={13} strokeWidth={2.25} />
           </span>
           <span className="leading-[1.7] text-[var(--band-body)]">{item}</span>
         </Reveal>
@@ -496,112 +519,100 @@ export function CheckList({ items }: { items: string[] }) {
   )
 }
 
-/* ── 6. Glass cards — only over .lx-band-deep ────────────────────────────────
-   The deep field plus blur *is* the depth treatment, which is how we get a
-   photographic-feeling band with no photograph. */
+/* ── 6. GlassCards — now a numbered clause register ──────────────────────────
+   The export name is historical: there is no glassmorphism on this site any
+   more. On the deep plate (its only habitat) the items read as numbered
+   clauses — mono numeral, title, body — separated by on-deep hairlines. The
+   legal register is the point: these are limits, not features. */
 
 export function GlassCards({ items }: { items: { label: string; body: string }[] }) {
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <ol className="border-t border-[var(--band-line-strong)]">
       {items.map((item, i) => (
-        <Reveal key={item.label} delay={i * 0.07}>
-          <div className="lx-glass h-full rounded-[16px] p-6">
-            <div className="mb-4 h-px w-12 bg-[var(--lx-sage)]" aria-hidden="true" />
-            <h3 className="lx-title text-lg text-[var(--band-ink)]">
-              {item.label}
-            </h3>
-            <p className="mt-2 leading-[1.75] text-[var(--band-muted)]">{item.body}</p>
-          </div>
+        <Reveal
+          as="li"
+          key={item.label}
+          delay={i * 0.085}
+          className="grid gap-3 border-b border-[var(--band-line)] py-6 sm:grid-cols-[4rem_1fr] sm:gap-6 lg:grid-cols-[4rem_minmax(0,17rem)_1fr] lg:gap-10"
+        >
+          <span className="lx-mono text-sm text-[var(--band-muted)]" aria-hidden="true">
+            {String(i + 1).padStart(2, '0')}
+          </span>
+          <h3 className="lx-title text-lg text-[var(--band-ink)]">{item.label}</h3>
+          <p className="max-w-prose leading-[1.75] text-[var(--band-muted)]">{item.body}</p>
         </Reveal>
       ))}
-    </div>
+    </ol>
   )
 }
 
-/* ── 6b. PromiseLedger — Kai's own voice, as a ledger ────────────────────────
+/* ── 6b. PromiseLedger — a true two-column ledger sheet ──────────────────────
+   Facing columns under mono heads with carbon-copy edges, ruled rows, a
+   vertical rule between the columns at lg. The "never" head is set in the
+   amber annotation ink on light bands (the safety limits are the most
+   distinct copy); on the deep plate it takes the on-deep ink instead.
+   Pass `will` empty for the stark single-column form. */
 
-   Kai's promises used to be an IndexGrid ("I will wait", "I will listen"…) and
-   Kai's limits a set of GlassCards ("Not a doctor", "Not a triage system") — two
-   sections, two archetypes, both of which appear on other pages, and the two
-   halves of a single idea split across them.
-
-   They belong together. What Kai will do is only meaningful next to what Kai
-   will never do, and putting them in facing columns makes the promise legible as
-   a *bargain* rather than as marketing. First person throughout, because it is
-   Kai talking.
-
-   Pass `will` empty to get the stark single-column form (the homepage, where the
-   "never" list is the entire trust moment and deserves the full width). */
-
-/* Hoisted OUT of PromiseLedger.
-
-   Defined inside it, this was a new component *type* on every render — so React
-   could not reconcile it and tore down and remounted the entire subtree each time
-   the parent re-rendered. That means every Reveal inside it replays its entrance
-   animation, and any state below it is destroyed. It is invisible until it is not,
-   and then it is baffling. A component defined during render is never what you
-   want. */
 function LedgerColumn({
   kind,
   heading,
   items,
   twoUp,
+  className = '',
 }: {
   kind: 'will' | 'never'
   heading: string
   items: { t: string; b: string }[]
   twoUp: boolean
+  className?: string
 }) {
   return (
-    <div>
-      <p className="lx-label flex items-center gap-3 text-xs text-[var(--band-muted)]">
+    <div className={className}>
+      <p
+        className={`lx-label lx-cc-edge pb-2 text-[0.6875rem] ${
+          kind === 'never'
+            ? 'text-[var(--lx-signal-ink)] [.lx-band-deep_&]:text-[var(--band-ink)]'
+            : 'text-[var(--band-muted)]'
+        }`}
+      >
         {heading}
-        <span className="h-px flex-1 bg-[var(--band-line)]" aria-hidden="true" />
       </p>
-      <ul className={twoUp ? 'mt-6 space-y-5' : 'mt-8 space-y-0'}>
+      <ul>
         {items.map((item, i) => (
           <Reveal
             as="li"
             key={item.t}
-            delay={Math.min(i, 6) * 0.06}
-            className={
-              twoUp
-                ? 'flex gap-4'
-                : 'flex gap-5 border-b border-[var(--band-line)] py-6 first:border-t'
-            }
+            delay={Math.min(i, 6) * 0.062}
+            className="grid grid-cols-[1.5rem_1fr] gap-4 border-b border-[var(--band-line)] py-5"
           >
+            <span
+              aria-hidden="true"
+              className={`mt-1 ${
+                kind === 'will' ? 'text-[var(--lx-green-fill)]' : 'text-[var(--band-muted)]'
+              }`}
+            >
+              {kind === 'will' ? (
+                <IconCheck size={14} strokeWidth={2} />
+              ) : (
+                <IconX size={13} strokeWidth={1.75} />
+              )}
+            </span>
+            <span className="min-w-0">
               <span
-                aria-hidden="true"
-                className={`mt-1 grid shrink-0 place-items-center rounded-full ${
-                  twoUp ? 'h-5 w-5' : 'h-7 w-7'
-                } ${
-                  kind === 'will'
-                    ? 'bg-[var(--lx-green)] text-white'
-                    : 'border border-[var(--band-line)] bg-transparent text-[var(--band-muted)]'
+                className={`lx-title block text-[var(--band-ink)] ${
+                  twoUp ? 'text-[1.05rem]' : 'text-xl sm:text-2xl'
                 }`}
               >
-                {kind === 'will' ? (
-                  <IconCheck size={twoUp ? 11 : 13} strokeWidth={2} />
-                ) : (
-                  <IconX size={twoUp ? 10 : 12} strokeWidth={1.75} />
-                )}
+                {item.t}
               </span>
-              <span className="min-w-0">
-                <span
-                  className={`lx-title block text-[var(--band-ink)] ${
-                    twoUp ? 'text-lg' : 'text-xl sm:text-2xl'
-                  }`}
-                >
-                  {item.t}
-                </span>
-                <span
-                  className={`mt-1.5 block leading-[1.75] text-[var(--band-muted)] ${
-                    twoUp ? '' : 'max-w-2xl'
-                  }`}
-                >
-                  {item.b}
-                </span>
+              <span
+                className={`mt-1.5 block leading-[1.7] text-[var(--band-muted)] ${
+                  twoUp ? 'text-[0.95rem]' : 'max-w-2xl'
+                }`}
+              >
+                {item.b}
               </span>
+            </span>
           </Reveal>
         ))}
       </ul>
@@ -630,36 +641,38 @@ export function PromiseLedger({
   }
 
   return (
-    <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-      <LedgerColumn kind="will" heading="What I will do" items={will ?? []} twoUp />
-      <LedgerColumn kind="never" heading="What I will never do" items={never} twoUp />
+    <div className="grid gap-12 lg:grid-cols-2 lg:gap-0">
+      <LedgerColumn
+        kind="will"
+        heading="What I will do"
+        items={will ?? []}
+        twoUp
+        className="lg:pe-14"
+      />
+      <LedgerColumn
+        kind="never"
+        heading="What I will never do"
+        items={never}
+        twoUp
+        className="lg:border-s lg:border-[var(--band-line)] lg:ps-14"
+      />
     </div>
   )
 }
 
-/* ── 6c. LandscapeRows — the alternatives, and where each one runs out ───────
-
-   /how-it-works listed the six things a patient has today (an interpreter, the
-   phone line, a family member, a translation app, a form, hope) as six frosted
-   cards — the same component /languages, /meet-kai, /for-clinics, /accessibility
-   and the homepage were all also using on a dark band.
-
-   But this content is not a set of cards at all. It is a comparison: each option
-   gives you something, and each one runs out somewhere. A card flattens that into
-   one grey paragraph. Two columns keep the promise and the failure side by side,
-   which is the entire argument the section is making. */
+/* ── 6c. LandscapeRows — the comparison as a ruled three-column table ────────
+   Mono column heads under a carbon-copy edge; the failure column keyed by the
+   amber signal dot (an ornament, never text). The promise and the failure sit
+   side by side, which is the entire argument the section makes. */
 
 export type Landscape = { option: string; gives: string; runsOut: string }
 
 export function LandscapeRows({ rows }: { rows: Landscape[] }) {
   return (
     <div>
-      <div className="hidden grid-cols-[1fr_1.2fr_1.2fr] gap-8 border-b border-[var(--band-line)] pb-3 lg:grid">
+      <div className="lx-cc-edge hidden grid-cols-[1fr_1.2fr_1.2fr] gap-8 pb-2 lg:grid">
         {['What you have today', 'What it gives you', 'Where it runs out'].map((h) => (
-          <p
-            key={h}
-            className="lx-label text-xs text-[var(--band-muted)]"
-          >
+          <p key={h} className="lx-label text-[0.6875rem] text-[var(--band-muted)]">
             {h}
           </p>
         ))}
@@ -670,17 +683,15 @@ export function LandscapeRows({ rows }: { rows: Landscape[] }) {
           <Reveal
             as="li"
             key={row.option}
-            delay={Math.min(i, 6) * 0.05}
+            delay={Math.min(i, 6) * 0.052}
             className="grid gap-2 border-b border-[var(--band-line)] py-6 lg:grid-cols-[1fr_1.2fr_1.2fr] lg:gap-8"
           >
-            <h3 className="lx-title text-lg text-[var(--band-ink)] sm:text-xl">
-              {row.option}
-            </h3>
+            <h3 className="lx-title text-lg text-[var(--band-ink)]">{row.option}</h3>
             <p className="leading-[1.75] text-[var(--band-body)]">{row.gives}</p>
             <p className="flex gap-2.5 leading-[1.75] text-[var(--band-muted)]">
               <span
                 aria-hidden="true"
-                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--lx-sage)]"
+                className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--lx-signal-fill)]"
               />
               {row.runsOut}
             </p>
@@ -691,15 +702,10 @@ export function LandscapeRows({ rows }: { rows: Landscape[] }) {
   )
 }
 
-/* ── 6d. ContrastPair — what they mean by it, and what we mean by it ─────────
-
-   /languages opened its dark band by saying that "a lot of software claims to
-   support your language when what it really means is that the buttons are
-   translated" — and then rendered three cards that only described OUR side. The
-   sentence sets up a contrast and the section did not deliver one.
-
-   So: deliver it. Their column and ours, line for line, so the difference is
-   something you SEE rather than something you are asked to take on trust. */
+/* ── 6d. ContrastPair — their column and ours, line for line ─────────────────
+   Two ruled columns split by a vertical hairline at lg, each under its own
+   mono head with a carbon-copy edge. The difference is something you SEE
+   rather than something you are asked to take on trust. */
 
 export function ContrastPair({
   theirs,
@@ -711,19 +717,21 @@ export function ContrastPair({
   rows: { theirs: string; ours: string }[]
 }) {
   return (
-    <div className="grid gap-px overflow-hidden rounded-[16px] border border-[var(--band-line)] bg-[var(--band-line)] lg:grid-cols-2">
-      <div className="bg-[var(--band-bg)] p-6 sm:p-8">
-        <p className="lx-label text-xs text-[var(--band-muted)]">
+    <div className="grid border-t border-[var(--band-line-strong)] pt-7 lg:grid-cols-2 lg:gap-0">
+      <div className="pb-8 lg:pb-0 lg:pe-12">
+        <p className="lx-label lx-cc-edge pb-2 text-[0.6875rem] text-[var(--band-muted)]">
           {theirs}
         </p>
-        <ul className="mt-6 space-y-5">
+        <ul className="mt-5 space-y-4">
           {rows.map((row, i) => (
-            <Reveal as="li" key={row.theirs} delay={i * 0.06} className="flex gap-3 leading-[1.75] text-[var(--band-muted)]">
-              <span
-                aria-hidden="true"
-                className="mt-1 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full border border-[var(--band-line)] text-[var(--band-muted)] opacity-70"
-              >
-                <IconX size={9} strokeWidth={1.75} />
+            <Reveal
+              as="li"
+              key={row.theirs}
+              delay={i * 0.065}
+              className="flex gap-3 leading-[1.7] text-[var(--band-muted)]"
+            >
+              <span aria-hidden="true" className="mt-1.5 shrink-0 opacity-70">
+                <IconX size={11} strokeWidth={1.75} />
               </span>
               {row.theirs}
             </Reveal>
@@ -731,18 +739,20 @@ export function ContrastPair({
         </ul>
       </div>
 
-      <div className="bg-[var(--band-card)] p-6 sm:p-8">
-        <p className="lx-label text-xs text-[var(--lx-sage)]">
+      <div className="border-t border-[var(--band-line)] pt-8 lg:border-s lg:border-t-0 lg:ps-12 lg:pt-0">
+        <p className="lx-label lx-cc-edge pb-2 text-[0.6875rem] text-[var(--lx-green-ink)] [.lx-band-deep_&]:text-[var(--lx-deep-mint)]">
           {ours}
         </p>
-        <ul className="mt-6 space-y-5">
+        <ul className="mt-5 space-y-4">
           {rows.map((row, i) => (
-            <Reveal as="li" key={row.ours} delay={i * 0.06} className="flex gap-3 leading-[1.75] text-[var(--band-body)]">
-              <span
-                aria-hidden="true"
-                className="mt-1 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
-              >
-                <IconCheck size={9} strokeWidth={2.25} />
+            <Reveal
+              as="li"
+              key={row.ours}
+              delay={i * 0.065}
+              className="flex gap-3 leading-[1.7] text-[var(--band-body)]"
+            >
+              <span aria-hidden="true" className="mt-1.5 shrink-0 text-[var(--lx-green-fill)]">
+                <IconCheck size={11} strokeWidth={2.25} />
               </span>
               {row.ours}
             </Reveal>
@@ -753,44 +763,76 @@ export function ContrastPair({
   )
 }
 
-/* ── 7. LanguageMarquee — our logo strip ─────────────────────────────────────
-   Every other health-AI site runs a wall of hospital logos here. We don't have
-   hospitals; we have 45 scripts, which is the more honest proof anyway. Track is
-   duplicated so translateX(-50%) loops seamlessly. */
+/* ── 7. LanguageMarquee — now a static specimen strip ────────────────────────
+   The autoscroll marquee is dead (banned motion). In its place: a composed,
+   set row of greeting fragments at specimen scale — the scripts ARE the art —
+   each annotated with its mono ISO code, ruled top and bottom. The export
+   name is historical. Greetings are fixed, deterministic strings; the ISO
+   annotation and lang attribute come from the app's own language list so the
+   codes cannot drift. */
+
+const SPECIMENS: { code: string; greeting: string }[] = [
+  { code: 'es-ES', greeting: 'Hola' },
+  { code: 'zh-CN', greeting: '你好' },
+  { code: 'hi-IN', greeting: 'नमस्ते' },
+  { code: 'ar-SA', greeting: 'مرحبا' },
+  { code: 'vi-VN', greeting: 'Xin chào' },
+  { code: 'ko-KR', greeting: '안녕하세요' },
+  { code: 'ta-IN', greeting: 'வணக்கம்' },
+  { code: 'ur-PK', greeting: 'سلام' },
+  { code: 'bn-BD', greeting: 'নমস্কার' },
+  { code: 'ru-RU', greeting: 'Здравствуйте' },
+  { code: 'am-ET', greeting: 'ሰላም' },
+  { code: 'el-GR', greeting: 'Γεια σας' },
+]
+
+/* Three specimen sizes cycling deterministically — a set wall, not a grid. */
+const SPECIMEN_SIZES = [
+  'text-[clamp(1.6rem,3vw,2.4rem)]',
+  'text-[clamp(1.2rem,2.2vw,1.7rem)]',
+  'text-[clamp(1.4rem,2.6vw,2rem)]',
+]
 
 export function LanguageMarquee() {
-  const strip = [...LANGUAGES, ...LANGUAGES]
-
   return (
-    <div className="lx-marquee py-2" aria-hidden="true">
-      <div className="lx-marquee-track gap-3">
-        {strip.map((language, i) => (
-          <span
-            key={`${language.code}-${i}`}
-            className="lx-native lx-chip flex shrink-0 items-center gap-2 rounded-full border border-[var(--band-line)] bg-[var(--band-card)] px-4 py-2 text-[var(--band-body)]"
-          >
-            <span>{language.flag}</span>
-            {language.native}
-          </span>
-        ))}
-      </div>
-    </div>
+    <ul className="flex flex-wrap items-baseline gap-x-9 gap-y-5 border-y border-[var(--band-line)] py-7">
+      {SPECIMENS.map((specimen, i) => {
+        const language = LANGUAGES.find((l) => l.code === specimen.code)
+        if (!language) return null
+        return (
+          <li key={specimen.code} className="flex items-baseline gap-2.5">
+            <span
+              lang={language.googleCode}
+              dir={language.rtl ? 'rtl' : undefined}
+              className={`lx-native text-[var(--band-ink)] ${SPECIMEN_SIZES[i % 3]}`}
+            >
+              {specimen.greeting}
+            </span>
+            <span className="lx-label text-[0.625rem] text-[var(--band-muted)]" aria-hidden="true">
+              {language.googleCode.toUpperCase()}
+            </span>
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
-/* ── 8. Quote ────────────────────────────────────────────────────────────────
-   No headshot — we don't have one, and a stock face would be worse than none. */
+/* ── 8. Quote — the aside voice, with a hanging rule ─────────────────────────
+   A quote is a human being talking: the one register on the site that is
+   allowed to lean (Plex Sans italic — the display face has no italic and is
+   never faked). One vertical rule, mono attribution, no figure-quote clichés. */
 
 export function Quote({
   children,
   attribution,
   role,
-  /* Same reason as Thesis: /accessibility opens on a Quote, so it has to carry
-     the h1 or the page has none. The <h1> wraps the <blockquote> content rather
-     than replacing it, so the quotation semantics survive. */
+  /* /accessibility opens on a Quote, so it has to carry the h1 or the page has
+     none. The <h1> wraps the <blockquote> content rather than replacing it, so
+     the quotation semantics survive. */
   asHeading = false,
-  /* The serif's second and last home. A quote is a human being talking, which is
-     the one thing on this site that should NOT look like software. */
+  /* Accepted for compatibility: the aside voice is now the ONLY register for
+     quotes, so this no longer switches anything. */
   serif = false,
 }: {
   children: ReactNode
@@ -799,29 +841,25 @@ export function Quote({
   asHeading?: boolean
   serif?: boolean
 }) {
+  void serif
   const Inner = asHeading ? 'h1' : 'div'
   return (
-    <Reveal className="mx-auto max-w-3xl">
-      <figure>
-        <blockquote
-          className={`${
-            serif ? 'lx-serif' : 'lx-heading'
-          } text-balance text-[clamp(1.35rem,3vw,2rem)] text-[var(--band-ink)]`}
-        >
+    <Reveal className="max-w-3xl">
+      <figure className="border-s border-[var(--band-line-strong)] ps-6 sm:ps-10">
+        <blockquote className="lx-serif text-balance text-[clamp(1.5rem,3.2vw,2.25rem)] text-[var(--band-ink)]">
           <Inner className="font-[inherit] text-[inherit] leading-[inherit]">{children}</Inner>
         </blockquote>
-        <figcaption className="mt-6 flex items-center gap-3 text-[var(--band-muted)]">
-          <span className="h-px w-8 bg-[var(--lx-green)]" aria-hidden="true" />
-          <span>
-            <span className="font-semibold text-[var(--band-ink)]">{attribution}</span> · {role}
-          </span>
+        <figcaption className="lx-label mt-6 text-[0.6875rem] text-[var(--band-muted)]">
+          {attribution} · {role}
         </figcaption>
       </figure>
     </Reveal>
   )
 }
 
-/* ── 9. Split — copy on one side, an arbitrary payload on the other ─────────── */
+/* ── 9. Split — copy against a payload, on an asymmetric 7/5 measure ─────────
+   Nothing on this site splits down the middle. Copy takes the wide column;
+   `flip` mirrors the composition without giving up the asymmetry. */
 
 export function Split({
   children,
@@ -833,7 +871,13 @@ export function Split({
   flip?: boolean
 }) {
   return (
-    <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+    <div
+      className={`grid items-center gap-10 lg:gap-16 ${
+        flip
+          ? 'lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]'
+          : 'lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]'
+      }`}
+    >
       <Reveal className={flip ? 'lg:order-2' : ''}>{children}</Reveal>
       <Reveal delay={0.1} className={flip ? 'lg:order-1' : ''}>
         {media}
@@ -845,98 +889,100 @@ export function Split({
 /* ── 10. Prose — for the places that genuinely are just paragraphs ─────────── */
 
 export function Prose({ children }: { children: ReactNode }) {
-  return (
-    <div className="max-w-2xl">
-      {children}
-    </div>
-  )
+  return <div className="max-w-2xl">{children}</div>
 }
 
 export function Para({ children }: { children: ReactNode }) {
   return (
     <Reveal className="mt-6 first:mt-0">
-      <p className="text-pretty text-lg leading-[1.85] text-[var(--band-body)]">{children}</p>
+      <p className="text-pretty text-lg leading-[1.75] text-[var(--band-body)]">{children}</p>
     </Reveal>
   )
 }
 
-/* ── 10b. QaColumns — the same questions, not hidden behind a chevron ────────
-
-   Six of the eight pages ended on the same <details> accordion, which is a large
-   part of why they all felt like the same page: whatever happened in the middle,
-   you always landed on an identical row of closed grey doors.
-
-   An accordion is the right instrument in exactly one situation — when the reader
-   is *scanning for their own objection* and wants the others out of the way. That
-   is a person under scrutiny: a clinic doing diligence, a sceptic on the privacy
-   page. So <Faq> now lives only on those three pages, and it earns its place there.
-
-   Everywhere else the questions are not objections to be filtered, they are just
-   things worth telling you — so they are open, set as editorial prose in two
-   columns, and read like the end of an article rather than a support centre.
-
-   It is also strictly better for the reader we claim to build for: nothing to
-   discover, nothing to tap, and the answers are simply there. */
+/* ── 10b. QaColumns — open questions, set as an editorial register ───────────
+   Two ruled columns, each answer indexed by a mono numeral. Nothing to
+   discover, nothing to tap: the answers are simply there. */
 
 export function QaColumns({ items }: { items: { q: string; a: string }[] }) {
   return (
-    <dl className="grid gap-x-12 gap-y-8 sm:grid-cols-2">
+    <dl className="grid gap-x-14 sm:grid-cols-2">
       {items.map((item, i) => (
-        <Reveal key={item.q} delay={Math.min(i, 6) * 0.06} className="border-t border-[var(--band-line)] pt-5">
-          <dt className="lx-title text-lg leading-[1.35] text-[var(--band-ink)]">
-            {item.q}
+        <Reveal
+          key={item.q}
+          delay={Math.min(i, 6) * 0.058}
+          className="border-t border-[var(--band-line)] py-5"
+        >
+          <dt className="flex items-baseline gap-3">
+            <span className="lx-mono w-7 shrink-0 text-xs text-[var(--band-muted)]" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span className="lx-title min-w-0 text-[1.05rem] text-[var(--band-ink)]">{item.q}</span>
           </dt>
-          <dd className="mt-2.5 leading-[1.8] text-[var(--band-muted)]">{item.a}</dd>
+          <dd className="mt-2.5 ps-10 leading-[1.75] text-[var(--band-muted)]">{item.a}</dd>
         </Reveal>
       ))}
     </dl>
   )
 }
 
-/* ── 11. Disclosure list (FAQ) — native <details>, zero JS ────────────────────
-
-   ONLY for the three pages where the reader is scanning for their own objection:
-   /accessibility, /privacy-safety, /for-clinics. Everywhere else use <QaColumns>
-   — see the note above it. */
+/* ── 11. Faq — native <details>, restyled as a ruled register ────────────────
+   ONLY for the pages where the reader is scanning for their own objection
+   (/accessibility, /privacy-safety, /for-clinics). Mono index numeral, ruled
+   rows, plus-rotate affordance. Zero JS. */
 
 export function Faq({ items }: { items: { q: string; a: string }[] }) {
   return (
-    <div className="border-t border-[var(--band-line)]">
-      {items.map((item) => (
-        <details key={item.q} className="group border-b border-[var(--band-line)] py-5">
-          <summary className="lx-focus flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-semibold text-[var(--band-ink)] [&::-webkit-details-marker]:hidden">
-            {item.q}
+    <div className="border-t border-[var(--band-line-strong)]">
+      {items.map((item, i) => (
+        <details key={item.q} className="group border-b border-[var(--band-line)]">
+          <summary className="lx-focus flex min-h-11 cursor-pointer list-none items-baseline gap-4 py-5 [&::-webkit-details-marker]:hidden">
+            <span className="lx-mono w-6 shrink-0 text-xs text-[var(--band-muted)]" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span className="lx-title min-w-0 flex-1 text-[1.05rem] text-[var(--band-ink)]">
+              {item.q}
+            </span>
             <span
               aria-hidden="true"
-              className="grid h-5 w-5 shrink-0 place-items-center text-[var(--lx-green)] transition-transform duration-200 group-open:rotate-45"
+              className="grid h-5 w-5 shrink-0 place-items-center self-center text-[var(--lx-green-ink)] group-open:rotate-45 motion-safe:transition-transform motion-safe:duration-200 [.lx-band-deep_&]:text-[var(--lx-deep-mint)]"
             >
               <IconPlus size={14} />
             </span>
           </summary>
-          <p className="mt-3 max-w-2xl leading-[1.85] text-[var(--band-muted)]">{item.a}</p>
+          <p className="max-w-2xl pb-6 ps-10 leading-[1.75] text-[var(--band-muted)]">{item.a}</p>
         </details>
       ))}
     </div>
   )
 }
 
-/* ── 12. References — cite your sources ─────────────────────────────────────── */
+/* ── 12. References — a mono citation list on a hairline gutter ──────────────
+   Hanging [n] numerals in a ruled gutter column; the citation body in the
+   chart mono at footnote size. The `ref-{id}` anchors are load-bearing
+   (/privacy-safety links to them) — never remove them. */
 
 export function References({ items }: { items: { id: string; text: string; href?: string }[] }) {
   return (
     <Reveal>
-      <ol className="space-y-3 border-t border-[var(--band-line)] pt-6 text-sm leading-[1.7] text-[var(--band-muted)]">
+      <ol className="border-t border-[var(--band-line-strong)] pt-5">
         {items.map((item) => (
-          <li key={item.id} id={`ref-${item.id}`} className="flex gap-3">
-            <span className="shrink-0 font-semibold text-[var(--band-ink)]">{item.id}.</span>
-            <span>
+          <li
+            key={item.id}
+            id={`ref-${item.id}`}
+            className="grid scroll-mt-24 grid-cols-[2.75rem_1fr] gap-4 py-2"
+          >
+            <span className="lx-mono border-e border-[var(--band-line)] text-xs text-[var(--band-muted)]">
+              [{item.id}]
+            </span>
+            <span className="lx-mono text-[0.8125rem] leading-[1.7] text-[var(--band-muted)]">
               {item.text}{' '}
               {item.href && (
                 <a
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="lx-focus underline underline-offset-2 hover:text-[var(--band-ink)]"
+                  className="lx-focus text-[var(--lx-green-ink)] underline underline-offset-2 [.lx-band-deep_&]:text-[var(--lx-deep-mint)]"
                 >
                   Source
                 </a>
@@ -949,24 +995,18 @@ export function References({ items }: { items: { id: string; text: string; href?
   )
 }
 
-/* Arrow link.
+/* ── ArrowLink — underline-draw + the drawn arrow ────────────────────────────
+   Links are green-ink, always. The underline draws in from the start edge and
+   the chevron resolves into an arrow — both driven by the inherited --lx-hover
+   boolean from landing.css, so this markup carries no hover state and no JS. */
 
-   The glyph is drawn, not typed. A "→" character just slides sideways on hover;
-   a real arrow GROWS — the shaft fades in and the head moves — so the chevron
-   resolves into an arrow. Two properties, both driven by the inherited --lx-hover
-   boolean set in landing.css, so this markup needs no hover state of its own and
-   no JS. A card, a link or a button can all drive it identically.
-
-   Framer Motion is gone from here for the same reason: this is a 3px translate
-   and an opacity fade, and shipping a JS animation library to do that is exactly
-   the kind of thing that makes a site feel heavier than it looks. */
 export function ArrowLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a
       href={href}
-      className="lx-focus inline-flex min-h-11 items-center gap-2 font-medium text-[var(--band-ink)]"
+      className="lx-focus inline-flex min-h-11 items-center gap-2.5 font-medium text-[var(--lx-green-ink)] [.lx-band-deep_&]:text-[var(--lx-deep-mint)]"
     >
-      <span className="underline underline-offset-4">{children}</span>
+      <span className="lx-underline-draw">{children}</span>
       <svg
         className="lx-arrow"
         width="16"

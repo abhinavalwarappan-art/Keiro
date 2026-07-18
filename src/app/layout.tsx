@@ -19,7 +19,7 @@ import { CookieConsent } from '@/components/ui/CookieConsent'
 import { LangUpdater } from '@/components/ui/LangUpdater'
 import { PostHogProvider } from '@/components/PostHogProvider'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://keiro.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://keiro.space'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     default: 'Keiro — Speak freely. Be understood.',
     template: '%s — Keiro',
   },
-  description: 'Free medical intake in 25+ languages. Talk to Kai in your language, get a professional report your doctor can read.',
+  description: 'Free medical intake in 45 languages. Talk to Kai in the language you think in, and get a clear English summary your doctor can read.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Keiro — Speak freely. Be understood.',
-    description: 'Free medical intake in 25+ languages.',
+    description: 'Free medical intake in 45 languages, including proper right-to-left scripts.',
     url: siteUrl,
     type: 'website',
   },

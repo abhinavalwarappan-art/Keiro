@@ -1,11 +1,11 @@
 'use client'
 
-/* Top navigation.
+/* Top navigation — the ledger's masthead.
 
-   Structure follows Serve Robotics' pattern: informational links and the primary
-   CTA are two separate things, not one styled list. The CTA ("Start talking to
-   Kai") is the patient's door and must never get lost among pages written for
-   clinics, press and investors — so it lives outside NAV_LINKS entirely.
+   Structure: informational links and the primary CTA are two separate things,
+   not one styled list. The CTA ("Start with Kai") is the patient's door and
+   must never get lost among pages written for clinics, press and investors —
+   so it lives outside NAV_LINKS entirely.
 
    Dropdown is click-to-open, not hover: hover menus are unusable on touch and
    hostile to anyone with a tremor. Escape and outside-click close it. */
@@ -78,29 +78,33 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
 
   return (
     <header
-      className={`sticky z-50 border-b border-[var(--lx-line)] bg-[var(--lx-cream)]/90 backdrop-blur ${
+      className={`sticky z-50 border-b border-[var(--lx-hairline)] bg-[var(--lx-paper)]/92 backdrop-blur ${
         hasSessionBanner ? 'top-12' : 'top-0'
       }`}
     >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-16">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-10">
         {/* Kai is the logo — he's the product's face, so he leads the wordmark.
             His SVG is 56×75 at `xs`, taller than the 64px bar, so he's absolutely
             positioned inside a fixed box and scaled down; otherwise his layout
             box pushes the header height out. */}
         <Link
           href="/"
-          className="lx-focus lx-display group inline-flex min-h-11 shrink-0 items-center gap-2.5 text-xl font-semibold tracking-[-0.02em] text-[var(--lx-ink)]"
+          className="lx-focus lx-display group inline-flex min-h-11 shrink-0 items-baseline gap-2.5 text-[1.35rem] text-[var(--lx-ink)]"
         >
-          <span className="relative block h-9 w-8 shrink-0" aria-hidden="true">
+          <span className="relative block h-9 w-8 shrink-0 self-center" aria-hidden="true">
             <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 scale-[0.46] transition-transform duration-300 group-hover:scale-[0.52]">
               <Kai size="xs" animated={false} />
             </span>
           </span>
           Keiro
+          {/* The masthead's one chart annotation: what this thing is, filed. */}
+          <span className="lx-label mb-0.5 hidden self-center text-[0.55rem] text-[var(--lx-muted)] xl:inline">
+            Intake · 45 languages
+          </span>
         </Link>
 
         {/* ── Desktop ── */}
-        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Main">
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
           {NAV_LINKS.map((link) =>
             link.children ? (
               <div key={link.href} ref={aboutRef} className="relative">
@@ -109,28 +113,28 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
                   aria-expanded={openAbout}
                   aria-haspopup="true"
                   onClick={() => setOpenAbout((v) => !v)}
-                  className={`lx-focus inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 font-medium transition-colors duration-200 hover:bg-[var(--lx-mint)] hover:text-[var(--lx-ink)] ${
+                  className={`lx-focus inline-flex min-h-11 items-center gap-1.5 rounded-[4px] px-3 font-medium transition-colors duration-150 hover:bg-[var(--lx-wash)] hover:text-[var(--lx-ink)] ${
                     isAboutActive ? 'text-[var(--lx-ink)]' : 'text-[var(--lx-muted)]'
                   }`}
                 >
                   {link.label}
                   <span
                     aria-hidden="true"
-                    className={`grid place-items-center transition-transform duration-200 ${openAbout ? 'rotate-180' : ''}`}
+                    className={`grid place-items-center transition-transform duration-150 ${openAbout ? 'rotate-180' : ''}`}
                   >
                     <IconChevronDown size={11} />
                   </span>
                 </button>
 
                 {openAbout && (
-                  <ul className="absolute left-0 top-[calc(100%+0.5rem)] w-60 overflow-hidden rounded-[16px] border border-[var(--lx-line)] bg-[var(--lx-paper)] p-1.5 shadow-[0_24px_60px_-24px_rgba(26,61,43,0.35)]">
+                  <ul className="lx-pop absolute left-0 top-[calc(100%+0.55rem)] w-60 overflow-hidden rounded-[8px] border border-[var(--lx-hairline)] bg-[var(--lx-card)] p-1.5 shadow-[0_24px_60px_-28px_rgba(14,42,28,0.3)]">
                     {link.children.map((child) => (
                       <li key={child.href}>
                         <Link
                           href={child.href}
-                          className={`lx-focus flex min-h-11 items-center rounded-[12px] px-3 font-medium transition-colors duration-200 hover:bg-[var(--lx-mint)] ${
+                          className={`lx-focus flex min-h-11 items-center rounded-[4px] px-3 font-medium transition-colors duration-150 hover:bg-[var(--lx-wash)] ${
                             isActive(child.href)
-                              ? 'bg-[var(--lx-mint)] text-[var(--lx-ink)]'
+                              ? 'bg-[var(--lx-wash)] text-[var(--lx-ink)]'
                               : 'text-[var(--lx-body)]'
                           }`}
                         >
@@ -145,7 +149,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
               <Link
                 key={link.href}
                 href={link.href}
-                className={`lx-focus inline-flex min-h-11 items-center rounded-full px-3 font-medium transition-colors duration-200 hover:bg-[var(--lx-mint)] hover:text-[var(--lx-ink)] ${
+                className={`lx-focus inline-flex min-h-11 items-center rounded-[4px] px-3 font-medium transition-colors duration-150 hover:bg-[var(--lx-wash)] hover:text-[var(--lx-ink)] ${
                   isActive(link.href) ? 'text-[var(--lx-ink)]' : 'text-[var(--lx-muted)]'
                 }`}
               >
@@ -162,10 +166,10 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
           <Link
             href={CTA.href}
             data-testid="nav-cta"
-            className="lx-focus lx-btn lx-btn-primary inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-4 font-semibold sm:px-5"
+            className="lx-focus lx-btn lx-btn-primary inline-flex min-h-11 shrink-0 items-center justify-center px-4 font-semibold sm:px-5"
           >
             <span className="hidden sm:inline">{CTA.label}</span>
-            <span className="sm:hidden">Start</span>
+            <span className="sm:hidden">Talk to Kai</span>
           </Link>
 
           {/* ── Mobile toggle ── */}
@@ -175,7 +179,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
             aria-controls="mobile-menu"
             aria-label={openMenu ? 'Close menu' : 'Open menu'}
             onClick={() => setOpenMenu((v) => !v)}
-            className="lx-focus inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--lx-line)] text-[var(--lx-ink)] lg:hidden"
+            className="lx-focus inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-[var(--lx-hairline)] text-[var(--lx-ink)] lg:hidden"
           >
             <span aria-hidden="true" className="grid place-items-center">
               {openMenu ? <IconX size={16} /> : <IconMenu size={17} />}
@@ -188,7 +192,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
       {openMenu && (
         <div
           id="mobile-menu"
-          className="border-t border-[var(--lx-line)] bg-[var(--lx-cream)] lg:hidden"
+          className="lx-pop border-t border-[var(--lx-hairline)] bg-[var(--lx-paper)] lg:hidden"
         >
           <nav
             aria-label="Main"
@@ -200,7 +204,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`lx-focus flex min-h-12 items-center border-b border-[var(--lx-line)] font-medium ${
+                    className={`lx-focus flex min-h-12 items-center border-b border-[var(--lx-hairline)] font-medium ${
                       isActive(link.href) ? 'text-[var(--lx-ink)]' : 'text-[var(--lx-body)]'
                     }`}
                   >
@@ -210,15 +214,13 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
               ))}
             </ul>
 
-            <p className="pt-5 lx-label text-xs text-[var(--lx-muted)]">
-              About
-            </p>
+            <p className="lx-label pt-5 text-xs text-[var(--lx-muted)]">About</p>
             <ul className="flex flex-col">
               {NAV_LINKS[2].children!.map((child) => (
                 <li key={child.href}>
                   <Link
                     href={child.href}
-                    className={`lx-focus flex min-h-12 items-center border-b border-[var(--lx-line)] font-medium ${
+                    className={`lx-focus flex min-h-12 items-center border-b border-[var(--lx-hairline)] font-medium ${
                       isActive(child.href) ? 'text-[var(--lx-ink)]' : 'text-[var(--lx-body)]'
                     }`}
                   >

@@ -8,7 +8,11 @@
    does NOT render a message box it would have to silently drop.
 
    `topic` is folded into clinicName so the notification email's subject line
-   ("Demo Request: Press — <org>") still says who is writing. */
+   ("Demo Request: Press — <org>") still says who is writing.
+
+   Styled as one of Keiro's own documents (DESIGN.md §7.7): mono field labels
+   over hairline-underlined inputs, no boxes, 56px targets, the submit button
+   the only filled element. The logic below is unchanged — only the markup. */
 
 import { useState } from 'react'
 
@@ -69,13 +73,12 @@ export function ContactForm() {
   if (status === 'sent') {
     return (
       <div
-        className="mt-8 rounded-[16px] border border-[var(--lx-line)] bg-[var(--lx-mint)] p-6 sm:p-8"
+        className="lx-regmark mt-8 border border-[var(--lx-hairline)] bg-[var(--lx-wash)] p-6 sm:p-8"
         role="status"
         aria-live="polite"
       >
-        <h3 className="lx-heading text-xl text-[var(--lx-ink)]">
-          Thank you. We have it.
-        </h3>
+        <p className="lx-label text-[0.6rem] text-[var(--lx-green-ink)]">Received</p>
+        <h3 className="lx-heading mt-3 text-xl text-[var(--lx-ink)]">Thank you. We have it.</h3>
         <p className="mt-3 leading-[1.8] text-[var(--lx-body)]">
           A real person reads these. We will write back to{' '}
           <span className="font-semibold">{email}</span>, usually within a few days.
@@ -85,14 +88,14 @@ export function ContactForm() {
   }
 
   const field =
-    'lx-focus mt-2 block min-h-12 w-full rounded-[12px] border border-[var(--lx-line)] bg-[var(--lx-paper)] px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70'
-  const label = 'block font-semibold text-[var(--lx-ink)]'
+    'lx-focus mt-2 block min-h-14 w-full border-b border-[var(--lx-hairline)] bg-transparent px-1 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/60 focus:border-[var(--lx-green-ink)] rounded-[4px]'
+  const label = 'lx-label block text-[0.6rem] text-[var(--lx-muted)]'
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 grid gap-5 sm:grid-cols-2">
+    <form onSubmit={handleSubmit} className="mt-8 grid gap-6 sm:grid-cols-2">
       <div className="sm:col-span-2">
         <label htmlFor="topic" className={label}>
-          I am…
+          I am
         </label>
         <select
           id="topic"
@@ -154,7 +157,7 @@ export function ContactForm() {
 
       <div className="sm:col-span-2">
         <label htmlFor="phone" className={label}>
-          Phone <span className="font-normal text-[var(--lx-muted)]">(optional)</span>
+          Phone <span className="normal-case text-[var(--lx-muted)]">(optional)</span>
         </label>
         <input
           id="phone"
@@ -167,7 +170,7 @@ export function ContactForm() {
       </div>
 
       {error && (
-        <p className="text-[var(--lx-ink)] sm:col-span-2" role="alert">
+        <p className="text-[var(--lx-signal-ink)] sm:col-span-2" role="alert">
           {error}
         </p>
       )}
@@ -176,7 +179,7 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={status === 'sending'}
-          className="lx-focus inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-ink)] px-6 font-semibold text-[var(--lx-cream)] transition-colors duration-200 hover:bg-[var(--lx-ink-deep)] disabled:opacity-60"
+          className="lx-focus lx-btn lx-btn-primary inline-flex min-h-12 items-center justify-center px-6 font-semibold disabled:opacity-60"
         >
           {status === 'sending' ? 'Sending…' : 'Send'}
         </button>

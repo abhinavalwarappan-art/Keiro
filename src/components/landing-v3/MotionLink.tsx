@@ -1,12 +1,15 @@
-'use client'
-
 /* Primary / ghost CTA.
-   Primary sits on --lx-ink (11.8:1 against white) rather than --lx-green, which
-   only reaches 3.1:1 on this cream ground and would fail AA for button text.
-   min-h-12 keeps every target above the 44px floor on a phone. */
+
+   Rectangular (8px — the control radius; no pill buttons on this site, see
+   DESIGN.md §4) and deliberately spring-free: the old Framer whileHover scale
+   was the classic template CTA. Hover is a ground change, press is a 1px
+   settle (both in landing.css), and the label can carry the arrow bus.
+
+   Primary sits on --lx-ink (15.7:1 against paper) rather than any green —
+   green fills fail AA for button text. min-h-12 keeps every target above the
+   44px floor on a phone. Server-safe: no hooks, no 'use client'. */
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 
 type MotionLinkProps = {
@@ -21,22 +24,15 @@ export function MotionLink({ href, children, variant = 'primary', external = fal
   const externalProps = external ? { target: '_blank', rel: 'noopener noreferrer' } : {}
 
   return (
-    <motion.div
-      className="inline-block"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+    <Link
+      href={href}
+      {...externalProps}
+      className={[
+        'lx-focus lx-btn inline-flex min-h-12 items-center justify-center gap-2 px-6 text-base font-semibold',
+        isPrimary ? 'lx-btn-primary' : 'lx-btn-ghost',
+      ].join(' ')}
     >
-      <Link
-        href={href}
-        {...externalProps}
-        className={[
-          'lx-focus lx-btn inline-flex min-h-12 items-center justify-center rounded-full px-6 text-base font-semibold',
-          isPrimary ? 'lx-btn-primary' : 'lx-btn-ghost',
-        ].join(' ')}
-      >
-        {children}
-      </Link>
-    </motion.div>
+      {children}
+    </Link>
   )
 }

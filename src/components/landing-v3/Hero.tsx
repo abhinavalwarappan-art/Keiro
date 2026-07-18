@@ -1,11 +1,15 @@
 'use client'
 
 /* ============================== HERO =======================================
-   Kai speaks first, in first person. The live language switcher is the primary
-   interaction on the page, not a claim made in copy: pick your language and
-   Kai's actual opening line re-renders in it — all 45, in-script, RTL-aware.
+   THE SPLIT LEDGER (DESIGN.md §7.1). A 7/5 asymmetric opening: the display
+   headline and the patient's three real objections hard-left, the Bilingual
+   Ledger artifact right. Kai speaks first, in first person, and the live
+   language demonstration IS the primary interaction — not a claim in copy.
 
-   No scroll-linked motion. One staggered entrance, then it sits still.
+   No scroll-linked motion. One staggered entrance, then it sits still. The
+   ledger below the fold on a phone would waste the one thing that proves the
+   product, so grid placement (not source order) lifts it above the CTAs at
+   375px.
    ========================================================================== */
 
 import Link from 'next/link'
@@ -13,31 +17,33 @@ import { motion } from 'framer-motion'
 import { LANGUAGES } from '@/lib/languages'
 import { KaiDemo } from './KaiDemo'
 import { MotionLink } from './MotionLink'
-import { Accent } from './Sections'
+import { Accent, RunHead } from './Sections'
 import { IconCheck } from './icons'
 
-const ENTRANCE = { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }
+const ENTRANCE = { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }
 
 export function Hero() {
   return (
     <section
       id="hero"
-      className="relative scroll-mt-28 overflow-hidden px-5 pb-14 pt-12 sm:px-8 sm:pt-16 lg:px-16"
+      className="relative scroll-mt-28 overflow-hidden px-5 pb-14 pt-10 sm:px-8 sm:pt-14 lg:px-10"
     >
-      {/* The brand light, falling from behind the nav and dissolving into the
-          cream before it reaches the language strip. See landing.css → THE FLOW. */}
-      <div className="lx-flow lx-flow-hero lx-flow-drift" aria-hidden="true" />
+      {/* The page's one daylight wash — a whisper of brand light falling from
+          behind the nav, resolved into the paper before the first rule. */}
+      <div className="lx-daylight" aria-hidden="true" />
 
-      <div className="lx-above mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center lg:gap-16">
+      <div className="lx-above mx-auto grid max-w-6xl gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center lg:gap-14">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={ENTRANCE}
           className="lg:col-start-1 lg:row-start-1"
         >
+          <RunHead folio="Keiro · patient intake" meta="Free · no account" />
+
           <h1
             data-testid="hero-headline"
-            className="lx-display text-balance text-[clamp(2.2rem,5.5vw,3.7rem)] text-[var(--lx-ink)]"
+            className="lx-display mt-8 text-balance text-[clamp(2.2rem,5.4vw,3.75rem)] text-[var(--lx-ink)]"
           >
             I&apos;m Kai. Tell me what hurts, <Accent>in the language you think in.</Accent>
           </h1>
@@ -47,21 +53,21 @@ export function Hero() {
             I won&apos;t diagnose you. I&apos;ll just make sure you&apos;re understood.
           </p>
 
-          {/* The three objections a scared patient actually has, answered before
-              they're asked. Replaces the eyebrow pill, which said the same thing
-              in a decorative box nobody reads. */}
-          <ul className="mt-7 space-y-2.5">
+          {/* The three objections a scared patient actually has, answered
+              before they are asked — set as a small ruled register, not a
+              row of pills. */}
+          <ul className="mt-8 max-w-md border-t border-[var(--lx-hairline)]">
             {[
               'Free, and it always will be.',
               'No account needed to start.',
               'You can stop at any point.',
             ].map((item) => (
-              <li key={item} className="flex items-center gap-3 text-[var(--lx-body)]">
-                <span
-                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
-                  aria-hidden="true"
-                >
-                  <IconCheck size={11} strokeWidth={2} />
+              <li
+                key={item}
+                className="flex items-center gap-3.5 border-b border-[var(--lx-hairline)] py-3 text-[var(--lx-body)]"
+              >
+                <span className="shrink-0 text-[var(--lx-green-fill)]" aria-hidden="true">
+                  <IconCheck size={14} strokeWidth={2.25} />
                 </span>
                 {item}
               </li>
@@ -70,7 +76,7 @@ export function Hero() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...ENTRANCE, delay: 0.18 }}
           className="flex flex-col gap-3 sm:flex-row sm:items-center lg:col-start-1 lg:row-start-2"
@@ -81,26 +87,18 @@ export function Hero() {
           </MotionLink>
         </motion.div>
 
-        {/* The hero artifact — Keiro's equivalent of the live checkout form Stripe
-            opens /payments on. It performs the entire product in fifteen seconds
-            and it is driveable: click a language and the whole thing re-runs in it.
-            See KaiDemo.tsx.
-
-            Grid placement (not source order) keeps it above the CTAs on a phone —
-            otherwise the one thing that actually proves the product sits below the
-            fold at 375px. */}
+        {/* The hero artifact — the whole product performed in fifteen seconds,
+            driveable: pick a language and the exchange re-runs in it, right to
+            left where that is correct. See KaiDemo.tsx. Grid placement keeps it
+            above the CTAs on a phone. */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...ENTRANCE, delay: 0.1 }}
           className="lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center"
         >
           <KaiDemo />
-          {/* One caption, not two. The demo used to carry its own ("pick a language
-              and watch it run") directly above this one, which stacked two lines of
-              grey explanatory text under the artifact and made the hero look
-              hedged. The instruction is folded in here instead. */}
-          <p className="mt-3 text-center text-sm leading-[1.7] text-[var(--lx-muted)]">
+          <p className="mt-4 text-center text-sm leading-[1.7] text-[var(--lx-muted)]">
             Pick a language and watch it run — the follow-up is in their language too. All{' '}
             <Link
               href="/languages"

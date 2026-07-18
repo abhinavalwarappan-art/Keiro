@@ -2,18 +2,8 @@ import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
 import { PageHero, CtaBand, A } from '@/components/landing-v3/PageBits'
-import {
-  Band,
-  BandHeading,
-  Accent,
-  LanguageMarquee,
-  ContrastPair,
-  Prose,
-  Para,
-  QaColumns,
-} from '@/components/landing-v3/Sections'
-import { LanguagePicker } from '@/components/landing-v3/LanguagePicker'
-import { LanguageDirectory } from '@/components/landing-v3/LanguageExplorer'
+import { Band, BandHeading, Accent, ContrastPair, Prose, Para, QaColumns } from '@/components/landing-v3/Sections'
+import { LanguageIndex } from '@/components/landing-v3/pages/languages/LanguageIndex'
 import { Reveal } from '@/components/landing-v3/Reveal'
 
 const COUNT = LANGUAGES.length
@@ -27,8 +17,10 @@ export const metadata: Metadata = {
   },
 }
 
-/* Spine: hero -> picker(all 45) -> marquee -> glass/"what it means"(DEEP)
-          -> directory(cream) -> faq(mint) */
+/* THE INDEX (DESIGN.md §7.3). A typeset foundry index — the scripts set as the
+   art, grouped by writing system, each row unfolding Kai's real greeting —
+   between the centered opening and the contrast that says what "your language"
+   actually has to mean. */
 export default function LanguagesPage() {
   return (
     <SiteShell flow="languages">
@@ -41,24 +33,25 @@ export default function LanguagesPage() {
       />
 
       <Band palette="cream">
-        <BandHeading lede="This is the first thing Kai actually says. Find your language and watch it change. All 45 are here.">
-          Hear it <Accent>for yourself.</Accent>
+        <BandHeading
+          folio="01 · The index"
+          lede="Generated from the same list the app itself uses, so it cannot drift out of date. Open any row to hear the first thing Kai says — in its own script, right to left where that is correct."
+        >
+          All {COUNT}, <Accent>in their own script.</Accent>
         </BandHeading>
         <Reveal className="mt-10">
-          <LanguagePicker />
+          <LanguageIndex />
         </Reveal>
       </Band>
 
-      <div className="lx-band lx-band-mint border-y border-[var(--band-line)] py-8">
-        <LanguageMarquee />
-      </div>
-
       {/* The lede sets up a contrast — "what it really means is that the buttons
-          are translated" — and the section used to answer it with three cards
-          describing only our own side. Now the claim is something you can see
-          rather than something you are asked to take on trust. */}
+          are translated" — answered with something you can see rather than
+          something you are asked to take on trust. */}
       <Band palette="deep" flow="glow">
-        <BandHeading lede="A lot of software claims to support your language. What it usually means is that the buttons are translated — and you still have to answer in English.">
+        <BandHeading
+          folio="02 · What it means"
+          lede="A lot of software claims to support your language. What it usually means is that the buttons are translated — and you still have to answer in English."
+        >
           What <Accent>“speaking your language”</Accent> actually means.
         </BandHeading>
         <div className="mt-12">
@@ -86,15 +79,8 @@ export default function LanguagesPage() {
         </div>
       </Band>
 
-      <Band palette="cream">
-        <BandHeading lede="Generated from the same list the app itself uses, so it cannot drift out of date. If a language is here, Kai speaks it.">
-          All {COUNT}, <Accent>in their own script.</Accent>
-        </BandHeading>
-        <LanguageDirectory />
-      </Band>
-
-      <Band palette="mint">
-        <BandHeading>
+      <Band palette="mint" rails>
+        <BandHeading folio="03 · Questions">
           Questions about <Accent>language.</Accent>
         </BandHeading>
         <div className="mt-10">

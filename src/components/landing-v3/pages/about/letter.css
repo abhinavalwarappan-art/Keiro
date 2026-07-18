@@ -1,0 +1,19 @@
+/* Page-local styles for /about — THE EDITORIAL LETTER (DESIGN.md §7.5).
+
+   Only the drop cap lives here: ::first-letter is the aria-safe way to set a
+   giant initial (the letter never leaves the text node, so screen readers and
+   find-in-page read the paragraph unbroken). Everything else on the page is
+   composed from landing.css classes and Tailwind utilities. */
+
+.about-letter-initial::first-letter {
+  float: left;
+  font-family: var(--font-bricolage), 'Bricolage Grotesque', system-ui, sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 560;
+  font-size: 4.6em;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  padding-top: 0.06em;
+  padding-inline-end: 0.14em;
+  color: var(--lx-ink);
+}
