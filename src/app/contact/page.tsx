@@ -1,6 +1,13 @@
 import type { Metadata } from 'next'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { Band, BandHeading, Accent, ExpandableSteps, ArrowLink } from '@/components/landing-v3/Sections'
+import { PageHero } from '@/components/landing-v3/PageBits'
+import {
+  Band,
+  BandHeading,
+  Accent,
+  ExpandableSteps,
+  ArrowLink,
+} from '@/components/landing-v3/Sections'
 import { ContactForm } from '@/components/landing-v3/ContactForm'
 import { Reveal } from '@/components/landing-v3/Reveal'
 
@@ -14,62 +21,26 @@ export const metadata: Metadata = {
   },
 }
 
-/* THE INTAKE FORM, LITERALLY (DESIGN.md §7.7). The page is a split plane: a
-   deep plate stating who answers and how, and the form itself set as one of
-   Keiro's own documents. Below it, the audience router as a ruled disclosure
-   register, and the emergency notice marked the way a real notice is. */
+/* Spine: hero -> audience router as expandables(cream) -> form(mint)
+   -> emergency thesis(DEEP). An audience router rather than a form-first page. */
 export default function ContactPage() {
   return (
     <SiteShell flow="contact">
-      <section className="relative px-5 pt-10 sm:px-8 sm:pt-14 lg:px-10 lg:pt-16">
-        <div className="lx-daylight" aria-hidden="true" />
-        <div className="lx-above mx-auto grid max-w-6xl items-stretch gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-14">
-          {/* The deep plate — the page's one dark plane, carrying who answers. */}
-          <Reveal className="lx-band-deep flex flex-col justify-between rounded-[14px] p-8 sm:p-10">
-            <div>
-              <p className="lx-label text-[0.65rem] text-[var(--lx-deep-mint)]">Contact</p>
-              <h1 className="lx-display mt-6 text-balance text-[clamp(1.9rem,4vw,2.8rem)] text-[var(--band-ink)]">
-                Tell us who you are, and we will <Accent>write back.</Accent>
-              </h1>
-              <p className="mt-6 max-w-md text-lg leading-[1.8] text-[var(--band-body)]">
-                A real person reads these. There is no ticketing system and no autoresponder. Find
-                yourself below first; it will usually save you an email.
-              </p>
-            </div>
+      <PageHero
+        flow
+        variant="centered"
+        eyebrow="Contact"
+        title="Tell us who you are, and we will write back."
+        lede="A real person reads these. There is no ticketing system and no autoresponder. Find yourself below first; it will usually save you an email."
+      />
 
-            <dl className="mt-10 border-t border-[var(--band-line)]">
-              {[
-                ['Reads these', 'A person, not a queue'],
-                ['Turnaround', 'Usually a few days'],
-                ['Autoresponder', 'None'],
-              ].map(([k, v]) => (
-                <div
-                  key={k}
-                  className="flex items-baseline justify-between gap-4 border-b border-[var(--band-line)] py-3"
-                >
-                  <dt className="lx-label text-[0.6rem] text-[var(--band-muted)]">{k}</dt>
-                  <dd className="lx-mono text-sm text-[var(--lx-deep-mint)]">{v}</dd>
-                </div>
-              ))}
-            </dl>
-          </Reveal>
-
-          {/* The form, on paper. */}
-          <div>
-            <p className="lx-label text-[0.65rem] text-[var(--lx-green-ink)]">Write to us</p>
-            <p className="mt-3 max-w-xl leading-[1.8] text-[var(--lx-muted)]">
-              If none of the routes below covered it, this reaches us directly.
-            </p>
-            <ContactForm />
-          </div>
-        </div>
-      </section>
-
-      {/* The audience router — the page's signature, answering you before you
-          write. A ruled disclosure register: you are scanning for yourself, so
-          the other four fold away. */}
-      <Band palette="cream" rails className="mt-16 sm:mt-20">
-        <BandHeading folio="01 · Before you write" lede="Open the one that sounds like you.">
+      {/* The audience router is this page's signature — it is the only page that
+          answers you before you write anything, and for most people it removes the
+          need to write at all. It stays an accordion for the same reason /privacy
+          keeps one: you are scanning for yourself, and you want the other four out
+          of the way. */}
+      <Band palette="cream" rails>
+        <BandHeading lede="Open the one that sounds like you.">
           Start <Accent>here.</Accent>
         </BandHeading>
 
@@ -85,7 +56,7 @@ export default function ContactPage() {
                     <p className="leading-[1.85] text-[var(--band-muted)]">
                       Keiro is free, there is no account, and you can start right now. There is
                       nothing to request and nobody to ask. If something broke, or Kai said something
-                      that worried you, we do want to hear that. Use the form above and be blunt.
+                      that worried you, we do want to hear that. Use the form below and be blunt.
                     </p>
                     <div className="mt-4">
                       <ArrowLink href="/onboarding?fresh=1">Just start talking to Kai</ArrowLink>
@@ -167,13 +138,32 @@ export default function ContactPage() {
         </div>
       </Band>
 
-      {/* Safety copy, marked the way a real notice is: a signal rule down the
-          side, the exit prominent — not typeset like a line of poetry. */}
-      <Band palette="mint">
-        <Reveal className="max-w-3xl border-s-4 border-[var(--lx-signal-fill)] ps-6 sm:ps-8">
-          <p className="lx-label text-[0.65rem] text-[var(--lx-signal-ink)]">
+      <Band palette="mint" id="form">
+        <BandHeading lede="If none of that covered it, this reaches us directly. We usually reply within a few days.">
+          Write to <Accent>us.</Accent>
+        </BandHeading>
+        <Reveal>
+          <div className="max-w-2xl">
+            <ContactForm />
+          </div>
+        </Reveal>
+      </Band>
+
+      {/* Safety copy, set like safety copy.
+
+          This was a <Thesis>: an oversized italic serif statement, the same block
+          /about opens its manifesto with. That is the wrong register entirely —
+          a warning that someone might be dying should not be typeset like a line
+          of poetry. Sans, not serif. No decorative accent. A rule down the side,
+          the way a real notice is marked, and the exit is the first thing your eye
+          lands on rather than a link underneath a paragraph. */}
+      <Band palette="deep" flow="glow">
+        <Reveal className="max-w-3xl border-l-4 border-[var(--lx-sage)] pl-6 sm:pl-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--lx-sage)]">
             If this is an emergency
           </p>
+          {/* Deliberately NOT the serif voice: safety copy reads like a notice,
+              in the same workhorse sans as the trust pages. */}
           <h2 className="mt-5 text-balance text-[clamp(1.5rem,3.4vw,2.1rem)] font-semibold leading-[1.25] tracking-[-0.01em] text-[var(--band-ink)]">
             Do not use this form.
           </h2>
@@ -183,12 +173,13 @@ export default function ContactPage() {
           </p>
           <a
             href="/emergency"
-            className="lx-focus lx-btn lx-btn-primary mt-7 inline-flex min-h-12 items-center justify-center px-6 font-semibold"
+            className="lx-focus mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-sage)] px-6 font-semibold text-[var(--lx-ink)] transition-colors duration-200 hover:bg-white"
           >
             Get emergency help
           </a>
         </Reveal>
       </Band>
+
     </SiteShell>
   )
 }

@@ -5,8 +5,7 @@ import { PageHero, A } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
-  RunHead,
-  Accent,
+  GradWord,
   Thesis,
   SpecRows,
   CheckList,
@@ -20,7 +19,6 @@ import {
 } from '@/components/landing-v3/Sections'
 import { VoiceMock } from '@/components/landing-v3/ChatMock'
 import { IconCheck } from '@/components/landing-v3/icons'
-import { AuditSwatches } from '@/components/landing-v3/pages/accessibility/AuditSwatches'
 
 export const metadata: Metadata = {
   title: 'Accessibility',
@@ -40,7 +38,8 @@ export const metadata: Metadata = {
    serif opening with a green italic tail, same four-figure stat row, same
    six-item numbered grid. Everything load-bearing here is now different.
 
-   Register: <Accent> emphasis (upright, green + weight), the ledger idiom. */
+   Register: <GradWord> (upright, gradient-filled) and never <Accent>. /about is
+   the mirror image. */
 export default function AccessibilityPage() {
   return (
     <SiteShell flow="access">
@@ -50,7 +49,7 @@ export default function AccessibilityPage() {
         eyebrow="Accessibility"
         title={
           <>
-            Built for the person <Accent>least likely</Accent> to be comfortable using it.
+            Built for the person <GradWord>least likely</GradWord> to be comfortable using it.
           </>
         }
         lede="Meeting the legal standard is the floor, not the achievement. We build to WCAG 2.2 AA as a baseline and then keep going — because she does not care what standard we met. She cares whether she can read it."
@@ -61,8 +60,8 @@ export default function AccessibilityPage() {
           set at 18px. If we ever break the promise, the page breaks visibly —
           which is worth more than a badge. */}
       <Band palette="cream" rails>
-        <BandHeading folio="01 · The numbers" lede="Not aspirations. Each of these is measurable, we measure it, and the demonstration beside it is live — rendered by the same stylesheet as the rest of the page.">
-          The numbers, and <Accent>what they look like</Accent>.
+        <BandHeading lede="Not aspirations. Each of these is measurable, we measure it, and the demonstration beside it is live — rendered by the same stylesheet as the rest of the page.">
+          The numbers, and <GradWord>what they look like</GradWord>.
         </BandHeading>
         <div className="mt-12">
           <SpecRows
@@ -74,7 +73,7 @@ export default function AccessibilityPage() {
                 demo: (
                   <div className="flex items-center gap-3">
                     <span
-                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--lx-green-fill)] text-white"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
                       aria-hidden="true"
                     >
                       <IconCheck size={18} strokeWidth={2} />
@@ -127,18 +126,6 @@ export default function AccessibilityPage() {
             ]}
           />
         </div>
-
-        <div className="mt-16">
-          <RunHead folio="Contrast · measured on this ground" />
-          <p className="mt-6 max-w-2xl text-pretty text-lg leading-[1.75] text-[var(--band-muted)]">
-            Every text colour on this site, with its measured ratio against the paper it sits on —
-            and a live sample set in that exact colour, so the number is a caption for something you
-            can read.
-          </p>
-          <div className="mt-8">
-            <AuditSwatches />
-          </div>
-        </div>
       </Band>
 
       <Band palette="mint">
@@ -146,7 +133,7 @@ export default function AccessibilityPage() {
           statement={
             <>
               The people most likely to need Keiro are the people least likely to be comfortable
-              using it. <Accent>Designing for anyone else would miss the point entirely.</Accent>
+              using it. <GradWord>Designing for anyone else would miss the point entirely.</GradWord>
             </>
           }
           body="So the target is not the confident user on a new phone. It is the person who has been quietly dreading this appointment for a week."
@@ -154,8 +141,8 @@ export default function AccessibilityPage() {
       </Band>
 
       <Band palette="cream" rails>
-        <BandHeading folio="02 · The choices" lede="Six promises. None of them are interesting on their own, and all of them are load-bearing.">
-          The choices behind <Accent>those numbers</Accent>.
+        <BandHeading lede="Six promises. None of them are interesting on their own, and all of them are load-bearing.">
+          The choices behind <GradWord>those numbers</GradWord>.
         </BandHeading>
         <div className="mt-10">
           <CheckList
@@ -173,8 +160,8 @@ export default function AccessibilityPage() {
 
       <Band palette="mint">
         <Split media={<VoiceMock />} flip>
-          <BandHeading folio="03 · Speaking, not typing" lede="Typing is a barrier we badly underestimate. It is hard on a cracked screen, hard with arthritis, hard in a script your keyboard barely supports, and hard when you are frightened.">
-            Speaking, not <Accent>typing</Accent>.
+          <BandHeading lede="Typing is a barrier we badly underestimate. It is hard on a cracked screen, hard with arthritis, hard in a script your keyboard barely supports, and hard when you are frightened.">
+            Speaking, not <GradWord>typing</GradWord>.
           </BandHeading>
           <Prose>
             <Para>
@@ -200,12 +187,12 @@ export default function AccessibilityPage() {
         <Quote serif attribution="The person we build for" role="every single time">
           She is 72. Her phone is five years old and cracked in one corner. The clinic wi-fi is slow,
           her eyes are not what they were, and she is already worried about the appointment.{' '}
-          <Accent>If it does not work for her, it does not work.</Accent>
+          <GradWord>If it does not work for her, it does not work.</GradWord>
         </Quote>
 
         <div className="mt-16">
-          <BandHeading folio="04 · Where we fall short" lede="It would be easy to end this page on the good part. Here is the honest state of it instead.">
-            Where we are still <Accent>falling short</Accent>.
+          <BandHeading lede="It would be easy to end this page on the good part. Here is the honest state of it instead.">
+            Where we are still <GradWord>falling short</GradWord>.
           </BandHeading>
           <div className="mt-10">
             <GlassCards
@@ -231,7 +218,7 @@ export default function AccessibilityPage() {
             broken or patronising,{' '}
             <a
               href="/contact"
-              className="lx-focus font-semibold text-[var(--lx-deep-mint)] underline underline-offset-4"
+              className="lx-focus font-semibold text-[var(--lx-sage)] underline underline-offset-4"
             >
               please tell us
             </a>
@@ -241,8 +228,8 @@ export default function AccessibilityPage() {
       </Band>
 
       <Band palette="mint">
-        <BandHeading folio="05 · Questions">
-          Designing for fear, not just for <Accent>eyesight</Accent>.
+        <BandHeading>
+          Designing for fear, not just for <GradWord>eyesight</GradWord>.
         </BandHeading>
         <div className="mt-8">
           <Faq

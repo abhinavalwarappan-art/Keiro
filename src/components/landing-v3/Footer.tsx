@@ -1,34 +1,26 @@
-/* Footer — the document's colophon, and the page's one recurring dark surface.
+/* Footer — the page's one dark surface, and purely functional.
 
-   Navigation and safety information only: the CTA belongs to the page, and
-   there is at most one. Dark on purpose: /onboarding renders on a dark
-   background, so a paper footer would flash-bang straight into it on
-   click-through.
+   It used to carry its own "Whenever you're ready / Start talking to Kai" block,
+   which sat directly on top of each page's CtaBand and produced two stacked
+   invitations at the bottom of every page. The footer is now navigation and
+   safety information only; the CTA belongs to the page, and there is at most one.
 
-   Server component — no hooks here, or the whole shell flips to client. */
+   Dark on purpose: /onboarding renders on a dark background, so a cream footer
+   would flash-bang straight into it on click-through. */
 
 import Link from 'next/link'
 
 export function Footer() {
   return (
-    /* Text tiers are the measured on-deep tokens (landing.css): deep-ink
-       14.2:1, deep-body 10.4:1, deep-muted 7.9:1 — hierarchy comes from size
-       and case, never from dimming text below legibility. */
-    <footer className="relative bg-[var(--lx-deep)] px-5 py-14 text-[var(--lx-deep-body)] sm:px-8 md:py-16 lg:px-10">
+    /* Text opacities are measured on --lx-ink, not eyeballed: /75 composites to
+       7.5:1 (AAA). The old /50 labels (4.3:1) and /45 bottom row (3.7:1) were
+       the site's only recurring AA contrast failures. Hierarchy now comes from
+       size and case, not from dimming text below legibility. */
+    <footer className="relative bg-[var(--lx-ink)] px-5 py-14 text-white/75 sm:px-8 md:py-16 lg:px-16">
       <div className="mx-auto max-w-6xl">
-        {/* The colophon's specimen line — the product, restated in four
-            scripts. Proof, not decoration. */}
-        <p
-          lang="mul"
-          className="lx-native border-b border-[rgba(242,247,241,0.14)] pb-8 text-[clamp(1.05rem,2.4vw,1.5rem)] leading-[1.85] text-[var(--lx-deep-muted)]"
-        >
-          <span className="text-[var(--lx-deep-ink)]">Tell me what hurts.</span> Cuéntame qué te
-          duele. <span dir="rtl">أخبرني بما يؤلمك.</span> बताइए कहाँ दर्द है। 告诉我哪里不舒服。
-        </p>
-
-        <div className="grid gap-10 pt-10 md:grid-cols-4">
+        <div className="grid gap-10 md:grid-cols-4">
           <div>
-            <div className="lx-display text-xl text-[var(--lx-deep-ink)]">Keiro</div>
+            <div className="lx-display text-xl font-semibold text-white">Keiro</div>
             <p className="mt-4 max-w-sm leading-[1.8]">
               Keiro helps you explain what&apos;s wrong in the language you think in, then turns
               that conversation into a summary your doctor can read.
@@ -39,10 +31,10 @@ export function Footer() {
               place, without the About grouping. */}
           <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-2 md:col-span-2 md:grid-cols-2">
             <div>
-              <h3 className="lx-label border-b border-[rgba(242,247,241,0.14)] pb-2 text-[0.65rem] text-[var(--lx-deep-muted)]">
+              <h3 className="lx-label text-xs text-white/75">
                 Keiro
               </h3>
-              <ul className="mt-4 space-y-1">
+              <ul className="mt-5 space-y-1">
                 {[
                   { href: '/how-it-works', label: 'How it works' },
                   { href: '/languages', label: 'Languages' },
@@ -55,7 +47,7 @@ export function Footer() {
                     <Link
                       href={item.href}
                       data-testid={`footer-link-${item.href.slice(1)}`}
-                      className="lx-focus inline-flex min-h-11 items-center transition-colors duration-150 hover:text-[var(--lx-deep-ink)]"
+                      className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
                     >
                       {item.label}
                     </Link>
@@ -65,10 +57,10 @@ export function Footer() {
             </div>
 
             <div>
-              <h3 className="lx-label border-b border-[rgba(242,247,241,0.14)] pb-2 text-[0.65rem] text-[var(--lx-deep-muted)]">
+              <h3 className="lx-label text-xs text-white/75">
                 Trust &amp; contact
               </h3>
-              <ul className="mt-4 space-y-1">
+              <ul className="mt-5 space-y-1">
                 {[
                   { href: '/privacy-safety', label: 'Privacy & safety' },
                   { href: '/accessibility', label: 'Accessibility' },
@@ -78,11 +70,12 @@ export function Footer() {
                   { href: '/terms', label: 'Terms' },
                 ].map((item) => (
                   <li key={item.href}>
-                    {/* Keyed on href, not label — see note above. */}
+                    {/* Keyed on href, not label: "Privacy policy" and "Privacy & safety" both
+                        match a /Privacy/i lookup, which made the E2E locator ambiguous. */}
                     <Link
                       href={item.href}
                       data-testid={`footer-link-${item.href.slice(1)}`}
-                      className="lx-focus inline-flex min-h-11 items-center transition-colors duration-150 hover:text-[var(--lx-deep-ink)]"
+                      className="lx-focus inline-flex min-h-11 items-center transition-colors duration-200 hover:text-white"
                     >
                       {item.label}
                     </Link>
@@ -93,29 +86,25 @@ export function Footer() {
           </nav>
 
           <div>
-            <h3 className="lx-label border-b border-[rgba(242,247,241,0.14)] pb-2 text-[0.65rem] text-[var(--lx-deep-muted)]">
+            <h3 className="lx-label text-xs text-white/75">
               Please read this
             </h3>
-            <p className="mt-4 leading-[1.8]">
+            <p className="mt-5 leading-[1.8]">
               Kai is not a doctor and does not diagnose. If this is an emergency, or you may be
               in danger, call your local emergency number now.
             </p>
             <Link
               href="/emergency"
-              className="lx-focus mt-4 inline-flex min-h-11 items-center font-semibold text-[var(--lx-deep-mint)] underline underline-offset-4 hover:text-[var(--lx-deep-ink)]"
+              className="lx-focus mt-4 inline-flex min-h-11 items-center font-semibold text-[var(--lx-sage)] underline underline-offset-4 hover:text-white"
             >
               Get emergency help
             </Link>
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-[rgba(242,247,241,0.14)] pt-6 text-sm md:flex-row md:items-center md:justify-between">
-          <div className="lx-mono text-[0.8rem] text-[var(--lx-deep-muted)]">
-            © {new Date().getFullYear()} Keiro
-          </div>
-          <div className="text-[var(--lx-deep-muted)]">
-            Built for patients who need to be understood.
-          </div>
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/75 md:flex-row md:items-center md:justify-between">
+          <div>© {new Date().getFullYear()} Keiro</div>
+          <div>Built for patients who need to be understood.</div>
         </div>
       </div>
     </footer>

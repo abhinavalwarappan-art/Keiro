@@ -1,16 +1,20 @@
 import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { Accent } from '@/components/landing-v3/Sections'
-import { Reveal } from '@/components/landing-v3/Reveal'
-import { A } from '@/components/landing-v3/PageBits'
+
 import {
-  FootnoteMark,
-  LetterPara,
-  LetterPassage,
-  MarginFigure,
-  MarginRules,
-} from '@/components/landing-v3/pages/about/Letter'
+  Band,
+  BandHeading,
+  Accent,
+  Thesis,
+  StatRow,
+  IndexGrid,
+  Split,
+  Quote,
+  Prose,
+  Para,
+} from '@/components/landing-v3/Sections'
+import { ChatMock } from '@/components/landing-v3/ChatMock'
 
 export const metadata: Metadata = {
   title: 'Our mission',
@@ -23,197 +27,160 @@ export const metadata: Metadata = {
   },
 }
 
-/* THE EDITORIAL LETTER (DESIGN.md §7.5) — one paper plane end to end, zero
-   cards, zero band alternation. The mission prose is rewritten as a
-   first-person letter in the left ~60% column; the figures that used to sit in
-   a stat band (67M · 45 · $0) and the six rules are demoted to footnote-style
-   mono annotations in the right margin, tied to their sentences by hairline
-   ticks and numbered footnote marks. The page opens on the letter itself —
-   the running head + h1 ARE the hero — and closes on a signature line.
+/* Spine: opens on a THESIS with no page hero at all — deliberately the only page
+   that does — then stats -> quote(deep, glowing) -> split -> index grid.
 
-   Register: <Accent> only, never <GradWord> (one emphasis register per page). */
+   Register: this page uses <Accent> (italic serif, green) and never <GradWord>.
+   /accessibility does the opposite. Holding one emphasis register per page is
+   what stops every heading on the site reading as the same heading. */
 export default function AboutPage() {
   return (
     <SiteShell flow="mission">
-      <article className="lx-band-cream relative overflow-hidden px-5 pb-24 pt-10 sm:px-8 sm:pt-14 md:pt-16 lg:px-10 lg:pb-32">
-        {/* The page's single daylight wash, behind the letter's opening only. */}
-        <div className="lx-daylight" aria-hidden="true" />
-
-        <div className="lx-above mx-auto max-w-6xl">
-          <Reveal>
-            <div className="lx-runhead">
-              <p className="lx-label text-xs text-[var(--lx-ink)]">Our mission</p>
-              <p className="lx-label hidden text-xs text-[var(--lx-muted)] sm:block" aria-hidden="true">
-                A letter, not a pitch
-              </p>
-            </div>
-            <h1 className="lx-display mt-10 max-w-4xl text-balance text-[clamp(2rem,4.6vw,3.1rem)] text-[var(--lx-ink)]">
-              We started Keiro for everyone who has rehearsed <Accent>being sick</Accent> in a
-              second language.
-            </h1>
-          </Reveal>
-
-          <div className="mt-16 flex flex-col gap-14 md:mt-20 md:gap-16">
-            <LetterPassage>
-              <LetterPara initial>
-                Medicine asks a lot of the people it serves. It asks you to describe a feeling you
-                do not quite have words for in your first language — and then to do it again,
-                precisely, under fluorescent light, while you are frightened. If English is not the
-                language you think in, that room gets harder still, and nobody hands you extra
-                time.
-              </LetterPara>
-            </LetterPassage>
-
-            <LetterPassage
-              margin={
-                <MarginFigure
-                  index="1"
-                  label="The gap"
-                  figure="67M"
-                  note="people in the US speak a language other than English at home. Roughly one in five."
-                />
-              }
-            >
-              <LetterPara>
-                About 67 million people in the United States speak a language other than English at
-                home.
-                <FootnoteMark n="1" /> Roughly one in five. That is not an edge case and it is not
-                a niche — it is a fifth of every waiting room in the country, quietly hoping the
-                words come out right.
-              </LetterPara>
-            </LetterPassage>
-
-            <LetterPassage
-              margin={
-                <MarginFigure
-                  index="2"
-                  label="The languages"
-                  figure={LANGUAGES.length}
-                  note="languages Kai speaks. A real conversation in each, not a translated menu."
-                />
-              }
-            >
-              <LetterPara>
-                So we built a companion for the twenty minutes before the visit — the part where
-                you sit in a waiting room and rehearse. You talk to Kai in the language you think
-                in.
-                <FootnoteMark n="2" /> Kai listens, asks the follow-up questions a good nurse would
-                ask, and writes it down in clear English for the person about to treat you. That is
-                the whole product, and we have been deliberate about not adding more.
-              </LetterPara>
-              <LetterPara>
-                Keiro is not trying to replace your doctor, and it is not trying to be a hospital
-                system&rsquo;s software. The gap we care about is smaller and older than either:
-                the space between what a person can feel and what they are able to say to the one
-                person who could help.
-              </LetterPara>
-            </LetterPassage>
-
-            <LetterPassage
-              margin={
-                <MarginFigure
-                  index="3"
-                  label="The price"
-                  figure="$0"
-                  note="for patients, permanently — and zero accounts: no email, no password, no confirmation link before you can speak."
-                />
-              }
-            >
-              <LetterPara>
-                None of it costs anything, and none of it ever will.
-                <FootnoteMark n="3" /> No card, no account, no email, no password, no confirmation
-                link before you may say where it hurts. The moment we ask for any of those first,
-                we have rebuilt the exact barrier we set out to remove.
-              </LetterPara>
-            </LetterPassage>
-
-            <LetterPassage
-              margin={
-                <MarginRules
-                  heading={
-                    <>
-                      <span className="text-[var(--lx-green-ink)]">Note 4</span> · The rules we
-                      gave ourselves
-                    </>
-                  }
-                  items={[
-                    {
-                      n: '01',
-                      lead: 'Free for patients, permanently.',
-                      body: 'The moment a person reaches for a card to explain their symptoms, we have rebuilt the barrier we set out to remove.',
-                    },
-                    {
-                      n: '02',
-                      lead: 'No account before you can speak.',
-                      body: 'Asking someone to register before they may say where it hurts is a small cruelty dressed up as onboarding.',
-                    },
-                    {
-                      n: '03',
-                      lead: 'Kai never diagnoses.',
-                      body: 'Not once, not carefully, not with a disclaimer. Kai helps you say what you feel; your doctor decides what it means.',
-                    },
-                    {
-                      n: '04',
-                      lead: 'Nothing you say gets sold.',
-                      body: (
-                        <>
-                          Not to advertisers, not to data brokers, not to insurers. See{' '}
-                          <A href="/privacy-safety">privacy &amp; safety</A>.
-                        </>
-                      ),
-                    },
-                    {
-                      n: '05',
-                      lead: 'We build for the person least comfortable using it:',
-                      body: 'older, on a cheap phone, nervous. If it does not work for her, it does not work.',
-                    },
-                    {
-                      n: '06',
-                      lead: 'We say what we have not done.',
-                      body: 'No clinical review, no validation study, no certification, all stated plainly rather than discovered in diligence.',
-                    },
-                  ]}
-                />
-              }
-            >
-              <LetterPara>
-                Early on, we wrote ourselves some rules
-                <FootnoteMark n="4" /> — the kind you write down while you still mean them, so they
-                hold later, when they start to cost something. They are printed in the margin of
-                this letter, numbered, where we cannot quietly edit them away. Some of them have
-                already cost us things. We are keeping them anyway.
-              </LetterPara>
-              <LetterPara>
-                The last two live in public. What we have measured is on the{' '}
-                <A href="/accessibility">accessibility</A> page; what we have not yet done is
-                stated plainly in <A href="/privacy-safety">privacy &amp; safety</A>. If you read
-                one more page of this site, make it one of those.
-              </LetterPara>
-            </LetterPassage>
-          </div>
-
-          <Reveal className="mt-20 max-w-[42rem]">
-            <span aria-hidden="true" className="block h-[2px] w-12 bg-[var(--lx-green-fill)]" />
-            <p className="lx-serif mt-9 text-pretty text-[clamp(1.35rem,2.4vw,1.7rem)] text-[var(--lx-ink)]">
-              If someone you love has ever rehearsed a sentence outside an exam room, send them
-              here. That is who this was built for.
-            </p>
-            <p className="mt-8 text-lg leading-[1.9] text-[var(--lx-body)]">
-              — the people building Keiro
-            </p>
-          </Reveal>
-
-          <div className="lx-runhead mt-20">
-            <p className="lx-label text-[0.6875rem] text-[var(--lx-muted)]">Our mission · end</p>
-            <p
-              className="lx-label hidden text-[0.6875rem] text-[var(--lx-muted)] sm:block"
-              aria-hidden="true"
-            >
-              Keiro · intake, in your language
-            </p>
-          </div>
+      <Band palette="cream" flow="hero" className="!border-t-0 pt-16 md:pt-24">
+        <p className="lx-label text-xs text-[var(--lx-ink)]">
+          Our mission
+        </p>
+        <div className="mt-6">
+          <Thesis
+            serif
+            as="h1"
+            statement={
+              <>
+                Medicine asks you to describe a feeling you do not have words for in your first
+                language. Then it asks you to do it again, precisely, under fluorescent light,{' '}
+                <Accent>while you are frightened.</Accent>
+              </>
+            }
+            body="Keiro exists so that being understood does not depend on which language you happen to speak."
+          />
         </div>
-      </article>
+      </Band>
+
+      <Band palette="mint" rails>
+        <BandHeading lede="These are not marketing numbers. They are the reason the project exists.">
+          The gap, <Accent>in figures.</Accent>
+        </BandHeading>
+        <div className="mt-10">
+          <StatRow
+            stats={[
+              {
+                value: 67,
+                suffix: 'M',
+                label: 'people in the US',
+                note: 'speak a language other than English at home. Roughly one in five.',
+              },
+              {
+                value: LANGUAGES.length,
+                label: 'languages Kai speaks',
+                note: 'a real conversation in each, not a translated menu.',
+              },
+              {
+                value: 0,
+                suffix: '',
+                label: 'dollars, for patients',
+                note: 'free permanently. The moment you need a card, we have rebuilt the barrier.',
+              },
+              {
+                value: 0,
+                suffix: '',
+                label: 'accounts required',
+                note: 'no email, no password, no confirmation link before you can speak.',
+              },
+            ]}
+          />
+        </div>
+      </Band>
+
+      {/* The one dark, colour-flooded section on the page, at the emotional peak.
+          Stripe's whole homepage is near-white with exactly one of these, and that
+          restraint is the entire effect — the green is saved up and spent once. */}
+      <Band palette="deep" flow="glow">
+        <Quote attribution="The whole thesis" role="in one sentence">
+          The gap is not between languages. It is between what a person can feel and{' '}
+          <Accent>what they are able to say to the one person who could help.</Accent>
+        </Quote>
+      </Band>
+
+      <Band palette="cream">
+        <Split media={<ChatMock />}>
+          <BandHeading lede="Keiro is not trying to replace your doctor, and it is not trying to be a hospital system’s software.">
+            What we are <Accent>actually building.</Accent>
+          </BandHeading>
+          <Prose>
+            <Para>
+              It is a companion for the twenty minutes before the visit, the part where you sit in a
+              waiting room and rehearse.
+            </Para>
+            <Para>
+              You talk to Kai in the language you think in. Kai listens, asks the follow-up questions
+              a good nurse would ask, and writes it down in clear English for the person about to
+              treat you. That is the whole product, and we have been deliberate about not adding
+              more.
+            </Para>
+          </Prose>
+        </Split>
+      </Band>
+
+      <Band palette="deep">
+        <BandHeading lede="Some of these cost us things. We are keeping them anyway.">
+          The rules we gave <Accent>ourselves.</Accent>
+        </BandHeading>
+        <div className="mt-10">
+          <IndexGrid
+            items={[
+              {
+                n: '01',
+                label:
+                  'Free for patients, permanently. The moment a person reaches for a card to explain their symptoms, we have rebuilt the barrier we set out to remove.',
+              },
+              {
+                n: '02',
+                label:
+                  'No account before you can speak. Asking someone to register before they may say where it hurts is a small cruelty dressed up as onboarding.',
+              },
+              {
+                n: '03',
+                label:
+                  'Kai never diagnoses. Not once, not carefully, not with a disclaimer. Kai helps you say what you feel; your doctor decides what it means.',
+              },
+              {
+                n: '04',
+                label:
+                  'Nothing you say gets sold. Not to advertisers, not to data brokers, not to insurers. See privacy & safety.',
+              },
+              {
+                n: '05',
+                label:
+                  'We build for the person least comfortable using it: older, on a cheap phone, nervous. If it does not work for her, it does not work.',
+              },
+              {
+                n: '06',
+                label:
+                  'We say what we have not done. No clinical review, no validation study, no certification, all stated plainly rather than discovered in diligence.',
+              },
+            ]}
+          />
+        </div>
+
+        <p className="mt-8 max-w-2xl leading-[1.85] text-[var(--band-muted)]">
+          More on the last two in{' '}
+          <a
+            href="/accessibility"
+            className="lx-focus font-semibold text-[var(--lx-sage)] underline underline-offset-4"
+          >
+            accessibility
+          </a>{' '}
+          and{' '}
+          <a
+            href="/privacy-safety"
+            className="lx-focus font-semibold text-[var(--lx-sage)] underline underline-offset-4"
+          >
+            privacy &amp; safety
+          </a>
+          .
+        </p>
+      </Band>
+
     </SiteShell>
   )
 }

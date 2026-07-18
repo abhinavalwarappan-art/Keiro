@@ -1,22 +1,26 @@
 'use client'
 
 /* ============================================================================
-   THE BILINGUAL LEDGER — the hero artifact (DESIGN.md §6)
+   THE HERO ARTIFACT
 
-   One paper document, split by a vertical hairline into the two halves of the
-   product: the conversation in the patient's own script on one side, and the
-   English intake summary committing itself field by field on the other. Both
-   panes are visible the whole time — the translation is not a reveal, it is
-   the document's structure.
+   Every Stripe product page opens on a piece of working-looking product UI — a
+   checkout form assembling itself, an invoice drawer sliding open — rather than
+   on a claim about the product. You understand what the thing does before you
+   have read a word, and the fact that it MOVES is what makes it read as software
+   rather than as a screenshot.
 
-   Pick العربية and the patient pane mirrors: right-aligned text, the caret
-   advancing leftward, the pane labels flipped — while the clinician pane
-   stays pinned LTR, because the deliverable is an English clinical note.
-   That snap between directions across one hairline IS the pitch.
+   This is Keiro's. It performs the entire product in about fifteen seconds: a
+   patient describes chest pain in their own language, Kai asks the follow-up a
+   nurse would ask, and the conversation resolves into the structured English
+   summary the doctor actually reads. The language chips are live — pick one and
+   the whole thing re-runs in it, right to left where that is correct.
 
-   Reduced motion / SSR: the ledger renders as the finished document — full
-   conversation, every field committed, SUMMARY READY — and the tabs still
-   swap languages instantly. The theatre is optional; the document is not.
+   That last part is the pitch. Nothing we could write in a headline demonstrates
+   "45 languages, and the follow-ups are in your language too" as well as letting
+   someone click العربية and watch it happen.
+
+   Reduced motion: the whole timeline collapses to its final frame. The chips
+   still work, so the demonstration survives; only the theatre goes.
    ========================================================================== */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -28,25 +32,22 @@ type Turn = { who: 'kai' | 'patient'; text: string }
 type Script = {
   code: string
   native: string
+  flag: string
   rtl?: boolean
   /* What the doctor's summary says the patient was speaking. */
   spoken: string
-  /* Chrome-level "Kai is listening" in the patient's language. Reviewed
-     strings — never machine-translate replacements. */
-  listening: string
   turns: Turn[]
 }
 
-/* Five languages, chosen to show the range that matters: Latin, Arabic (RTL),
-   Devanagari, Han, and Latin-with-diacritics. If the fonts break, they break
-   here, in the hero, where we would see it. The turns are reviewed
-   translations — do not alter them in a restyle. */
+/* Six languages, chosen to show the range that matters: Latin, Arabic (RTL),
+   Devanagari, Han, and a Latin-with-diacritics. If the fonts break, they break
+   here, in the hero, where we would see it. */
 const SCRIPTS: Script[] = [
   {
     code: 'es',
     native: 'Español',
+    flag: '🇪🇸',
     spoken: 'Spanish (es-ES)',
-    listening: 'Kai está escuchando',
     turns: [
       { who: 'kai', text: 'Hola, soy Kai. Cuéntame qué te duele, con tus propias palabras.' },
       { who: 'patient', text: 'Me duele el pecho cuando subo las escaleras.' },
@@ -57,9 +58,9 @@ const SCRIPTS: Script[] = [
   {
     code: 'ar',
     native: 'العربية',
+    flag: '🇸🇦',
     rtl: true,
     spoken: 'Arabic (ar-SA)',
-    listening: 'كاي يستمع',
     turns: [
       { who: 'kai', text: 'مرحبًا، أنا كاي. أخبرني بما يؤلمك، بكلماتك أنت.' },
       { who: 'patient', text: 'أشعر بألم في صدري عندما أصعد الدرج.' },
@@ -70,8 +71,8 @@ const SCRIPTS: Script[] = [
   {
     code: 'hi',
     native: 'हिन्दी',
+    flag: '🇮🇳',
     spoken: 'Hindi (hi-IN)',
-    listening: 'काई सुन रहा है',
     turns: [
       { who: 'kai', text: 'नमस्ते, मैं काई हूँ। अपने शब्दों में बताइए कि क्या दर्द हो रहा है।' },
       { who: 'patient', text: 'सीढ़ियाँ चढ़ते समय मेरे सीने में दर्द होता है।' },
@@ -82,8 +83,8 @@ const SCRIPTS: Script[] = [
   {
     code: 'zh',
     native: '中文',
+    flag: '🇨🇳',
     spoken: 'Mandarin (zh-CN)',
-    listening: 'Kai 正在倾听',
     turns: [
       { who: 'kai', text: '你好，我是 Kai。请用你自己的话告诉我哪里不舒服。' },
       { who: 'patient', text: '我上楼梯的时候胸口会痛。' },
@@ -94,8 +95,8 @@ const SCRIPTS: Script[] = [
   {
     code: 'vi',
     native: 'Tiếng Việt',
+    flag: '🇻🇳',
     spoken: 'Vietnamese (vi-VN)',
-    listening: 'Kai đang lắng nghe',
     turns: [
       { who: 'kai', text: 'Chào bạn, tôi là Kai. Hãy kể bằng lời của bạn xem bạn đau ở đâu.' },
       { who: 'patient', text: 'Tôi bị đau ngực khi leo cầu thang.' },
@@ -104,89 +105,50 @@ const SCRIPTS: Script[] = [
     ],
   },
 ]
+/* Five, not six. Six wrapped to a second row on desktop and left a single orphan
+   chip sitting under the other five — the exact "three then one" that looks like
+   a mistake rather than a layout. Five fit on one line, and they still cover
+   Latin, Arabic (RTL), Devanagari, Han and Latin-with-diacritics. */
 
-/* The output. Identical whichever language went in — which IS the product.
-   The fifth row ('Patient spoke') is appended per language at render. */
+/* The output. Identical whichever language went in — which IS the product. */
 const SUMMARY: { k: string; v: string }[] = [
-  { k: 'Chief complaint', v: 'Chest pain on exertion' },
+  { k: 'Presenting complaint', v: 'Chest pain on exertion' },
   { k: 'Onset', v: '3 days ago' },
   { k: 'Trigger', v: 'Climbing stairs' },
   { k: 'Relieved by', v: 'Rest, within minutes' },
 ]
 
-const ROW_TOTAL = SUMMARY.length + 1
+/* Timeline, in ms. Typing speed is per-character and deliberately uneven-looking
+   (CJK and Devanagari carry far more meaning per glyph, so they get more time
+   per character or they flash past). */
+const KAI_READ = 900
+const PATIENT_PAUSE = 500
+const SUMMARY_DWELL = 3600
 
-/* Timeline, in ms. Typing is per-character and deliberately uneven: CJK and
-   Devanagari carry far more meaning per glyph, so each gets more time or the
-   line flashes past. All deterministic — no Date.now / Math.random anywhere. */
-const LEAD_IN = 400
-const KAI_READ = 650 /* pause before a Kai turn appears */
-const KAI_PER_CHAR = 8 /* reading time credited per character of a Kai turn */
-const PATIENT_PAUSE = 380
-const TURN_GAP = 320
-const COMMIT_LEAD = 240 /* breath between the last reply and the first commit */
-const ROW_STEP = 340 /* per committed summary row */
-const READY_HOLD = 3000 /* SUMMARY READY dwell before the next language */
-
-type Phase = {
-  turn: number /* turns with index < turn are complete; index == turn may be typing */
-  typed: number /* characters typed of the current patient turn */
-  committed: number /* clinician rows committed, 0..ROW_TOTAL */
-  done: boolean /* SUMMARY READY */
-}
-
-/* SSR / pre-hydration frame: the COMPOSED COMPLETE document. The server must
-   never emit an empty ledger — everything the timeline would reveal is
-   already there, and the timeline (if it runs at all) resets first. */
-const COMPOSED: Phase = {
-  turn: SCRIPTS[0].turns.length,
-  typed: 0,
-  committed: ROW_TOTAL,
-  done: true,
-}
-
-const EASE = [0.22, 1, 0.36, 1] as const
-
-/* The green-fill tick beside SUMMARY READY. Fill-role green only — never a
-   text color. */
-function ReadyTick() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" className="shrink-0">
-      <path
-        d="M2.5 6.5 5 9l4.5-5.5"
-        fill="none"
-        stroke="var(--lx-green-fill)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
+type Phase = { turn: number; typed: number; summary: boolean }
 
 export function KaiDemo() {
   const reduced = useReducedMotion()
   const [active, setActive] = useState(0)
-  const [phase, setPhase] = useState<Phase>(COMPOSED)
-  /* False until the timeline has actually started once. While false, framer
-     entrances stay disabled so the hydration frame matches the server's
-     composed document instead of flashing everything in from opacity 0. */
-  const [started, setStarted] = useState(false)
-  /* Auto-advance stops permanently the moment a human touches the tabs. If
+  const [phase, setPhase] = useState<Phase>({ turn: 0, typed: 0, summary: false })
+  /* Auto-advance stops permanently the moment a human touches the chips. If
      someone is driving it, the thing must not yank the wheel back. */
   const [driven, setDriven] = useState(false)
   const timers = useRef<ReturnType<typeof setTimeout>[]>([])
 
-  /* GATE THE WHOLE TIMELINE ON VISIBILITY. Offscreen: stop dead, hold the
-     frame. Without this, the run loop keeps scheduling timeouts and
-     re-rendering forever while the hero is a thousand pixels off the top of
-     the screen — a permanent background CPU burn on a page we promise works
-     on a five-year-old phone. */
+  /* GATE THE WHOLE TIMELINE ON VISIBILITY.
+
+     Without this, the run loop keeps scheduling timeouts and re-rendering forever
+     while the hero is a thousand pixels off the top of the screen — a permanent
+     background CPU burn on a page we promise works on a five-year-old phone.
+
+     Worth knowing: stripe.com's own /payments hero ships exactly this bug. Its
+     timeline self-recurses with no IntersectionObserver and runs offscreen
+     indefinitely. Copying the good parts means noticing which parts are not. */
   const root = useRef<HTMLDivElement>(null)
   const onScreen = useInView(root, { amount: 0.15 })
 
   const script = SCRIPTS[active]
-  const rows = [...SUMMARY, { k: 'Patient spoke', v: script.spoken }]
 
   const clear = useCallback(() => {
     timers.current.forEach(clearTimeout)
@@ -197,58 +159,48 @@ export function KaiDemo() {
     timers.current.push(setTimeout(fn, ms))
   }, [])
 
-  const perChar = script.code === 'zh' ? 80 : script.code === 'hi' ? 40 : 24
+  const perChar = script.code === 'zh' ? 90 : script.code === 'hi' ? 42 : 34
 
-  /* The run loop. Rebuilt from scratch whenever the language changes, which
-     is what makes the tabs feel instant rather than queued behind the old
-     timeline. Every timeout lands in the ref array; `clear` runs on every
-     effect re-run and on unmount. */
+  /* The run loop. Rebuilt from scratch whenever the language changes, which is
+     what makes the chips feel instant rather than queued behind the old timeline. */
   useEffect(() => {
     clear()
 
-    /* Under reduced motion nothing runs at all — the render derives the full
-       conversation and every committed row statically, so the demonstration
-       keeps its point (the input AND the output); only the theatre goes. */
+    /* Under reduced motion nothing runs at all — see the render, which shows the
+       conversation AND the summary together, statically. The old behaviour here
+       jumped straight to the summary, which meant a reduced-motion visitor never
+       saw a single word of Spanish or Arabic: they got the English output with no
+       evidence of the input. That is not "the animation, minus the motion" — it is
+       the demonstration with its point removed. */
     if (reduced) return
 
-    /* Offscreen: hold the current frame. Re-entering restarts this language. */
+    /* Offscreen: stop dead and hold the current frame. */
     if (!onScreen) return
 
-    /* The reset rides the timer queue like every other beat — no synchronous
-       setState in the effect body, and it clears with the rest on re-run. */
-    after(0, () => {
-      setStarted(true)
-      setPhase({ turn: 0, typed: 0, committed: 0, done: false })
-    })
+    setPhase({ turn: 0, typed: 0, summary: false })
 
-    let t = LEAD_IN
+    let t = 400
     script.turns.forEach((turn, i) => {
       if (turn.who === 'kai') {
-        /* Kai's turns arrive whole — a fade and rise, not typing. */
-        after(t, () => setPhase((p) => ({ ...p, turn: i + 1, typed: 0 })))
-        t += KAI_READ + turn.text.length * KAI_PER_CHAR
+        after(t, () => setPhase({ turn: i + 1, typed: 0, summary: false }))
+        t += KAI_READ + turn.text.length * 12
         return
       }
-      /* Patient turns type themselves out, character by character. */
-      after(t, () => setPhase((p) => ({ ...p, turn: i, typed: 0 })))
+      // Patient turns type themselves out, character by character.
+      after(t, () => setPhase({ turn: i, typed: 0, summary: false }))
       t += PATIENT_PAUSE
       for (let c = 1; c <= turn.text.length; c++) {
-        after(t + c * perChar, () => setPhase((p) => ({ ...p, turn: i, typed: c })))
+        after(t + c * perChar, () =>
+          setPhase({ turn: i, typed: c, summary: false })
+        )
       }
       t += turn.text.length * perChar
-      after(t, () => setPhase((p) => ({ ...p, turn: i + 1, typed: 0 })))
-      t += TURN_GAP
+      after(t, () => setPhase({ turn: i + 1, typed: 0, summary: false }))
+      t += 420
     })
 
-    /* The hand-off: English fields commit one by one on the clinician pane. */
-    t += COMMIT_LEAD
-    for (let r = 1; r <= ROW_TOTAL; r++) {
-      after(t, () => setPhase((p) => ({ ...p, committed: r })))
-      t += ROW_STEP
-    }
-
-    after(t, () => setPhase((p) => ({ ...p, done: true })))
-    t += READY_HOLD
+    after(t, () => setPhase({ turn: script.turns.length, typed: 0, summary: true }))
+    t += SUMMARY_DWELL
 
     if (!driven) {
       after(t, () => setActive((a) => (a + 1) % SCRIPTS.length))
@@ -262,11 +214,8 @@ export function KaiDemo() {
     setActive(i)
   }
 
-  /* Derived conversation frame. The composed initial phase already yields the
-     complete exchange, but reduced motion gets its own branch so a stale
-     phase can never blank the artifact for a visitor whose timeline will
-     never run. */
   const visible = useMemo(() => {
+    /* Reduced motion: every turn, complete, nothing typing. */
     if (reduced) {
       return script.turns.map((turn, i) => ({ ...turn, i, shown: turn.text, typing: false }))
     }
@@ -274,7 +223,7 @@ export function KaiDemo() {
       script.turns
         .slice(0, Math.min(phase.turn + 1, script.turns.length))
         .map((turn, i) => {
-          const isTyping = i === phase.turn && turn.who === 'patient'
+          const isTyping = i === phase.turn && turn.who === 'patient' && !phase.summary
           return {
             ...turn,
             i,
@@ -282,36 +231,34 @@ export function KaiDemo() {
             typing: isTyping,
           }
         })
-        /* A patient bubble with nothing typed in it yet reads as a rendering
-           fault, not anticipation. Wait for the first character. */
+        /* A patient bubble with nothing typed in it yet renders as a dark empty
+           pill with a caret floating in it — which reads as a rendering fault, not
+           as anticipation. Wait for the first character. */
         .filter((turn) => !(turn.who === 'patient' && turn.shown.length === 0))
     )
   }, [script, phase, reduced])
 
-  const committedCount = reduced ? ROW_TOTAL : phase.committed
-  const done = reduced ? true : phase.done
-
   /* Two speakers, two materials — the product's own chat grammar. Kai has no
      bubble: the mark plus plain words on the paper. Only the patient gets the
-     filled ink bubble, and its tail is a LOGICAL corner (rounded-ee), so the
-     whole exchange genuinely mirrors when the pane is dir="rtl". */
-  const conversation = (
+     filled ink bubble, and its tail corner is a LOGICAL corner (rounded-ee),
+     so the whole exchange genuinely mirrors when the frame is dir="rtl". */
+  const bubbles = (
     <div className="space-y-3">
       {visible.map((turn) => (
         <motion.div
           key={`${script.code}-${turn.i}`}
-          initial={reduced || !started ? false : { opacity: 0, y: 10 }}
+          initial={reduced ? false : { opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: EASE }}
+          transition={{ duration: 0.3, ease: [0.25, 1, 0.5, 1] }}
           className={turn.who === 'kai' ? 'flex items-start gap-2.5' : 'flex'}
         >
-          {turn.who === 'kai' && <KaiDot size={22} />}
+          {turn.who === 'kai' && <KaiDot size={24} />}
           <p
             lang={script.code}
-            className={`lx-native text-[0.875rem] leading-[1.55] ${
+            className={`lx-native text-[0.9rem] leading-[1.55] ${
               turn.who === 'patient'
-                ? 'ms-auto w-fit max-w-[86%] rounded-[10px] rounded-ee-[3px] bg-[var(--lx-ink)] px-3.5 py-2.5 text-white'
-                : 'max-w-[88%] pt-0.5 text-[var(--lx-body)]'
+                ? 'ms-auto w-fit max-w-[86%] rounded-[14px] rounded-ee-[4px] bg-[var(--lx-ink)] px-3.5 py-2.5 text-white'
+                : 'max-w-[86%] pt-0.5 text-[var(--lx-body)]'
             }`}
           >
             {turn.shown}
@@ -328,171 +275,170 @@ export function KaiDemo() {
     </div>
   )
 
+  /* The output document. Always LTR — whatever direction the conversation ran,
+     the deliverable is an English clinical note, and the snap from a mirrored
+     exchange back to a left-to-right document IS the product, visible. Set as a
+     letterhead: serif title, one heavier rule, chart-mono field names. */
+  const summary = (
+    <div dir="ltr">
+      <div className="flex items-baseline justify-between gap-3 border-b-[1.5px] border-[var(--lx-ink)] pb-2">
+        <span className="lx-heading text-[1.02rem] text-[var(--lx-ink)]">Intake summary</span>
+        <span className="lx-label text-[0.625rem] text-[var(--lx-green-ink)]">English</span>
+      </div>
+
+      <dl className="divide-y divide-[var(--lx-line)] border-b border-[var(--lx-line)]">
+        {[...SUMMARY, { k: 'Patient spoke', v: script.spoken }].map((row, i) => (
+          <motion.div
+            key={row.k}
+            initial={reduced ? false : { opacity: 0, x: -6 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 + i * 0.07, duration: 0.3 }}
+            className="flex items-baseline justify-between gap-4 py-2"
+          >
+            <dt className="lx-label text-[0.6rem] text-[var(--lx-muted)]">{row.k}</dt>
+            <dd
+              className={`text-right text-[0.85rem] font-semibold tabular-nums ${
+                row.k === 'Patient spoke'
+                  ? 'text-[var(--lx-green-ink)]'
+                  : 'text-[var(--lx-ink)]'
+              }`}
+            >
+              {row.v}
+            </dd>
+          </motion.div>
+        ))}
+      </dl>
+
+      <p className="mt-3 text-xs leading-[1.6] text-[var(--lx-muted)]">
+        No diagnosis. No triage score. Just what the patient said, in a form a clinician can read.
+      </p>
+    </div>
+  )
+
   return (
-    <div ref={root} className="w-full">
-      {/* Language tabs — chart tabs, not pills. This is the interaction, and
-          it is the whole pitch: pick العربية and watch the ledger mirror. */}
+    <div ref={root} className="lx-demo w-full">
+      {/* The chips. This is the interaction — and it is the whole pitch. */}
       <div
         role="group"
-        aria-label="Choose a language for the intake demonstration"
+        aria-label="Choose a language to see the demonstration in"
         className="mb-3 flex flex-wrap gap-1.5"
       >
+        {/* min-h-11 (44px): these chips are THE hero interaction, tapped by
+            the exact users with reduced fine motor control this site is for. */}
         {SCRIPTS.map((s, i) => (
           <button
             key={s.code}
             type="button"
-            lang={s.code}
             onClick={() => pick(i)}
             aria-pressed={i === active}
-            className={`lx-focus lx-native inline-flex min-h-11 items-center rounded-[4px] border px-3 text-sm transition-colors duration-150 ${
+            className={`lx-focus lx-native inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3.5 text-sm transition-colors duration-150 ${
               i === active
                 ? 'border-transparent bg-[var(--lx-ink)] text-white'
-                : 'border-[var(--lx-hairline)] bg-[var(--lx-paper)] text-[var(--lx-body)] hover:border-[var(--lx-green-ink)]'
+                : 'border-[var(--lx-line)] bg-[var(--lx-paper)]/80 text-[var(--lx-body)] hover:border-[var(--lx-green)]'
             }`}
           >
+            <span aria-hidden="true">{s.flag}</span>
             {s.native}
           </button>
         ))}
       </div>
 
-      {/* THE ARTIFACT — 14px radius, registration marks, the site's one
-          ambient shadow. No overflow-hidden on the frame (it would clip the
-          regmark ticks); the chrome and the pane grid round their own
-          corners. Direction NEVER sits on this frame. */}
-      <div className="lx-artifact lx-regmark relative">
-        {/* Chart header strip. Direction sits here (the chrome mirrors for
-            Arabic) and inside each pane — never on the frame. */}
+      {/* The surface takes the script's direction — chrome included — so
+          picking العربية mirrors it the way the real product does. Direction
+          sits on the chrome and INSIDE each keyed panel, never on the frame:
+          during the crossfade the outgoing conversation must keep its own
+          direction, or Spanish spends 250ms rendered right-to-left.
+          The summary pins itself back to LTR: it is an English document. */}
+      <div className="lx-demo-frame relative overflow-hidden rounded-[16px] border border-[var(--lx-line)] bg-[var(--lx-paper)]">
+        {/* Chrome. A title bar with a live status is most of what separates
+            "product" from "div with a border". */}
         <div
           dir={script.rtl ? 'rtl' : 'ltr'}
-          className="lx-artifact-chrome flex items-center justify-between gap-3 rounded-t-[13px] border-b border-[var(--lx-hairline)] px-4 py-2.5"
+          className="lx-demo-chrome flex items-center justify-between gap-3 border-b border-[var(--lx-line)] px-4 py-2.5"
         >
-          <span className="flex min-w-0 items-center gap-2">
-            <KaiDot size={20} />
-            <span className="lx-label text-[0.6rem] text-[var(--lx-ink)]">Keiro · Intake</span>
+          <span className="flex items-center gap-2">
+            <KaiDot size={22} />
+            <span className="lx-label text-[0.625rem] text-[var(--lx-muted)]">
+              {reduced ? 'Conversation and summary' : phase.summary ? 'Summary ready' : 'Kai · listening'}
+            </span>
+            {!reduced && !phase.summary && (
+              <span className="lx-listen" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
+            )}
           </span>
-
-          <span className="flex items-center gap-2.5">
+          <span className="flex items-center gap-2">
             {script.rtl && (
-              <span className="lx-label rounded-[4px] border border-[var(--lx-hairline)] px-1.5 py-0.5 text-[0.55rem] text-[var(--lx-green-ink)]">
+              <span className="lx-label rounded-[4px] border border-[var(--lx-line)] px-1.5 py-0.5 text-[0.55rem] text-[var(--lx-green-ink)]">
                 RTL
               </span>
             )}
-            {/* Two fixed lines so the chrome never changes height: the EN
-                status on top, the native equivalent beneath (the language
-                name once the summary is ready). */}
-            <span className="flex flex-col items-end gap-0.5">
-              <span className="flex items-center gap-1.5">
-                <span className="lx-label text-[0.6rem] text-[var(--lx-muted)]">
-                  {done ? 'Summary ready' : 'Kai · listening'}
-                </span>
-                {done ? (
-                  <ReadyTick />
-                ) : (
-                  <span className="lx-listen" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                  </span>
-                )}
-              </span>
-              <span
-                lang={script.code}
-                dir={script.rtl ? 'rtl' : undefined}
-                className="lx-native text-[0.7rem] leading-none text-[var(--lx-muted)]"
-              >
-                {done ? script.native : script.listening}
-              </span>
-            </span>
+            <span className="lx-native text-xs text-[var(--lx-muted)]">{script.native}</span>
           </span>
         </div>
 
-        {/* The two panes. Stacked on a phone (patient above, clinician
-            below); side by side from sm, split by the vertical hairline
-            (border-inline-start on the clinician pane). The patient pane's
-            conversation area is fixed-height and the clinician rows are
-            always mounted, so nothing reflows as content arrives. */}
-        <div className="grid overflow-hidden rounded-b-[13px] sm:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
-          {/* PATIENT PANE — the only surface allowed the graph-paper grid.
-              Each keyed panel owns its own dir, so an outgoing Spanish panel
-              never spends its crossfade rendered right-to-left. */}
-          <div className="lx-sheet-grid min-w-0">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={script.code}
-                dir={script.rtl ? 'rtl' : 'ltr'}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: reduced ? 0 : 0.22 }}
-              >
-                <div className="flex items-baseline gap-1.5 border-b border-[var(--lx-hairline)] px-4 pb-2 pt-3">
-                  <span className="lx-label text-[0.6rem] text-[var(--lx-muted)]">Patient ·</span>
-                  <span lang={script.code} className="lx-native text-[0.7rem] text-[var(--lx-ink)]">
-                    {script.native}
-                  </span>
-                </div>
-                <div className="h-[310px] overflow-hidden p-4">{conversation}</div>
-              </motion.div>
+        {reduced ? (
+          /* END-STATE PINNING.
+
+             Reduced motion is not "the same thing, slower". The timeline never
+             runs, so anything that depended on it to become visible must already
+             be visible — otherwise the artifact is permanently blank, which is a
+             correctness bug, not a polish one.
+
+             It also swaps the CONTENT rather than merely freezing it: both halves
+             at once, in full, so the conversation and the summary can be read side
+             by side. The chips still work. Nothing that matters is lost — only the
+             theatre. */
+          <div className="space-y-5 p-4">
+            <div dir={script.rtl ? 'rtl' : 'ltr'}>{bubbles}</div>
+            {summary}
+          </div>
+        ) : (
+          /* Fixed height so the chips and the caption below never jump as bubbles
+             arrive. A hero that reflows while you read it looks broken.
+
+             Sized to the SUMMARY, the taller of the two states — five rows plus the
+             disclaimer. Size it to the chat instead and the summary's last line gets
+             guillotined. */
+          <div className="relative h-[310px] sm:h-[298px]">
+            <AnimatePresence mode="wait">
+              {!phase.summary ? (
+                <motion.div
+                  key={`chat-${script.code}`}
+                  dir={script.rtl ? 'rtl' : 'ltr'}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                  /* Top-anchored, deliberately.
+
+                     Bottom-anchoring is how a real messaging app behaves and was the
+                     obvious call — but the frame has to be tall enough for the summary,
+                     so on the opening frame a single bubble ended up pinned to the floor
+                     under 200px of nothing. Empty space ABOVE the first message reads as
+                     a broken render; empty space BELOW it reads as room for the
+                     conversation to grow, which is exactly what it is. */
+                  className="absolute inset-0 overflow-hidden p-4"
+                >
+                  {bubbles}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={`summary-${script.code}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, ease: [0.25, 1, 0.5, 1] }}
+                  className="absolute inset-0 p-4"
+                >
+                  {summary}
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
-
-          {/* CLINICIAN PANE — pinned dir="ltr" always: whatever direction the
-              conversation ran, the deliverable is an English clinical note,
-              and the snap from a mirrored exchange back to a left-to-right
-              document IS the product, visible. */}
-          <div
-            dir="ltr"
-            className="min-w-0 border-t border-[var(--lx-hairline)] sm:border-s sm:border-t-0"
-          >
-            <div className="lx-cc-edge px-4 pb-2 pt-3">
-              <span className="lx-label text-[0.6rem] text-[var(--lx-muted)]">
-                Clinician · English
-              </span>
-            </div>
-
-            {/* Every row is always mounted (the pane never changes height);
-                committing = the row surfacing while the wash sweeps in behind
-                the value. data-swept's CSS resting state is swept, so SSR and
-                reduced motion get the finished ledger for free. */}
-            <dl className="divide-y divide-[var(--lx-hairline)] px-4 pb-3 pt-0.5">
-              {rows.map((row, i) => {
-                const shown = committedCount > i
-                return (
-                  <motion.div
-                    key={row.k}
-                    initial={false}
-                    animate={{ opacity: shown ? 1 : 0, y: shown ? 0 : 6 }}
-                    transition={{ duration: 0.32, ease: EASE }}
-                    className="py-2.5"
-                  >
-                    <dt className="lx-label text-[0.6rem] text-[var(--lx-muted)]">{row.k}</dt>
-                    {/* `isolate` gives the wash-sweep's z-index:-1 pseudo a
-                        local stacking context, so the highlight paints above
-                        the card ground instead of vanishing beneath it. */}
-                    <dd className="isolate mt-1">
-                      <span
-                        data-swept={shown ? 'true' : 'false'}
-                        className={`lx-wash-sweep lx-title text-[0.85rem] ${
-                          row.k === 'Patient spoke'
-                            ? 'text-[var(--lx-green-ink)]'
-                            : 'text-[var(--lx-ink)]'
-                        }`}
-                      >
-                        {row.v}
-                      </span>
-                    </dd>
-                  </motion.div>
-                )
-              })}
-            </dl>
-          </div>
-        </div>
+        )}
       </div>
-
-      {/* Figure caption — the chart detail that makes it a specimen. */}
-      <p aria-hidden="true" className="lx-label mt-3 text-[0.625rem] text-[var(--lx-muted)]">
-        Fig. 1 — One intake, any script
-      </p>
     </div>
   )
 }

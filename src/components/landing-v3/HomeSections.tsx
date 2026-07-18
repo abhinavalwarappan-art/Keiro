@@ -1,228 +1,210 @@
 'use client'
 
-/* THE SPLIT LEDGER — the homepage below the hero (DESIGN.md §7.1).
+/* The homepage below the hero.
 
-   The page is a clinical ledger: a specimen band proving the scripts, then the
-   method as folio-headed rows docking to a 1px spine (each an asymmetric
-   copy/artifact pair with a FIG. caption), Kai introduced as a split, the
-   uncomfortable promises spent on the one deep plate, and a single ruled row
-   handing off to clinics. No archetype repeats back to back. */
+   Spine: marquee -> thesis -> expandable steps -> split(chat mock) -> deep glass
+   band -> split(report mock) -> clinics strip. No archetype repeats back to back,
+   and the ground changes under almost every one. */
 
-import type { ReactNode } from 'react'
+import Link from 'next/link'
 import {
   Band,
   BandHeading,
   Accent,
-  RunHead,
   Thesis,
+  ExpandableSteps,
   PromiseLedger,
   LanguageMarquee,
   Split,
   ArrowLink,
 } from './Sections'
-import { ChatMock, ReportMock, VoiceMock } from './ChatMock'
+import { ChatMock, ReportMock, VoiceMock, ChipRow } from './ChatMock'
 import { Reveal } from './Reveal'
+import { MotionLink } from './MotionLink'
 import { Kai } from '@/components/kai/Kai'
 
-/* ── The specimen band — the scripts ARE the proof ──────────────────────────
-   Where a SaaS site puts a client-logo strip, Keiro sets a wall of greetings
-   in their own scripts. Static (the marquee is retired), ruled, annotated. */
-export function SpecimenBand() {
+/* Marquee — the "logo strip" slot, filled with scripts instead of hospitals. */
+export function LanguageStrip() {
   return (
-    <Band palette="cream">
-      <RunHead folio="01 · The proof" meta="45 languages, in their own script" />
-      <p className="mt-6 max-w-2xl text-pretty text-lg leading-[1.75] text-[var(--band-muted)]">
-        Not a translated menu. Kai holds the whole conversation — including its follow-up
-        questions — in the language you think in.
+    <div className="lx-band lx-band-cream border-y border-[var(--band-line)] py-6">
+      <p className="lx-label mb-4 text-center text-xs text-[var(--lx-muted)]">
+        Kai holds the conversation in
       </p>
-      <div className="mt-8">
-        <LanguageMarquee />
-      </div>
+      <LanguageMarquee />
+    </div>
+  )
+}
+
+/* Why this exists — the 67M line, as a statement rather than a stat card. */
+export function WhyBand() {
+  return (
+    <Band palette="mint">
+      <Thesis
+        statement={
+          <>
+            About 67 million people in this country speak a language other than English at home. Many
+            of them sit in a waiting room rehearsing how to say where it hurts, and{' '}
+            <Accent>still walk out unsure they were understood.</Accent>
+          </>
+        }
+        body="That is the whole reason Keiro exists. Not to replace your doctor. To make sure the person in front of them actually gets heard."
+      />
     </Band>
   )
 }
 
-/* ── Why this exists — the 67M line, as a statement rather than a stat card ── */
-export function WhyBand() {
+/* The three steps, click-to-expand. First one opens by default so it never reads
+   as a row of closed doors. */
+export function StepsBand() {
   return (
-    <Band palette="mint">
-      <RunHead folio="02 · Why Keiro" />
-      <div className="mt-12">
-        <Thesis
-          statement={
-            <>
-              About 67 million people in this country speak a language other than English at home.
-              Many of them sit in a waiting room rehearsing how to say where it hurts, and{' '}
-              <Accent>still walk out unsure they were understood.</Accent>
-            </>
-          }
-          body="That is the whole reason Keiro exists. Not to replace your doctor — to make sure the person in front of them actually gets heard."
+    <Band palette="cream" id="how-it-works">
+      <BandHeading lede="Open a step to see exactly what happens in it. You can stop at any point, and nothing is sent anywhere until you say so.">
+        Here is exactly what will happen. <Accent>No surprises.</Accent>
+      </BandHeading>
+
+      <div className="mt-10">
+        <ExpandableSteps
+          items={[
+            {
+              n: '01',
+              title: 'You talk. Kai listens.',
+              summary: 'In your language. Out loud, or typed. About five minutes.',
+              detail: (
+                <div className="grid gap-5 lg:grid-cols-2 lg:items-center">
+                  <div>
+                    <p className="leading-[1.85] text-[var(--band-muted)]">
+                      Pick the language you use at home, then say what hurts. There is no form to
+                      fill in and no question you have to answer in a particular order. If it is
+                      easier to speak than to type, speak.
+                    </p>
+                    <div className="mt-4">
+                      <ChipRow
+                        items={[
+                          'Chest pain',
+                          'Fever',
+                          'A fall',
+                          'Medication',
+                          'Something else',
+                          'I am not sure',
+                        ]}
+                      />
+                    </div>
+                  </div>
+                  <VoiceMock />
+                </div>
+              ),
+            },
+            {
+              n: '02',
+              title: 'Kai writes it down.',
+              summary: 'Turned into clear clinical notes, without changing what you meant.',
+              detail: (
+                <div className="grid gap-5 lg:grid-cols-2 lg:items-center">
+                  <div>
+                    <p className="leading-[1.85] text-[var(--band-muted)]">
+                      Kai asks the follow-up questions a good nurse would ask. When something is
+                      unclear it asks you about it rather than writing down a confident guess. That
+                      is the difference between an intake companion and a translation app.
+                    </p>
+                    <p className="mt-4 leading-[1.85] text-[var(--band-muted)]">
+                      Kai never diagnoses, never scores you, and never decides anything about your
+                      care.
+                    </p>
+                  </div>
+                  <ChatMock />
+                </div>
+              ),
+            },
+            {
+              n: '03',
+              title: 'Your doctor reads it first.',
+              summary: 'The visit starts further along than it would have.',
+              detail: (
+                <div className="grid gap-5 lg:grid-cols-2 lg:items-center">
+                  <div>
+                    <p className="leading-[1.85] text-[var(--band-muted)]">
+                      Before you sit down, your doctor already knows why you came. You do not have to
+                      start the story over in a language you are still finding.
+                    </p>
+                    <p className="mt-4 leading-[1.85] text-[var(--band-muted)]">
+                      You read the summary before anyone else does. If it is wrong, it goes no
+                      further.
+                    </p>
+                  </div>
+                  <ReportMock />
+                </div>
+              ),
+            },
+          ]}
         />
       </div>
     </Band>
   )
 }
 
-/* ── The method — three rows docking to a spine ─────────────────────────────
-   Each row: a folio (01 SPEAK / 02 ASK / 03 HAND OFF), copy, and a real
-   product fragment staged in a registration-marked frame with a FIG. caption.
-   The rows alternate sides, so the spine reads as a document being filled in
-   rather than a stack of feature blocks. */
-
-function MethodRow({
-  folio,
-  fig,
-  title,
-  children,
-  artifact,
-  flip = false,
-}: {
-  folio: string
-  fig: string
-  title: ReactNode
-  children: ReactNode
-  artifact: ReactNode
-  flip?: boolean
-}) {
-  return (
-    <Reveal
-      as="li"
-      className="grid items-center gap-8 border-b border-[var(--band-line)] py-10 last:border-b-0 lg:grid-cols-2 lg:gap-16 lg:py-14"
-    >
-      <div className={flip ? 'lg:order-2' : ''}>
-        <RunHead folio={folio} />
-        <h3 className="lx-heading mt-6 text-[clamp(1.4rem,2.6vw,1.9rem)] text-[var(--band-ink)]">
-          {title}
-        </h3>
-        <p className="mt-4 max-w-prose text-lg leading-[1.8] text-[var(--band-muted)]">{children}</p>
-      </div>
-      <figure className={`min-w-0 ${flip ? 'lg:order-1' : ''}`}>
-        <div className="lx-regmark">{artifact}</div>
-        <figcaption className="lx-label mt-5 text-[0.625rem] text-[var(--band-muted)]">
-          {fig}
-        </figcaption>
-      </figure>
-    </Reveal>
-  )
-}
-
-export function MethodBand() {
-  return (
-    <Band palette="cream" id="how-it-works" rails>
-      <BandHeading
-        folio="03 · The method"
-        lede="Three steps, about five minutes. You can stop at any point, and nothing is sent anywhere until you say so."
-      >
-        Here is exactly what will happen. <Accent>No surprises.</Accent>
-      </BandHeading>
-
-      <ol className="mt-12 border-t border-[var(--band-line-strong)]">
-        <MethodRow
-          folio="01 · Speak"
-          fig="FIG. 1 — VOICE INPUT, IN YOUR LANGUAGE"
-          title="You talk. Kai listens."
-          artifact={<VoiceMock />}
-        >
-          Pick the language you use at home, then say what hurts — out loud, or typed if you prefer.
-          Out loud, or typed. About five minutes. There is no form to fill in and no question you
-          have to answer in a set order.
-        </MethodRow>
-
-        <MethodRow
-          folio="02 · Ask"
-          fig="FIG. 2 — KAI ASKS THE FOLLOW-UP"
-          title="Kai writes it down."
-          artifact={<ChatMock />}
-          flip
-        >
-          Kai asks the follow-up questions a good nurse would ask, and checks anything unclear
-          instead of writing a confident guess. Kai never diagnoses, never scores you, and never
-          decides anything about your care.
-        </MethodRow>
-
-        <MethodRow
-          folio="03 · Hand off"
-          fig="FIG. 3 — WHAT YOUR DOCTOR RECEIVES"
-          title="Your doctor reads it first."
-          artifact={<ReportMock />}
-        >
-          Before you sit down, your doctor already knows why you came, in clear English. You read the
-          summary before anyone else does. If it is wrong, it goes no further.
-        </MethodRow>
-      </ol>
-    </Band>
-  )
-}
-
-/* ── Meet Kai — the mascot as punctuation, on a 5/7 split ───────────────────── */
+/* Meet Kai — split, with the mascot as punctuation rather than the picture. */
 export function MeetKaiBand() {
   return (
     <Band palette="mint" id="meet-kai">
-      <RunHead folio="04 · Who is Kai" />
-      <div className="mt-12">
-        <Split
-          media={
-            <div className="flex justify-center">
-              <div className="lx-kai-stage p-8">
-                <div className="lx-breathe">
-                  <Kai size="xl" state="waving" interactive />
-                </div>
+      <Split
+        media={
+          <div className="flex justify-center">
+            <div className="lx-kai-stage p-8">
+              <div className="lx-breathe">
+                <Kai size="xl" state="waving" interactive />
               </div>
             </div>
-          }
-          flip
-        >
-          <BandHeading lede="Kai is the one who sits with you before the doctor comes in. Not a form. Not a phone tree. Someone who speaks the way you do.">
-            Kai will wait <Accent>as long as you need.</Accent>
-          </BandHeading>
-
-          <ul className="mt-8 border-t border-[var(--band-line)]">
-            {[
-              {
-                t: 'I will wait.',
-                b: 'Say it twice, change your mind, start over. I will not rush you and I will not sigh.',
-              },
-              {
-                t: 'I will not judge you.',
-                b: 'Nothing you tell me goes anywhere except the summary your doctor reads.',
-              },
-              {
-                t: 'I will not pretend to be a person.',
-                b: 'If you ask, I will tell you plainly that I am an AI. You have a right to know who you are talking to.',
-              },
-            ].map((item, i) => (
-              <Reveal
-                as="li"
-                key={item.t}
-                delay={i * 0.07}
-                className="border-b border-[var(--band-line)] py-4"
-              >
-                <h3 className="lx-title text-[var(--band-ink)]">{item.t}</h3>
-                <p className="mt-1 leading-[1.75] text-[var(--band-muted)]">{item.b}</p>
-              </Reveal>
-            ))}
-          </ul>
-
-          <div className="mt-8">
-            <ArrowLink href="/meet-kai">More about Kai</ArrowLink>
           </div>
-        </Split>
-      </div>
+        }
+        flip
+      >
+        <BandHeading lede="Kai is the one who sits with you before the doctor comes in. Not a form. Not a phone tree. Someone who speaks the way you do.">
+          Kai will wait <Accent>as long as you need.</Accent>
+        </BandHeading>
+
+        <ul className="mt-8 space-y-5">
+          {[
+            {
+              t: 'I will wait.',
+              b: 'Say it twice, change your mind, start over. I will not rush you and I will not sigh.',
+            },
+            {
+              t: 'I will not judge you.',
+              b: 'Nothing you tell me goes anywhere except the summary your doctor reads.',
+            },
+            {
+              t: 'I will not pretend to be a person.',
+              b: 'If you ask, I will tell you plainly that I am an AI. You have a right to know who you are talking to.',
+            },
+          ].map((item, i) => (
+            <Reveal as="li" key={item.t} delay={i * 0.07}>
+              <h3 className="lx-title text-[var(--band-ink)]">{item.t}</h3>
+              <p className="mt-1 leading-[1.75] text-[var(--band-muted)]">{item.b}</p>
+            </Reveal>
+          ))}
+        </ul>
+
+        <div className="mt-8">
+          <ArrowLink href="/meet-kai">More about Kai</ArrowLink>
+        </div>
+      </Split>
     </Band>
   )
 }
 
-/* ── The deep plate — this page's one chromatic surface, its emotional peak ───
-   The uncomfortable things, said at scale rather than in a row of small cards.
-   Refusals want display type and full-width rules, which is what the
-   single-column PromiseLedger gives them. */
+/* The deep band — this page's one chromatic section, and its emotional peak.
+
+   Its job is to say the uncomfortable things. It used to say them in three small
+   frosted cards, which is the same shape five other pages were using, and which
+   sized the most load-bearing promises on the site like a feature list.
+
+   They are not features. They are refusals, and refusals want scale: full-width
+   ruled rows, display type, and nothing else competing. The single-column form of
+   PromiseLedger exists for exactly this. */
 export function TrustBand() {
   return (
-    <Band palette="deep">
-      <BandHeading
-        folio="05 · What Kai will never do"
-        lede="A tool that asks frightened people to say private things owes them a plain account of what it does with them. So here it is, before you start rather than after."
-      >
+    <Band palette="deep" flow="glow">
+      <BandHeading lede="A tool that asks frightened people to say private things owes them a plain account of what it does with them. So here it is, before you start rather than after.">
         What Kai will <Accent>never</Accent> do.
       </BandHeading>
 
@@ -254,32 +236,47 @@ export function TrustBand() {
   )
 }
 
-/* ── Clinics — one ruled row, late and quarantined from the patient narrative ── */
-export function ClinicsRow() {
+/* Clinics — small, late, and quarantined from the patient narrative. */
+export function ClinicsStrip() {
   return (
     <Band palette="cream" id="for-clinics">
-      <RunHead folio="06 · For clinics" />
-      <Reveal className="mt-8 grid gap-6 border-t border-[var(--band-line-strong)] pt-8 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:gap-16">
+      <div className="flex flex-col gap-6 rounded-[16px] border border-[var(--band-line)] bg-[var(--band-card)] p-6 sm:p-8 md:flex-row md:items-center md:justify-between">
         <div className="max-w-xl">
-          <h2 className="lx-heading text-[clamp(1.5rem,3vw,2.1rem)] text-[var(--lx-ink)]">
+          <p className="lx-label text-xs text-[var(--lx-muted)]">
+            For clinics
+          </p>
+          <h2 className="lx-title mt-3 text-xl text-[var(--lx-ink)] sm:text-2xl">
             Your patient arrives <Accent>already understood.</Accent>
           </h2>
-          <p className="mt-4 text-lg leading-[1.8] text-[var(--lx-muted)]">
+          <p className="mt-3 leading-[1.8] text-[var(--lx-muted)]">
             A clear English summary before the visit starts. No interpreter to schedule, nothing to
             install, and Kai never diagnoses or triages.
           </p>
-          <div className="mt-6">
-            <ArrowLink href="/for-clinics">See what a clinician receives</ArrowLink>
-          </div>
         </div>
-        <div className="min-w-0">
-          <div className="lx-regmark">
-            <ReportMock />
-          </div>
-          <p className="lx-label mt-5 text-[0.625rem] text-[var(--lx-muted)]">
-            FIG. — THE INTAKE SUMMARY, ENGLISH
-          </p>
-        </div>
+        <Link
+          href="/for-clinics"
+          className="lx-focus inline-flex min-h-12 shrink-0 items-center justify-center rounded-full border border-[var(--lx-ink)] px-6 font-semibold text-[var(--lx-ink)] transition-colors duration-200 hover:bg-[var(--lx-mint)]"
+        >
+          Keiro for clinics
+        </Link>
+      </div>
+    </Band>
+  )
+}
+
+/* Close. */
+export function HomeCta() {
+  return (
+    <Band palette="mint">
+      <Reveal className="mx-auto flex max-w-2xl flex-col items-center gap-5 text-center">
+        <Kai size="sm" state="waving" />
+        <h2 className="lx-heading text-balance text-[clamp(1.6rem,4vw,2.4rem)] text-[var(--lx-ink)]">
+          Whenever you&apos;re ready. <Accent>There&apos;s no rush.</Accent>
+        </h2>
+        <p className="text-lg leading-[1.8] text-[var(--lx-muted)]">
+          Free. No account. Nothing to fill in first.
+        </p>
+        <MotionLink href="/onboarding?fresh=1">Start talking to Kai</MotionLink>
       </Reveal>
     </Band>
   )

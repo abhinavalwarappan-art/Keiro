@@ -6,6 +6,7 @@ import {
   BandHeading,
   Accent,
   Thesis,
+  NumberedSteps,
   LandscapeRows,
   Split,
   Prose,
@@ -13,7 +14,6 @@ import {
   QaColumns,
 } from '@/components/landing-v3/Sections'
 import { ChatMock, ReportMock, VoiceMock, ChipRow, SpecList } from '@/components/landing-v3/ChatMock'
-import { ProcedureColumn } from '@/components/landing-v3/pages/how-it-works/Procedure'
 
 export const metadata: Metadata = {
   title: 'How it works',
@@ -51,40 +51,31 @@ export default function HowItWorksPage() {
         />
       </Band>
 
-      <Band palette="cream" rails>
-        <BandHeading folio="01 · The procedure" lede="Three steps, and you can stop after any of them.">
+      <Band palette="cream">
+        <BandHeading lede="Three steps, and you can stop after any of them.">
           What actually happens, <Accent>start to finish.</Accent>
         </BandHeading>
 
-        <div className="mt-12">
-          <ProcedureColumn
+        <div className="mt-10">
+          <NumberedSteps
             steps={[
               {
                 n: '01',
                 title: 'You talk. Kai listens.',
                 body: 'Pick the language you use at home, then say what hurts. Out loud, or typed if you prefer. There is no form. Most people take about five minutes.',
-                duration: '~5 min',
-                knows: 'What hurts',
-                fig: 'FIG. 1 — VOICE INPUT',
-                artifact: <VoiceMock />,
+                payload: <VoiceMock />,
               },
               {
                 n: '02',
                 title: 'Kai asks, rather than assumes.',
                 body: 'When something is unclear, Kai asks you about it instead of writing down a confident guess. That single behaviour is the difference between an intake companion and a translation app.',
-                duration: 'A few turns',
-                knows: 'The full history',
-                fig: 'FIG. 2 — THE FOLLOW-UP',
-                artifact: <ChatMock />,
+                payload: <ChatMock />,
               },
               {
                 n: '03',
                 title: 'Your doctor reads it first.',
                 body: 'Before you sit down, your doctor already knows why you came. You read the summary before they do. If it is wrong, it goes no further.',
-                duration: 'Instant',
-                knows: 'Nothing new',
-                fig: 'FIG. 3 — THE SUMMARY',
-                artifact: <ReportMock />,
+                payload: <ReportMock />,
               },
             ]}
           />
@@ -96,7 +87,7 @@ export default function HowItWorksPage() {
           the section is the gap between those two facts. A card collapses them
           into one grey paragraph; facing columns keep them in tension. */}
       <Band palette="deep" flow="glow">
-        <BandHeading folio="02 · The landscape" lede="None of this is because clinics do not care. It is because the tools available to them are thin.">
+        <BandHeading lede="None of this is because clinics do not care. It is because the tools available to them are thin.">
           The help that exists, <Accent>and where it runs out.</Accent>
         </BandHeading>
 
@@ -158,7 +149,7 @@ export default function HowItWorksPage() {
             />
           }
         >
-          <BandHeading folio="03 · The technology" lede="You do not need to understand any of this to use Keiro. But you are entitled to know what happens to your words, so here it is without the jargon.">
+          <BandHeading lede="You do not need to understand any of this to use Keiro. But you are entitled to know what happens to your words, so here it is without the jargon.">
             The technology, <Accent>in plain words.</Accent>
           </BandHeading>
 
@@ -193,7 +184,7 @@ export default function HowItWorksPage() {
           behind a chevron on a page whose entire job is explanation would be
           absurd. See QaColumns in Sections.tsx. */}
       <Band palette="cream" rails>
-        <BandHeading folio="04 · Afterwards">
+        <BandHeading>
           The part nobody explains: <Accent>what happens after.</Accent>
         </BandHeading>
         <div className="mt-10">

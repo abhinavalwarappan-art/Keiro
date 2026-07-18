@@ -2,9 +2,19 @@ import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
 import { PageHero, A } from '@/components/landing-v3/PageBits'
-import { Band, BandHeading, RunHead, Accent, Thesis, StatCards, GlassCards, Faq, Prose, Para } from '@/components/landing-v3/Sections'
+import {
+  Band,
+  BandHeading,
+  GradWord,
+  Thesis,
+  StatCards,
+  GlassCards,
+  Faq,
+  Prose,
+  Para,
+} from '@/components/landing-v3/Sections'
+import { ReportMock } from '@/components/landing-v3/ChatMock'
 import { ContactForm } from '@/components/landing-v3/ContactForm'
-import { SpecimenSection } from '@/components/landing-v3/pages/for-clinics/SpecimenSection'
 import { Reveal } from '@/components/landing-v3/Reveal'
 
 const COUNT = LANGUAGES.length
@@ -19,40 +29,47 @@ export const metadata: Metadata = {
   },
 }
 
-/* THE SPECIMEN REPORT (DESIGN.md §7.6). The page IS the document a clinician
-   receives: it sits sticky beside the pitch, lighting up region by region as
-   each claim scrolls past. Then the concrete zeros, the limits stated plainly
-   on the deep plate, an honest ask, and a way to reach us. */
+/* Spine: hero -> split/report mock(cream) -> stats(mint) -> glass "what it is
+   NOT"(DEEP) -> thesis(mint) -> form(cream) -> faq(mint) */
 export default function ForClinicsPage() {
   return (
     <SiteShell flow="clinics">
       <PageHero
         flow
+        variant="split"
         eyebrow="For clinics"
         title="Your patient arrives already understood."
-        lede="Keiro is free for patients and always will be. This page is for the people on the other side of the desk — here is exactly what your clinicians receive."
+        lede="Keiro is free for patients and always will be. This page is for the people on the other side of the desk."
+        media={<ReportMock />}
       />
 
-      <Band palette="cream" rails>
-        <BandHeading
-          folio="01 · The document"
-          lede="Not a transcript — a structured intake summary in clear English, organised the way a clinician expects to read one. No integration, no procurement, no account for your staff."
-        >
-          Not a transcript. <Accent>A summary.</Accent>
-        </BandHeading>
-        <div className="mt-12">
-          <SpecimenSection />
+      <Band palette="cream">
+        <div className="max-w-3xl">
+          <BandHeading lede="A patient talks to Kai before the appointment, in the waiting room, on the bus, or at home the night before.">
+            Not a transcript. <GradWord>A summary.</GradWord>
+          </BandHeading>
+          <Prose>
+            <Para>
+              What lands with your team is a structured intake summary in clear English, organised
+              the way a clinician expects to read one. The history is already taken, so the visit
+              starts further along than it otherwise would.
+            </Para>
+            <Para>
+              No integration, no procurement, no account for your staff. Your clinician reads it the
+              way they read any other note.
+            </Para>
+          </Prose>
         </div>
       </Band>
 
-      {/* The zeros are the pitch — zero setup, zero cost — set as a ruled ledger
-          strip so each figure reads as a claim, not a bare numeral. */}
-      <Band palette="mint">
-        <BandHeading
-          folio="02 · What it changes"
-          lede="No pilot agreement, no procurement cycle, no line item."
-        >
-          What it changes, <Accent>concretely.</Accent>
+      {/* The zeros are the pitch — zero setup, zero cost — so they have to look
+          deliberate. As four huge bare numerals on hairlines they just read as a
+          row of nothing, or worse, as a figure that failed to load. On cards, with
+          the label carrying the claim and the currency sign making the price
+          legible as a price, the same numbers finally say what they mean. */}
+      <Band palette="mint" rails>
+        <BandHeading lede="No pilot agreement, no procurement cycle, no line item.">
+          What it changes, <GradWord>concretely</GradWord>.
         </BandHeading>
         <div className="mt-10">
           <StatCards
@@ -84,14 +101,11 @@ export default function ForClinicsPage() {
         </div>
       </Band>
 
-      <Band palette="deep">
-        <BandHeading
-          folio="03 · The limits"
-          lede="We would rather you hear the limits from us than discover them in a pilot."
-        >
-          What Keiro <Accent>is not</Accent>, from your side of the desk.
+      <Band palette="deep" flow="glow">
+        <BandHeading lede="We would rather you hear the limits from us than discover them in a pilot.">
+          What Keiro <GradWord>is not</GradWord>, from your side of the desk.
         </BandHeading>
-        <div className="mt-12">
+        <div className="mt-10">
           <GlassCards
             items={[
               {
@@ -110,12 +124,12 @@ export default function ForClinicsPage() {
           />
         </div>
 
-        <Reveal className="mt-10">
+        <Reveal className="mt-8">
           <p className="max-w-2xl leading-[1.85] text-[var(--band-muted)]">
             Read{' '}
             <a
               href="/privacy-safety"
-              className="lx-focus font-semibold text-[var(--lx-deep-mint)] underline underline-offset-4"
+              className="lx-focus font-semibold text-[var(--lx-sage)] underline underline-offset-4"
             >
               privacy &amp; safety
             </a>{' '}
@@ -125,39 +139,31 @@ export default function ForClinicsPage() {
       </Band>
 
       <Band palette="mint">
-        <Reveal>
-          <RunHead folio="04 · One ask" />
-        </Reveal>
-        <div className="mt-6">
-          <Thesis
-            statement={
-              <>
-                If you are a clinician who would be willing to review what Kai is allowed to say,{' '}
-                <Accent>that is the most useful thing anyone could offer this project.</Accent>
-              </>
-            }
-            body="Not a pilot, not a purchase order. An hour of a clinician's judgement about where the guardrails should sit."
-          />
-        </div>
+        <Thesis
+          statement={
+            <>
+              If you are a clinician who would be willing to review what Kai is allowed to say,{' '}
+              <GradWord>that is the most useful thing anyone could offer this project.</GradWord>
+            </>
+          }
+          body="Not a pilot, not a purchase order. An hour of a clinician's judgement about where the guardrails should sit."
+        />
       </Band>
 
       <Band palette="cream" id="demo">
-        <BandHeading
-          folio="05 · Talk to us"
-          lede="Tell us who you are and we will get back to you. If you want to pilot it, we will set that up with you directly."
-        >
-          Talk to <Accent>us.</Accent>
+        <BandHeading lede="Tell us who you are and we will get back to you. If you want to pilot it, we will set that up with you directly.">
+          Talk to <GradWord>us.</GradWord>
         </BandHeading>
-        <Reveal className="mt-8">
+        <Reveal>
           <div className="max-w-2xl">
             <ContactForm />
           </div>
         </Reveal>
       </Band>
 
-      <Band palette="mint" rails>
-        <BandHeading folio="06 · Questions clinics ask">
-          Questions clinics <Accent>ask.</Accent>
+      <Band palette="mint">
+        <BandHeading>
+          Questions clinics <GradWord>ask.</GradWord>
         </BandHeading>
         <div className="mt-8">
           <Faq
@@ -192,6 +198,7 @@ export default function ForClinicsPage() {
           </Para>
         </Prose>
       </Band>
+
     </SiteShell>
   )
 }

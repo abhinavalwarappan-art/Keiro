@@ -1,16 +1,17 @@
 'use client'
 
 /* ============================================================================
-   Keiro landing page — THE SPLIT LEDGER (DESIGN.md §7.1)
+   Keiro landing page
 
    Motion policy: no scroll-position-linked animation anywhere. Reveals are
-   `whileInView` with `once: true`; the hero artifact is IntersectionObserver-
-   gated; disclosures animate grid-template-rows. All of it is disabled under
-   prefers-reduced-motion.
+   `whileInView` with `once: true`; ambient motion (marquee, Kai's breathing) is
+   CSS keyframes; the step disclosures animate grid-template-rows. All of it is
+   disabled under prefers-reduced-motion.
 
-   The page keeps its own root (rather than SiteShell) because it reads the
-   ?ended=1 session banner off useSearchParams, which SiteShell's server
-   component cannot do.
+   Section spine — deliberately no archetype twice in a row, and the ground
+   changes underneath most of them:
+     hero -> marquee -> thesis(mint) -> expandable steps(cream)
+          -> split/mascot(mint) -> glass cards(DEEP) -> clinics(cream) -> cta(mint)
    ========================================================================== */
 
 import { Suspense } from 'react'
@@ -19,18 +20,18 @@ import { useSearchParams } from 'next/navigation'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 import '@/components/landing-v3/landing.css'
-import { bricolage, plexSans, plexMono } from '@/components/landing-v3/fonts'
+import { literata, sourceSans, splineMono } from '@/components/landing-v3/fonts'
 import { Nav } from '@/components/landing-v3/Nav'
 import { Hero } from '@/components/landing-v3/Hero'
 import {
-  SpecimenBand,
+  LanguageStrip,
   WhyBand,
-  MethodBand,
+  StepsBand,
   MeetKaiBand,
   TrustBand,
-  ClinicsRow,
+  ClinicsStrip,
+  HomeCta,
 } from '@/components/landing-v3/HomeSections'
-import { CtaBand } from '@/components/landing-v3/PageBits'
 import { Footer } from '@/components/landing-v3/Footer'
 import { LandingScrollReset } from '@/components/landing-v3/LandingScrollReset'
 
@@ -42,7 +43,7 @@ function LandingChrome() {
     <>
       {hasSessionEnded && (
         <div
-          className="sticky top-0 z-[70] bg-[var(--lx-ink)] px-4 py-3 text-center text-sm font-medium text-[var(--lx-paper)]"
+          className="sticky top-0 z-[70] bg-[var(--lx-ink)] px-4 py-3 text-center text-sm font-medium text-white"
           role="status"
           aria-live="polite"
         >
@@ -61,8 +62,10 @@ export default function LandingPage() {
         <div
           id="main-content"
           data-flow="home"
-          className={`lx ${bricolage.variable} ${plexSans.variable} ${plexMono.variable} relative min-h-screen overflow-x-clip`}
+          className={`lx ${literata.variable} ${sourceSans.variable} ${splineMono.variable} relative min-h-screen overflow-x-clip`}
         >
+          <div className="lx-grain" aria-hidden="true" />
+
           <Suspense>
             <LandingChrome />
           </Suspense>
@@ -71,16 +74,13 @@ export default function LandingPage() {
 
           <main className="relative z-[1]">
             <Hero />
-            <SpecimenBand />
+            <LanguageStrip />
             <WhyBand />
-            <MethodBand />
+            <StepsBand />
             <MeetKaiBand />
             <TrustBand />
-            <ClinicsRow />
-            <CtaBand
-              title="Whenever you’re ready. There’s no rush."
-              body="Free. No account. Nothing to fill in first."
-            />
+            <ClinicsStrip />
+            <HomeCta />
           </main>
 
           <Footer />

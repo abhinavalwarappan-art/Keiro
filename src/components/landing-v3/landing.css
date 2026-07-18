@@ -1,527 +1,251 @@
 /* ============================================================================
-   Keiro landing — v4 "THE LEDGER" (see DESIGN.md)
+   Keiro landing — warm / light direction
    ----------------------------------------------------------------------------
-   The site is typeset as the document it produces: chart-paper grounds,
-   hairline rules, mono annotations, asymmetric grids. Everything is scoped
-   under `.lx` so the app's tokens in globals.css are never touched. No
-   scroll-position-linked motion anywhere: reveals are Framer `whileInView`
-   (once: true), ambient motion is CSS keyframes, and every animation on this
-   sheet is opt-in inside the single no-preference block at the foot.
+   Everything is scoped under `.lx` so the app's teal tokens in globals.css are
+   never touched. No scroll-position-linked motion anywhere on this page: reveals
+   are Framer Motion `whileInView` (once: true), ambient motion is CSS keyframes.
    ========================================================================== */
 
 .lx {
-  /* GROUNDS — never text. */
-  --lx-paper: #fcfcf9; /* page ground: crisp chart-paper */
-  --lx-graph: #f1f4ee; /* tinted section plane */
-  --lx-wash: #e3f1e6; /* highlight sweeps, plain-words blocks, selected states */
-  --lx-card: #ffffff; /* artifact/card paper — reads as a sheet ON the page */
-  --lx-deep: #0e2a1c; /* the ONE dark plate per page */
+  /* Brand greens — THREE, by contrast tier, not one.
 
-  /* TEXT — role-locked, ratios measured on paper/graph/wash (all pass AA,
-     nearly all AAA — the audience skews older and low-vision, so "barely
-     passes" is not enough). Pick by ROLE, never by eye:
+     There used to be one (--lx-green), and it was used for everything: fills,
+     rules, AND the green italic phrase in every heading on the site. It measures
+     2.91:1 on cream. That is below 4.5:1 for body text and below even the 3:1
+     floor for large text — so the accent on every heading was failing WCAG AA,
+     on a site whose accessibility page states in as many words that "every
+     colour pairing on this site clears WCAG AA contrast". (The old comment here
+     claimed 3.1:1. It was measured wrong, and nothing re-checked it.)
 
-       --lx-ink            display text, primary button ground   15.7:1
-       --lx-body           running prose                         12.6:1
-       --lx-muted          secondary copy                         7.2:1
-       --lx-green-ink      green text at body size + ALL links    7.4:1
-       --lx-green-display  green text ≥24px (Accent) — still 5.6:1, so a
-                           mis-sized use degrades safely, but keep it display
-       --lx-green-fill     FILLS ONLY, never text: ticks, bars, emphasis rules.
-                           2.84:1 on graph — never a lone semantic boundary there.
-       --lx-signal-ink     amber annotation text, mono utility layer only 6.4:1
-       --lx-signal-fill    non-text: pulse dots, tick ornaments */
-  --lx-ink: #14241b;
-  --lx-ink-press: #0b1d13; /* pressed/hover ground of --lx-ink */
-  --lx-body: #2a342d;
-  --lx-muted: #4c5951;
-  --lx-green-ink: #146038;
-  --lx-green-display: #177544;
-  --lx-green-fill: #27a566;
-  --lx-signal-ink: #8c4e00;
-  --lx-signal-fill: #e4632e;
+     Splitting a brand colour by role is what Supabase ships — --brand-default
+     for fills, a much darker --brand-link for text — for exactly this reason.
+     We need one more tier than they do because our accent runs at display size.
 
-  /* ON-DEEP tiers — measured on --lx-deep. */
-  --lx-deep-ink: #f2f7f1; /* 14.2:1 */
-  --lx-deep-body: #c9d8cc; /* 10.4:1 */
-  --lx-deep-muted: #a9bfae; /* 7.9:1 */
-  --lx-deep-mint: #b7eecd; /* green text on deep, 11.8:1 — also focus ring there */
+     Pick by ROLE, and never by eye:
+       --lx-green         fills only. Never text. Contrast rules do not apply.
+       --lx-green-accent  green text at display size (≥24px). 4.8:1 — AAA Large.
+       --lx-green-ink     green text at body size, and every link. 7.2:1 — AAA.
 
-  /* RULES — the armature. Hairline is decorative (a semantic boundary also
-     gets spacing/label); strong rules carry the chart structure. */
-  --lx-hairline: #d8e0d6;
-  --lx-hairline-faint: rgba(20, 36, 27, 0.05);
-  --lx-rule-strong: rgba(20, 36, 27, 0.3);
+     Ratios target AAA (7:1 body, 4.5:1 large), not the AA floor: the core
+     audience skews older and low-vision, so "barely passes" is not enough. */
+  --lx-ink: #1a3d2b;           /* headings, primary button ground */
+  --lx-green: #2da866;         /* FILLS ONLY — rings, rules, chips, ticks */
+  --lx-green-accent: #187f48;  /* LARGE TEXT — 4.8:1 on cream, AAA Large */
+  --lx-green-ink: #126137;     /* BODY TEXT + LINKS — 7.2:1 on cream, AAA */
+  --lx-sage: #86d9bc;          /* light text on the deep band only (7.3:1) */
+  --lx-mint: #edfaf4;          /* card + section surfaces */
+  --lx-line: #c5edd8;          /* borders */
 
-  /* Section rhythm — one clamp owns every band's breathing room. */
-  --lx-section: clamp(4.5rem, 3rem + 5vw, 8.5rem);
+  /* Warm neutrals — pure #fff/#000 read clinical, so we never use either. Note
+     these are *tinted*, never grey: both Stripe and Supabase shift every neutral
+     towards the brand hue, and that — not texture — is what makes a page feel
+     atmospheric. Neither site ships a single noise or grid overlay. */
+  --lx-cream: #fafaf9;      /* page ground */
+  --lx-paper: #fffdfa;      /* card ground — the one warm neutral. Pure #fff on
+                               a warm cream page reads as a hole; two points of
+                               warmth make a card read as paper sitting ON the
+                               page rather than a cutout through it. */
+  --lx-ink-deep: #14301f;   /* pressed/hover state of --lx-ink. Was hardcoded
+                               inline in four places; now it is a token. */
+  --lx-body: #2f2b28;       /* body copy — warm charcoal */
+  --lx-muted: #57534e;      /* secondary copy (7:1 on cream) */
 
-  /* Depth is nearly abolished. The ONE ambient shadow on the site, reserved
-     for real product artifacts (the bilingual ledger, the clinician report). */
-  --lx-shadow-artifact:
-    0 24px 64px -32px rgba(14, 42, 28, 0.18), 0 2px 8px -2px rgba(14, 42, 28, 0.06);
+  /* Vertical rhythm — one clamp owns every band's breathing room, so section
+     air scales with the viewport instead of stepping at breakpoints. */
+  --lx-section: clamp(4rem, 2.75rem + 4.5vw, 7rem);
 
-  --lx-ease: cubic-bezier(0.22, 1, 0.36, 1); /* the house curve */
+  /* Two-layer shadows — one far and soft, one near and tight, both tinted with
+     the forest ink and never black, both capped at 10% alpha, with negative
+     spread so they pull inward instead of bleeding. A black drop-shadow is what
+     makes a warm light page look dirty. */
+  --lx-shadow-sm: 0 5px 14px rgba(26, 61, 43, 0.08), 0 2px 8px rgba(26, 61, 43, 0.04);
+  --lx-shadow-md: 0 6px 22px rgba(26, 61, 43, 0.08), 0 4px 8px rgba(26, 61, 43, 0.04);
+  --lx-shadow-lg: 0 15px 40px -2px rgba(26, 61, 43, 0.1), 0 5px 20px -2px rgba(26, 61, 43, 0.05);
 
-  font-family: var(--font-plex-sans), 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI',
-    sans-serif;
+  --lx-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* easeOutQuart — Stripe's movement curve. 150ms for colour, 300ms for motion. */
+  --lx-ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* Body voice: a humanist sans that carries the reading without carrying the
+     voice — the voice belongs to the serif display tier (see .lx-display).
+     One sans for everything readable, one serif for everything said, one mono
+     for everything charted. Three faces, three jobs, no overlap. */
+  font-family: var(--font-source-sans), 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-weight: 400;
 
-  background: var(--lx-paper);
+  background: var(--lx-cream);
   color: var(--lx-body);
 }
 
 /* ============================================================================
-   TYPE — three faces, three jobs. These classes own font-family, weight,
-   tracking AND leading, so the JSX must NOT also pass Tailwind font-weight,
-   tracking or leading utilities — those sit later in the cascade and win.
-   Size (and only size) stays in the JSX.
+   TYPE — the single biggest "who is speaking?" signal.
+
+   The voice is a DOCUMENT serif, not a product grotesque. Literata is a book
+   face: built for long, patient reading, warm in its detailing, and completely
+   free of both the newspaper shout (high-contrast display serifs) and the
+   SaaS default (Inter and its relatives). On a healthcare product whose whole
+   promise is "I will wait as long as you need", the headline face should be
+   the one designed for taking your time.
+
+   The scale still moves weight and tracking WITH size — big type stays lighter
+   and closer-leaded, small type sturdier — but the serif needs gentler numbers
+   than a grotesque: serifs self-space, so tracking tighter than -0.015em makes
+   the letterforms collide.
+
+   These classes own font-family, weight, tracking AND leading, so the JSX must
+   NOT also pass Tailwind's font-weight, tracking or leading utilities — those sit
+   later in the cascade and would win. Size (and only size) stays in the JSX.
    -------------------------------------------------------------------------- */
 
-/* The voice — h1s, giant numerals, display statements. Bricolage has no
-   italic: emphasis is weight + the display green (see .lx-accent), never a
-   synthesized oblique. */
+/* xxl / xl — the h1s and the big numerals. 34–72px. Optical sizing does the
+   display refinement; 430 on the variable axis is calm without going thin. */
 .lx-display {
-  font-family: var(--font-bricolage), 'Bricolage Grotesque', system-ui, sans-serif;
+  font-family: var(--font-literata), Georgia, 'Times New Roman', serif;
   font-optical-sizing: auto;
-  font-weight: 560;
-  letter-spacing: -0.025em;
-  line-height: 1.04;
-  font-variant-numeric: lining-nums tabular-nums;
-}
-
-/* Section headings. */
-.lx-heading {
-  font-family: var(--font-bricolage), 'Bricolage Grotesque', system-ui, sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 540;
+  font-weight: 430;
   letter-spacing: -0.015em;
-  line-height: 1.12;
+  line-height: 1.08;
+  /* Figures in a stat row must not jitter in place as they count up, and a
+     book face defaults to oldstyle figures — force lining for display work. */
   font-variant-numeric: lining-nums tabular-nums;
 }
 
-/* Card/row titles — UI, not voice, so they stay in the document face. */
+/* lg / md — section headings, theses, quotes. 22–40px. Looser on both axes. */
+.lx-heading {
+  font-family: var(--font-literata), Georgia, 'Times New Roman', serif;
+  font-optical-sizing: auto;
+  font-weight: 430;
+  letter-spacing: -0.008em;
+  line-height: 1.18;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Titles — h3, card headings, anything 16–24px. These are UI, not voice, so
+   they stay in the sans: a serif at card-title size reads like a hymn book. */
 .lx-title {
-  font-family: var(--font-plex-sans), 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: var(--font-source-sans), 'Source Sans 3', system-ui, -apple-system, sans-serif;
   font-weight: 600;
   letter-spacing: -0.008em;
   line-height: 1.3;
 }
 
-/* The CHART voice: running heads, field labels, folios, ISO codes, status
-   text. One mono, one tracking, everywhere. */
+/* Eyebrows, field labels, table headers, chrome — the CHART voice. One mono,
+   one tracking, everywhere: the same register a clinician's intake form uses
+   for its field names, which is exactly the association we want. Mono needs
+   far less tracking than a sans to read as spaced. */
 .lx-label {
-  font-family: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-spline-mono), ui-monospace, 'SF Mono', Menlo, monospace;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
 
-/* Measured values, codes, figures — charted, not written. */
+/* Monospaced numerals for the precise, instrumental details — step indices,
+   spec figures, ISO language codes, anything that wants to look measured
+   rather than written. Same face as .lx-label so the utility layer is ONE
+   voice, not a family of system fallbacks. */
 .lx-mono {
-  font-family: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-spline-mono), ui-monospace, 'SF Mono', Menlo, monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
 }
 
-/* THE ASIDE — the moments where the page stops explaining and says something
-   human ("she is 72"). The document face in italic: a change of posture, not
-   a change of speaker. (Class name kept from v3 so `serif` props still work;
-   there is no serif on the site any more.) */
+/* THE ITALIC BEAT — the moments where the page stops explaining and says
+   something human (the mission thesis, the "she is 72" quote). Same family as
+   the headings, italic: a change of posture, not a change of speaker. */
 .lx-serif {
-  font-family: var(--font-plex-sans), 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: var(--font-literata), Georgia, 'Times New Roman', serif;
+  font-optical-sizing: auto;
   font-style: italic;
-  font-weight: 450;
+  font-weight: 420;
   letter-spacing: -0.005em;
-  line-height: 1.45;
+  line-height: 1.32;
 }
 
 /* ----------------------------------------------------------------------------
    Script-complete stack for any text rendered in the patient's own language.
-   Bricolage has no Devanagari / Arabic / CJK coverage, so translated copy must
-   opt out of it or the glyphs fall back to a mismatched font. We lean on the
-   platform's bundled Noto/CJK faces rather than shipping 40+ webfont subsets
-   to a budget Android phone.
+   Fraunces has no Devanagari / Arabic / CJK / Cyrillic coverage, so translated
+   copy must opt out of it or the glyphs fall back to a mismatched system font.
+   We lean on the platform's bundled Noto/CJK faces rather than shipping 40+
+   webfont subsets to a budget Android phone.
    -------------------------------------------------------------------------- */
 .lx-native {
-  font-family: var(--font-plex-sans), 'IBM Plex Sans', 'Noto Sans', 'Noto Sans Arabic',
-    'Noto Sans Devanagari', 'Noto Sans Bengali', 'Noto Sans SC', 'Noto Sans JP', 'Noto Sans KR',
-    system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-source-sans), 'Noto Sans', 'Noto Sans Arabic', 'Noto Sans Devanagari',
+    'Noto Sans Bengali', 'Noto Sans SC', 'Noto Sans JP', 'Noto Sans KR', system-ui,
+    -apple-system, 'Segoe UI', sans-serif;
   font-feature-settings: normal;
 }
 
-/* ============================================================================
-   BAND PALETTES — kept from v3: a single class on a section remaps
-   surface / text / hairline, so text contrast can never accidentally break.
-   Sections differ by *ground*, not just by layout.
-   ========================================================================== */
-.lx-band {
-  background: var(--band-bg);
-  color: var(--band-body);
-}
-
-.lx-band-cream {
-  --band-bg: var(--lx-paper);
-  --band-ink: var(--lx-ink);
-  --band-body: var(--lx-body);
-  --band-muted: var(--lx-muted);
-  --band-line: var(--lx-hairline);
-  --band-line-strong: var(--lx-rule-strong);
-  --band-card: var(--lx-card);
-  --band-focus: var(--lx-green-ink);
-}
-
-.lx-band-mint {
-  --band-bg: var(--lx-graph);
-  --band-ink: var(--lx-ink);
-  --band-body: var(--lx-body);
-  --band-muted: var(--lx-muted);
-  --band-line: #cdd8cc;
-  --band-line-strong: var(--lx-rule-strong);
-  --band-card: var(--lx-card);
-  --band-focus: var(--lx-green-ink);
-}
-
-/* The deep plate — the one dark, spent-once surface per page. */
-.lx-band-deep {
-  --band-bg: var(--lx-deep);
-  --band-ink: var(--lx-deep-ink);
-  --band-body: var(--lx-deep-body);
-  --band-muted: var(--lx-deep-muted);
-  --band-line: rgba(242, 247, 241, 0.14);
-  --band-line-strong: rgba(242, 247, 241, 0.34);
-  --band-card: rgba(242, 247, 241, 0.06);
-  --band-focus: var(--lx-deep-mint);
-}
-
-/* The deep plate reads as a recessed plane: lit top edge + faint top vignette. */
-.lx-band-deep {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    inset 0 28px 56px -40px rgba(0, 0, 0, 0.5);
-}
-
-.lx-band-mint {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-/* ============================================================================
-   THE ARMATURE — rules, rails, running heads, registration marks. This is the
-   identity layer: sections are separated by chart structure, not by
-   background swaps alone.
-   ========================================================================== */
-
-/* 1px vertical guide rails on the content column — the page's spine. */
-.lx-rails {
-  border-inline: 1px solid var(--band-line);
-}
-
-/* Running head — the top hairline every major section opens with. Compose:
-   <div class="lx-runhead"><span class="lx-label">02 · METHOD</span>…</div> */
-.lx-runhead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  border-top: 1px solid var(--band-line-strong);
-  padding-top: 0.7rem;
-}
-
-/* A hairline that fades out at both ends rather than butting into the rails. */
-.lx-rule-fade {
-  height: 1px;
-  border: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--band-line) 15%,
-    var(--band-line) 85%,
-    transparent
-  );
-}
-
-/* Carbon-copy edge — the double rule under a table header, like a duplicate
-   form. Put it on the header row. */
-.lx-cc-edge {
-  position: relative;
-  border-bottom: 1px solid var(--band-line-strong);
-}
-
-.lx-cc-edge::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
-  height: 1px;
-  background: var(--band-line);
-}
-
-/* Registration marks — two corner ticks (TL + BR) that make a frame read as a
-   printed artifact rather than a bordered div. */
-.lx-regmark {
-  position: relative;
-}
-
-.lx-regmark::before,
-.lx-regmark::after {
-  content: '';
-  position: absolute;
-  width: 11px;
-  height: 11px;
-  border: 0 solid var(--band-line-strong);
-  pointer-events: none;
-}
-
-.lx-regmark::before {
-  top: -5px;
-  left: -5px;
-  border-top-width: 1px;
-  border-left-width: 1px;
-}
-
-.lx-regmark::after {
-  bottom: -5px;
-  right: -5px;
-  border-bottom-width: 1px;
-  border-right-width: 1px;
-}
-
-/* Graph-paper grid — allowed ONLY inside artifact surfaces, never page-wide. */
-.lx-sheet-grid {
-  background-image: linear-gradient(var(--lx-hairline-faint) 1px, transparent 1px),
-    linear-gradient(90deg, var(--lx-hairline-faint) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* ============================================================================
-   ATMOSPHERE — one wash, spent once. The nine-palette flow-gradient system is
-   retired; the page's warmth is the paper itself. A hero may carry ONE
-   daylight field: a barely-there green tint falling from behind the nav,
-   resolved into the paper long before the first rule.
-   ========================================================================== */
-.lx-daylight {
-  position: absolute;
+/* Paper grain — static, very low opacity, sits under content. */
+.lx-grain {
+  position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(
-    1200px 520px at 50% -180px,
-    rgba(39, 165, 102, 0.11) 0%,
-    rgba(39, 165, 102, 0.05) 38%,
-    transparent 68%
-  );
-}
-
-/* Content must sit above the daylight field. */
-.lx-above {
-  position: relative;
-  z-index: 1;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27 numOctaves=%273%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27/%3E%3C/svg%3E");
 }
 
 /* ============================================================================
-   FOCUS — band-aware ring. Green-ink measures 7.4:1 on paper and the deep
-   band remaps --band-focus to the 11.8:1 mint, so the ring clears the 3:1
-   WCAG 1.4.11 floor everywhere. Never --lx-green-fill.
+   MOTION IS OPT-IN.
+
+   Every animation on this site is declared inside
+   `@media (prefers-reduced-motion: no-preference)` and nowhere else. The default
+   state of the page — the one a vestibular-disorder user gets, and the one the
+   SSR snapshot renders — is completely still.
+
+   The usual arrangement is the reverse: animate by default, then bolt on a
+   `@media (prefers-reduced-motion: reduce)` block that tries to switch it all off
+   again. That fails constantly, and always the same way — somebody adds an
+   animation and forgets to add its counterpart, so it silently ships to exactly
+   the users who asked not to receive it. There is nothing to forget here, because
+   there is nothing to switch off.
+
+   (Stripe ships 113 `no-preference` queries against 26 `reduce` ones. The ratio
+   is the point.)
    ========================================================================== */
-.lx-focus:focus-visible {
-  outline: 3px solid var(--band-focus, var(--lx-green-ink));
-  outline-offset: 3px;
-  border-radius: 8px;
+
+/* Kai breathing — slow, calm. Deliberately gentler than the old 4s bob. */
+.lx-breathe {
+  will-change: transform;
 }
 
-/* ============================================================================
-   ACCENT — the emphasised phrase of a heading. Weight + the display green,
-   upright. (Bricolage has no italic; the italic-phrase tell is dead.)
-   ========================================================================== */
-.lx-accent {
-  color: var(--lx-green-display);
-  font-weight: 650;
-}
-
-.lx-band-deep .lx-accent {
-  color: var(--lx-deep-mint);
-}
-
-/* Compatibility: GradWord used to fill words with a gradient. It now renders
-   exactly as the accent — do not use in new work. */
-.lx-grad-text {
-  color: var(--lx-green-display);
-  font-weight: 650;
-}
-
-.lx-band-deep .lx-grad-text {
-  color: var(--lx-deep-mint);
-}
-
-/* ============================================================================
-   CONTROLS — rectangular, flat, chart-like. The radius system is role-coded:
-   4px annotations/chips/inputs · 8px buttons/cards · 14px product artifacts.
-   No pill buttons anywhere.
-   ========================================================================== */
-.lx-btn {
-  border-radius: 8px;
-  transition:
-    background 0.15s var(--lx-ease),
-    border-color 0.15s var(--lx-ease),
-    color 0.15s var(--lx-ease);
-}
-
-.lx-btn:active {
-  transform: translateY(1px);
-}
-
-.lx-btn-primary {
-  background: var(--lx-ink);
-  color: var(--lx-paper);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
-}
-
-.lx-btn-primary:hover {
-  background: var(--lx-ink-press);
-}
-
-.lx-btn-ghost {
-  background: transparent;
-  color: var(--lx-ink);
-  border: 1px solid var(--band-line-strong, var(--lx-rule-strong));
-}
-
-.lx-btn-ghost:hover {
-  background: var(--lx-wash);
-  border-color: var(--lx-green-ink);
-}
-
-.lx-band-deep .lx-btn-primary {
-  background: var(--lx-deep-ink);
-  color: var(--lx-deep);
-  box-shadow: none;
-}
-
-.lx-band-deep .lx-btn-primary:hover {
-  background: #ffffff;
-}
-
-.lx-band-deep .lx-btn-ghost {
-  color: var(--lx-deep-ink);
-}
-
-.lx-band-deep .lx-btn-ghost:hover {
-  background: rgba(242, 247, 241, 0.08);
-  border-color: var(--lx-deep-mint);
-}
-
-/* ============================================================================
-   CARD — a flat paper pane. No resting shadow: hierarchy is the hairline and
-   the plane change. Hover = 2px lift + the green hairline arriving. Zero
-   box-shadow transitions on the whole site (a swelling shadow is the single
-   most common template tell).
-   ========================================================================== */
-.lx-card {
-  position: relative;
-  border-radius: 8px;
-  background: var(--band-card);
-  border: 1px solid var(--band-line);
-}
-
-.lx-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(140deg, var(--lx-green-fill), var(--lx-green-ink) 60%, transparent 85%);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.lx-card:hover,
-.lx-card:focus-within {
-  transform: translateY(-2px);
-}
-
-.lx-card:hover::before,
-.lx-card:focus-within::before {
-  opacity: 1;
-}
-
-/* ============================================================================
-   ARTIFACT — L2, reserved for real product output (the bilingual ledger, the
-   clinician report). The one shadowed element class on the site.
-   ========================================================================== */
-.lx-artifact {
-  border-radius: 14px;
-  background: var(--lx-card);
-  border: 1px solid var(--band-line);
-  box-shadow:
-    var(--lx-shadow-artifact),
-    0 0 0 1px rgba(14, 42, 28, 0.04);
-}
-
-/* The artifact's chart header strip. */
-.lx-artifact-chrome {
-  background: linear-gradient(180deg, var(--lx-graph) 0%, var(--lx-card) 100%);
-}
-
-/* ============================================================================
-   WASH SWEEP — a highlight arriving behind a committed value. Transform-only.
-   The resting state is swept (correct under reduced motion / before JS); the
-   un-swept start and the transition live in the no-preference block.
-   ========================================================================== */
-.lx-wash-sweep {
-  position: relative;
-}
-
-.lx-wash-sweep::before {
-  content: '';
-  position: absolute;
-  inset: -2px -6px;
-  background: var(--lx-wash);
-  transform: scaleX(1);
-  transform-origin: left center;
-  z-index: -1;
-  border-radius: 4px;
-}
-
-.lx-wash-sweep[data-swept='false']::before {
-  transform: scaleX(0);
-}
-
-/* ============================================================================
-   LISTENING — three small bars beside the status label. Resting state is
-   three calm dashes (correct under reduced motion and before hydration); the
-   animation is opt-in below.
-   ========================================================================== */
-.lx-listen {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 10px;
-}
-
-.lx-listen span {
-  width: 2px;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--lx-green-fill);
-  transform: scaleY(0.4);
-  transform-origin: center;
-}
-
-@keyframes lx-listen {
+@keyframes lx-breathe {
   0%,
   100% {
-    transform: scaleY(0.35);
+    transform: translateY(0);
   }
   50% {
-    transform: scaleY(1);
+    transform: translateY(-10px);
   }
+}
+
+/* ----------------------------------------------------------------------------
+   THE HERO ARTIFACT — see KaiDemo.tsx.
+
+   The two-layer shadow is what makes it read as a floating pane of software
+   rather than a bordered div. Both layers are tinted with the forest ink and
+   capped at 10% alpha; a black drop-shadow on a warm cream ground is the single
+   fastest way to make a light page look dirty.
+   -------------------------------------------------------------------------- */
+.lx-demo-frame {
+  /* Three layers make it read as a physical pane of glass rather than a bordered
+     div: the long soft drop (height), a 1px tinted ring that crisps the outer
+     boundary against the cream, and an inset top-white highlight — the lit edge
+     a raised surface catches from above. The ring and highlight are what the old
+     single-shadow frame was missing; they cost nothing and read as software. */
+  box-shadow:
+    var(--lx-shadow-lg),
+    0 0 0 1px rgba(26, 61, 43, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* The frame's title bar. A faint top-down mint wash lifts it off the paper body
+   the way a real window chrome sits above its content — the difference between
+   "titlebar" and "a row with a bottom border". */
+.lx-demo-chrome {
+  background: linear-gradient(180deg, var(--lx-mint) 0%, var(--lx-paper) 100%);
 }
 
 @keyframes lx-caret {
@@ -534,27 +258,147 @@
   }
 }
 
-/* Dropdown/panel entrance — declared at rest, animated opt-in below. */
-.lx-pop {
-  transform-origin: top left;
-}
-
-@keyframes lx-pop {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Soft focus ring used across every interactive element on the page.
+   Ring colour is band-aware: --lx-green measured only 2.91:1 on cream — below
+   the 3:1 WCAG 1.4.11 floor for focus indicators, which matters doubly for the
+   keyboard-navigating, low-vision users this product exists for. Each band
+   palette sets --band-focus to a colour that clears 3:1 on its own ground. */
+.lx-focus:focus-visible {
+  outline: 3px solid var(--band-focus, var(--lx-green-ink));
+  outline-offset: 3px;
+  border-radius: 12px;
 }
 
 /* ----------------------------------------------------------------------------
-   DISCLOSURE — expand/collapse on grid-template-rows (0fr -> 1fr). No
-   transition here — it lives in the no-preference block, so reduced motion
-   gets an instant, correct open/close rather than a suppressed one.
+   BAND PALETTES — the highest-leverage primitive on the site.
+
+   Borrowed from Kyndryl's component-palette system: a single class on a section
+   remaps surface / text / hairline, so alternating light-dark-tinted bands cost
+   one prop and text contrast can never accidentally break. Sections then differ
+   by *ground*, not just by layout.
    -------------------------------------------------------------------------- */
+.lx-band {
+  background: var(--band-bg);
+  color: var(--band-body);
+}
+
+.lx-band-cream {
+  --band-bg: var(--lx-cream);
+  --band-ink: var(--lx-ink);
+  --band-body: var(--lx-body);
+  --band-muted: var(--lx-muted);
+  --band-line: var(--lx-line);
+  --band-card: var(--lx-paper);
+  --band-focus: var(--lx-green-ink);
+}
+
+.lx-band-mint {
+  --band-bg: var(--lx-mint);
+  --band-ink: var(--lx-ink);
+  --band-body: var(--lx-body);
+  --band-muted: var(--lx-muted);
+  --band-line: var(--lx-line);
+  --band-card: var(--lx-paper);
+  --band-focus: var(--lx-green-ink);
+}
+
+/* Deep band. Text is near-white and hairlines are white-alpha, so anything
+   dropped in here stays legible without per-element overrides.
+   --band-muted is 0.72 alpha, not lower: 0.62 measured 5.7:1, and muted copy
+   in the deep band is still body-size prose that older readers need. 0.72
+   composites to ~7.0:1 on --lx-ink. */
+.lx-band-deep {
+  --band-bg: var(--lx-ink);
+  --band-ink: #ffffff;
+  --band-body: rgba(255, 255, 255, 0.82);
+  --band-muted: rgba(255, 255, 255, 0.72);
+  --band-line: rgba(255, 255, 255, 0.16);
+  --band-card: rgba(255, 255, 255, 0.08);
+  --band-focus: var(--lx-sage);
+}
+
+/* Glass card — only legible over .lx-band-deep. */
+.lx-glass {
+  background: var(--band-card);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--band-line);
+}
+
+/* ----------------------------------------------------------------------------
+   ACCENT PHRASE — Tucuvi sets the emphasised phrase of every heading in italic
+   serif in the accent colour. One tiny component makes every heading on the site
+   read as authored rather than generated.
+   -------------------------------------------------------------------------- */
+/* The emphasis is a posture shift in the SAME face, plus the accent colour.
+   Colour alone was the tell that made every heading read as the same template;
+   a swapped-in second family would be worse (two voices in one sentence). An
+   italic of the same serif is how a book emphasises — which is the register.
+
+   Colour is the display tier (--lx-green-accent), never the fill green — this is
+   real text and it has to be readable by the people this product exists for. */
+.lx-accent {
+  color: var(--lx-green-accent);
+}
+
+.lx-band-deep .lx-accent {
+  color: var(--lx-sage);
+}
+
+/* Inside upright headings the accent leans in… */
+.lx-display .lx-accent,
+.lx-heading .lx-accent {
+  font-style: italic;
+}
+
+/* …and inside the italic beats it stands back up. Same family both ways: the
+   inversion is what makes the emphasis read as authored rather than defaulted. */
+.lx-serif .lx-accent {
+  font-style: normal;
+}
+
+/* ----------------------------------------------------------------------------
+   LANGUAGE MARQUEE — our answer to a client-logo strip. The proof isn't logos,
+   it's scripts. Masked at both edges so it fades rather than clips.
+   -------------------------------------------------------------------------- */
+.lx-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.lx-marquee-track {
+  display: flex;
+  width: max-content;
+}
+
+.lx-marquee:hover .lx-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes lx-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Chip scroller — 45 languages don't fit, so the list scrolls. Fade the bottom
+   edge so a half-visible row reads as "there is more" rather than as clipping. */
+.lx-fade-b {
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, #000 78%, transparent);
+}
+
+/* ----------------------------------------------------------------------------
+   DISCLOSURE — expand/collapse on grid-template-rows rather than max-height.
+   max-height animates a layout-bound property (and needs a magic number that
+   clips long content); 0fr -> 1fr animates cleanly and measures itself.
+   -------------------------------------------------------------------------- */
+/* No transition here — it lives in the no-preference block at the foot of the
+   file, with every other animation on the site. Reduced motion gets an instant,
+   correct open/close rather than a suppressed one. */
 .lx-reveal-grid {
   display: grid;
   grid-template-rows: 0fr;
@@ -568,62 +412,433 @@
   overflow: hidden;
 }
 
-/* Chip scroller fade (kept for the language picker). */
-.lx-fade-b {
-  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent);
-  mask-image: linear-gradient(180deg, #000 78%, transparent);
+/* ============================================================================
+   THE FLOW — green as a light source, not a fill.
+
+   Built from what stripe.com actually ships today, not from the famous 2021
+   WebGL mesh gradient (which they have since removed, and which would be the
+   wrong instrument here anyway — GPU-bound and psychedelic, on a site whose
+   stated target is a frightened 72-year-old on a five-year-old phone).
+
+   The shipped technique is one enormous radial gradient, and it works because of
+   four rules, all of which we follow:
+
+     1. It is anchored bottom-centre and *below* the edge (at 50% ~100%+), and it
+        is bigger than the viewport. So you only ever see the top arc of a huge
+        glow, never its centre. It is a big object, cropped — not a background
+        stretched to fit.
+     2. Its LAST STOP IS EXACTLY THE GROUND COLOUR. That is the whole trick.
+        Stripe's every light gradient terminates in #f8fafd, which is precisely
+        their section background, so the gradient has no edge — no seam, nowhere
+        it visibly stops. It reads as *light*, not as *a gradient*. Ours resolves
+        into var(--band-bg), so it works on any band we drop it on.
+     3. Saturation is front-loaded and dies fast. ~80% of the gradient's area is
+        nearly colourless. The colour is a whisper at the bottom edge.
+     4. Palette swaps, geometry does not. Stripe ships six of these (one per time
+        of day) over identical coordinates. We ship nine, one per page.
+   -------------------------------------------------------------------------- */
+.lx-flow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: radial-gradient(
+    1650px 1100px at 50% calc(100% + 40px),
+    var(--flow-0) 0%,
+    var(--flow-1) 12%,
+    var(--flow-2) 26%,
+    var(--flow-3) 40%,
+    var(--flow-4) 56%,
+    var(--band-bg, var(--lx-cream)) 78%
+  );
+  opacity: var(--flow-strength, 1);
+}
+
+/* The hero variant — same ramp, anchored ABOVE the top edge instead of below the
+   bottom one.
+
+   Stripe anchors its glow at the bottom because the section it lives in is the
+   foot of the page: the light rises into the dark. A hero is the opposite
+   situation. Anchored bottom-centre, a hero's gradient reaches its most
+   saturated point exactly at the seam with the next section — which produces a
+   hard green edge at the join, the single thing this technique exists to avoid.
+
+   Anchored above the top edge, the light spills from behind the nav and has
+   resolved into the ground by the time it reaches the seam. No edge, anywhere. */
+.lx-flow-hero {
+  background: radial-gradient(
+    1500px 820px at 50% -150px,
+    var(--flow-0) 0%,
+    var(--flow-1) 16%,
+    var(--flow-2) 32%,
+    var(--flow-3) 47%,
+    var(--flow-4) 62%,
+    var(--band-bg, var(--lx-cream)) 82%
+  );
+  opacity: var(--flow-hero-strength, 0.9);
+}
+
+/* Very slow breathing scale. The field is already 1650px wide and anchored off
+   the bottom edge, so a 4% scale moves the light perceptibly without anything
+   visibly "animating". No translate — that would reveal the crop. */
+.lx-flow-drift {
+  will-change: transform;
+}
+
+@keyframes lx-drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+/* ── Per-page flow palettes ──────────────────────────────────────────────────
+   One geometry, nine lights. Every ramp is the same green family — this is one
+   brand, not nine — but the temperature moves, so arriving on a new page feels
+   like a different room of the same building rather than the same page with the
+   words swapped.
+
+   Each ramp is front-loaded exactly like Stripe's: saturated at 0%, effectively
+   colourless by 56%, ground by 78%. */
+[data-flow] {
+  --flow-0: #2da866;
+  --flow-1: #5cbf85;
+  --flow-2: #9dd8b4;
+  --flow-3: #cfe9d8;
+  --flow-4: #eaf3ec;
+}
+
+/* Home — the full-strength brand green. */
+[data-flow='home'] {
+  --flow-0: #2da866;
+  --flow-1: #5cbf85;
+  --flow-2: #9dd8b4;
+  --flow-3: #cfe9d8;
+  --flow-4: #eaf3ec;
+}
+
+/* Mission — warmed towards lime and sun. The most hopeful page on the site, so
+   the warmest light on the site. */
+[data-flow='mission'] {
+  --flow-0: #58b84a;
+  --flow-1: #86cc82;
+  --flow-2: #b7dfae;
+  --flow-3: #d9ecd3;
+  --flow-4: #edf5ea;
+}
+
+/* Accessibility — cooled towards teal, and turned down. This page is about care
+   and restraint; the ground should not shout underneath it. */
+[data-flow='access'] {
+  --flow-0: #2aa891;
+  --flow-1: #5cbfae;
+  --flow-2: #9dd8cd;
+  --flow-3: #cfe9e4;
+  --flow-4: #eaf3f1;
+  --flow-strength: 0.85;
+}
+
+/* Privacy — the most sober field on the site: lowest chroma, pulled towards the
+   ink. A page about what happens to your secrets should not look like a product
+   launch. Sober, though — not dirty. Dropping the chroma too far turns the green
+   grey, and a grey-green wash over cream just looks like a rendering fault. */
+[data-flow='privacy'] {
+  --flow-0: #2f9163;
+  --flow-1: #63b48c;
+  --flow-2: #a0cfb6;
+  --flow-3: #cfe4d7;
+  --flow-4: #eaf1ec;
+  --flow-strength: 0.8;
+  --flow-hero-strength: 0.75;
+}
+
+/* Clinics — cool, professional, closer to instrument teal. The only page
+   addressed to someone in scrubs rather than someone frightened. */
+[data-flow='clinics'] {
+  --flow-0: #1f9e9a;
+  --flow-1: #55bcb6;
+  --flow-2: #9ad6d2;
+  --flow-3: #cde9e7;
+  --flow-4: #e9f3f2;
+}
+
+/* Languages — the widest spread on the site, because the page is about
+   plurality. Runs green through to teal rather than sitting on one note. */
+[data-flow='languages'] {
+  --flow-0: #23ab86;
+  --flow-1: #63c4a4;
+  --flow-2: #a3dac6;
+  --flow-3: #d2ead9;
+  --flow-4: #eaf4ee;
+}
+
+/* Meet Kai — the brightest and friendliest. Kai's own page. */
+[data-flow='kai'] {
+  --flow-0: #35c47a;
+  --flow-1: #67d494;
+  --flow-2: #a5e4bd;
+  --flow-3: #d3f0e0;
+  --flow-4: #edf8f2;
+}
+
+/* How it works — steady, mid-green, no drama. It is an explainer. */
+[data-flow='how'] {
+  --flow-0: #2ba775;
+  --flow-1: #5fbf95;
+  --flow-2: #9fd8bd;
+  --flow-3: #cfe9dc;
+  --flow-4: #eaf3ee;
+}
+
+/* Contact — quiet. */
+[data-flow='contact'] {
+  --flow-0: #40ac7c;
+  --flow-1: #71c39b;
+  --flow-2: #a8dac1;
+  --flow-3: #d3eade;
+  --flow-4: #ebf4ef;
+}
+
+/* The one dark section.
+
+   Stripe's entire homepage is white and near-white — with exactly ONE dark,
+   colour-flooded section, placed at the emotional peak. The colour is not
+   distributed across the page; it is saved up and spent once, which is precisely
+   what makes it land.
+
+   The ramp has to be rebuilt for the dark ground, not merely dimmed. The light
+   ramp above is front-loaded so that most of its AREA is nearly colourless — the
+   right call over cream, where the risk is the colour drowning the page. Reused
+   over ink it does the opposite: the bright end covers most of the band, the
+   section stops being dark, and the text on top of it loses its contrast.
+
+   Stripe's own night variant is the tell — it runs from near-white at the core
+   through four progressively darker stops to #141e4b, so the bright part is a
+   small point and the overwhelming majority of the area is deep. Same here: a
+   tight green core at the bottom edge, falling off hard into the forest ink, so
+   the band still reads as dark and everything on it stays legible. */
+.lx-band-deep .lx-flow {
+  background: radial-gradient(
+    1100px 620px at 50% calc(100% + 50px),
+    var(--flow-1) 0%,
+    var(--flow-0) 10%,
+    color-mix(in oklab, var(--flow-0) 55%, var(--band-bg)) 24%,
+    color-mix(in oklab, var(--flow-0) 26%, var(--band-bg)) 40%,
+    color-mix(in oklab, var(--flow-0) 9%, var(--band-bg)) 56%,
+    var(--band-bg) 74%
+  );
+  opacity: 0.55;
 }
 
 /* ----------------------------------------------------------------------------
-   THE HOVER BUS — one inherited boolean drives every child animation.
-   Any ancestor flips ONE custom property; children read it.
+   GRADIENT TYPE — the accent that is not the italic tail.
+
+   Every heading on this site used to be "plain words + green italic phrase".
+   Once you notice it you cannot stop noticing it, and it was the single loudest
+   reason the pages read as one template. This is the second emphasis register:
+   the word is *filled* with the brand gradient instead of coloured with it.
    -------------------------------------------------------------------------- */
-:where(a, button, .lx-card, .lx-hover-host):hover,
-:where(a, button, .lx-card, .lx-hover-host):focus-visible {
-  --lx-hover: 1;
+/* HEADINGS ONLY.
+
+   The ramp's lightest point is --lx-green-accent (3.93:1), so the *whole* word
+   clears AA Large — including its palest letter. It must never wrap running prose,
+   because 3.93:1 does not clear the 4.5:1 body-text bar.
+
+   Getting the light end right is the entire job here. Ending on --lx-sage (1.92:1)
+   or even on the fill green (2.91:1) produces a word that a low-vision reader
+   cannot make out — which is a spectacularly bad way to mark the word you most
+   wanted them to notice. */
+.lx-grad-text {
+  background: linear-gradient(
+    100deg,
+    var(--lx-ink) 0%,
+    var(--lx-green-ink) 48%,
+    var(--lx-green-accent) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* Serif descenders get clipped by background-clip without this. */
+  padding-bottom: 0.1em;
 }
 
-/* The arrow: shaft fades in, head slides — `›` becomes `→`. */
-.lx-arrow {
-  display: inline-flex;
-  align-items: center;
+.lx-band-deep .lx-grad-text {
+  background: linear-gradient(100deg, #ffffff 0%, var(--lx-sage) 60%, #b9f0d8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
-.lx-arrow__shaft {
-  opacity: var(--lx-hover, 0);
+/* ----------------------------------------------------------------------------
+   BUTTONS — the primary CTA carries more looks than anything else on the page,
+   so it is the one control that earns real elevation. A top-lit gradient (a
+   lightened ink edge falling to the base ink) plus an inset hairline of white
+   reads as a raised, physical button rather than a filled rectangle; the drop is
+   tinted forest-ink and pulled inward, never black. Hover deepens the ground and
+   the lift — honest here, because the Framer scale genuinely raises it, unlike a
+   card, which sits flat and must not swell.
+   -------------------------------------------------------------------------- */
+.lx-btn {
+  transition:
+    background 0.2s var(--lx-ease-quart),
+    border-color 0.2s var(--lx-ease-quart),
+    box-shadow 0.3s var(--lx-ease-quart);
 }
 
-.lx-arrow__head {
-  transform: translateX(calc(var(--lx-hover, 0) * 3px));
+.lx-btn-primary {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--lx-ink) 86%, #ffffff) 0%,
+    var(--lx-ink) 100%
+  );
+  color: var(--lx-cream);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 6px 18px -6px rgba(26, 61, 43, 0.42),
+    0 2px 6px -2px rgba(26, 61, 43, 0.26);
 }
 
-/* An underline that draws in from the start edge on hover/focus. */
-.lx-underline-draw {
+.lx-btn-primary:hover {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--lx-ink-deep) 86%, #ffffff) 0%,
+    var(--lx-ink-deep) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 12px 28px -8px rgba(26, 61, 43, 0.5),
+    0 3px 8px -2px rgba(26, 61, 43, 0.3);
+}
+
+.lx-btn-ghost {
+  background: var(--lx-paper);
+  color: var(--lx-ink);
+  border: 1px solid var(--lx-line);
+  box-shadow: var(--lx-shadow-sm);
+}
+
+.lx-btn-ghost:hover {
+  border-color: var(--lx-sage);
+  box-shadow: var(--lx-shadow-md);
+}
+
+/* ----------------------------------------------------------------------------
+   CARD — one shared card, with a gradient hairline that only appears on hover.
+
+   Supabase's trick, and it is a good one: the resting state is almost nothing
+   (a 1px neutral border), so a grid of them is calm; the brand colour arrives
+   only under the cursor. Depth comes from a long, soft, *tinted* shadow rather
+   than a grey one — a grey drop-shadow on a warm cream ground is what makes a
+   card look like a default component library.
+   -------------------------------------------------------------------------- */
+.lx-card {
   position: relative;
+  border-radius: 16px;
+  background: var(--band-card);
+  border: 1px solid var(--band-line);
+  /* 300ms on the house curve. Colour moves in 150ms, geometry in 300ms — that is
+     the entire timing system, and holding to it is most of why a site feels
+     coherent rather than assembled. */
+  transition: transform 0.3s var(--lx-ease-quart);
 }
 
-.lx-underline-draw::after {
+.lx-card::before {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 1px;
-  background: var(--lx-green-fill);
-  transform: scaleX(var(--lx-hover, 0));
-  transform-origin: left center;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(140deg, var(--lx-green), var(--lx-sage) 45%, transparent 75%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s var(--lx-ease-quart);
+  pointer-events: none;
+}
+
+/* NO shadow ramp on hover.
+
+   There are zero box-shadow transitions on the whole of stripe.com, and once you
+   notice that you cannot unsee it anywhere else: a card whose shadow swells under
+   the cursor is the single most common tell of a template. Shadows are a property
+   of an object's HEIGHT, and the card is not levitating — it is being pointed at.
+
+   So the shadow is static, and the hover is carried by the two things that
+   actually change: a 2px lift, and the gradient hairline arriving. */
+.lx-card {
+  /* Static drop, plus a whisper of inset top-white so the card has dimension at
+     rest — it reads as paper catching light from above, not a flat fill waiting
+     for a cursor. The highlight stays; only the lift and hairline move on hover,
+     so the no-shadow-swell rule above is intact. */
+  box-shadow: var(--lx-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.lx-card:hover,
+.lx-card:focus-within {
+  transform: translateY(-2px);
+}
+
+.lx-card:hover::before,
+.lx-card:focus-within::before {
+  opacity: 1;
+}
+
+/* On the deep band the card is a translucent pane over ink; a shadow does nothing
+   there but muddy it. The gradient hairline carries the whole hover. */
+.lx-band-deep .lx-card {
+  box-shadow: none;
 }
 
 /* ----------------------------------------------------------------------------
-   SECTION RHYTHM — every band breathes on the same clamp.
+   PLANE DEPTH — stacked bands read as layered planes, not flat colour swaps.
+
+   A lit 1px top edge (a fold of light, not a divider) where a tinted or dark
+   band meets the section above; the deep band also gets a faint top vignette so
+   it reads as a recessed plane, complementing the light already rising from its
+   bottom edge (see .lx-band-deep .lx-flow). Cream bands are the page ground and
+   stay flush — only the bands that change ground earn an edge.
+   -------------------------------------------------------------------------- */
+.lx-band-mint {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.lx-band-deep {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 28px 56px -40px rgba(0, 0, 0, 0.45);
+}
+
+/* Marquee "logo-strip" chips — a resting shadow and a hair of inset top-white so
+   the 45 script pills read as physical tokens rather than flat outlines. Same
+   depth grammar as the cards; no hover state, they are proof, not controls. */
+.lx-chip {
+  box-shadow: var(--lx-shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+/* Content must sit above the flow field. */
+.lx-above {
+  position: relative;
+  z-index: 1;
+}
+
+/* ----------------------------------------------------------------------------
+   SECTION RHYTHM — every band breathes on the same clamp, so vertical air
+   scales continuously with the viewport instead of stepping at breakpoints.
    -------------------------------------------------------------------------- */
 .lx-section {
   padding-block: var(--lx-section);
 }
 
 /* ----------------------------------------------------------------------------
-   THE MASCOT'S STAGE — Kai stands in a pool of light with one hairline ring;
-   the ring is what makes it read as a *place*. Purely decorative.
+   THE MASCOT'S STAGE — Kai stands in a pool of the brand light instead of
+   floating in blank space. A radial wash plus one hairline ring; the ring is
+   what makes it read as a *place* rather than a glow. Purely decorative, so it
+   lives behind the figure and never intercepts a pointer.
    -------------------------------------------------------------------------- */
 .lx-kai-stage {
   position: relative;
@@ -640,8 +855,8 @@
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    color-mix(in oklab, var(--lx-green-fill) 14%, transparent) 0%,
-    color-mix(in oklab, var(--lx-green-fill) 6%, transparent) 55%,
+    color-mix(in oklab, var(--lx-green) 16%, transparent) 0%,
+    color-mix(in oklab, var(--lx-green) 7%, transparent) 55%,
     transparent 100%
   );
   pointer-events: none;
@@ -657,32 +872,109 @@
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  border: 1px solid var(--band-line);
+  border: 1px solid var(--lx-line);
   pointer-events: none;
 }
 
-/* Kai breathing — kept, but only where a page explicitly stages the mascot. */
-.lx-breathe {
-  will-change: transform;
+/* ----------------------------------------------------------------------------
+   LISTENING — three small bars beside the status label while Kai is taking
+   the patient in. The resting state is three calm dashes (correct under
+   reduced motion and before hydration); the animation is opt-in below, with
+   everything else. Heights move via scaleY only.
+   -------------------------------------------------------------------------- */
+.lx-listen {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 10px;
 }
 
-@keyframes lx-breathe {
+.lx-listen span {
+  width: 2px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--lx-green);
+  transform: scaleY(0.4);
+  transform-origin: center;
+}
+
+@keyframes lx-listen {
   0%,
   100% {
-    transform: translateY(0);
+    transform: scaleY(0.35);
   }
   50% {
-    transform: translateY(-10px);
+    transform: scaleY(1);
   }
+}
+
+/* ----------------------------------------------------------------------------
+   THE HOVER BUS — one inherited boolean drives every child animation.
+
+   Straight from Stripe, and it is the cheapest good idea they have. Instead of a
+   selector per element per state (`.card:hover .card__arrow`, `.link:hover
+   .link__arrow`, … forever), any ancestor flips ONE custom property, and children
+   read it. The child does not know or care who its parent is.
+
+     --lx-hover: 0 | 1
+
+   Because it is inherited, a card, a link and a button can all drive the same
+   arrow with no selector explosion and no coupling.
+   -------------------------------------------------------------------------- */
+:where(a, button, .lx-card, .lx-hover-host):hover,
+:where(a, button, .lx-card, .lx-hover-host):focus-visible {
+  --lx-hover: 1;
+}
+
+/* The arrow. The shaft fades in and the head slides — so `›` becomes `→` rather
+   than the whole glyph just nudging sideways. Two properties, one boolean. */
+.lx-arrow {
+  display: inline-flex;
+  align-items: center;
+}
+
+.lx-arrow__shaft {
+  opacity: var(--lx-hover, 0);
+  transition: opacity 0.15s var(--lx-ease-quart);
+}
+
+.lx-arrow__head {
+  transform: translateX(calc(var(--lx-hover, 0) * 3px));
+  transition: transform 0.3s var(--lx-ease-quart);
+}
+
+/* ----------------------------------------------------------------------------
+   GUIDE RAILS — a 1px vertical border on the content container, running the full
+   height of every section.
+
+   This is the single highest identity-per-byte line on stripe.com: more
+   responsible for "this is a Stripe page" than any gradient they have ever
+   shipped, and it costs one declaration. It gives an editorial site a spine, and
+   it makes every section feel like it belongs to the same document.
+   -------------------------------------------------------------------------- */
+.lx-rails {
+  border-inline: 1px solid var(--band-line);
+}
+
+/* A hairline that fades out at both ends rather than butting into the rails. */
+.lx-rule-fade {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--band-line) 15%,
+    var(--band-line) 85%,
+    transparent
+  );
 }
 
 /* ============================================================================
    THE ONLY PLACE ANIMATION IS TURNED ON.
 
-   Everything above declares its resting state and nothing else. If you add a
-   new animation to this stylesheet, it belongs in here — and if you forget,
-   the worst that happens is that it does not animate. That is the right
-   failure direction.
+   Everything above declares its resting state and nothing else. If you add a new
+   animation to this stylesheet, it belongs in here — and if you forget, the worst
+   that happens is that it does not animate. That is the right failure direction.
    ========================================================================== */
 @media (prefers-reduced-motion: no-preference) {
   .lx-breathe {
@@ -701,54 +993,40 @@
     animation-delay: 0.36s;
   }
 
+  .lx-marquee-track {
+    animation: lx-scroll 60s linear infinite;
+  }
+
+  .lx-flow-drift {
+    animation: lx-drift 30s ease-in-out infinite alternate;
+  }
+
   .lx-reveal-grid {
-    transition: grid-template-rows 0.42s var(--lx-ease);
+    transition: grid-template-rows 0.42s var(--lx-ease-quart);
   }
 
   .lx-card {
-    transition: transform 0.3s var(--lx-ease);
-  }
-
-  .lx-card::before {
-    transition: opacity 0.3s var(--lx-ease);
-  }
-
-  .lx-wash-sweep::before {
-    transition: transform 0.5s var(--lx-ease);
-  }
-
-  .lx-arrow__shaft {
-    transition: opacity 0.15s var(--lx-ease);
-  }
-
-  .lx-arrow__head {
-    transition: transform 0.3s var(--lx-ease);
-  }
-
-  .lx-underline-draw::after {
-    transition: transform 0.25s var(--lx-ease);
-  }
-
-  .lx-pop {
-    animation: lx-pop 0.16s var(--lx-ease) both;
+    transition: transform 0.3s var(--lx-ease-quart);
   }
 }
 
 /* END-STATE PINNING.
 
-   Anything whose JS timeline bails out under reduced motion must already be
-   in its finished state, or it stays invisible forever. That is a correctness
-   bug, not a missing flourish. The demo's own React path handles this (the
-   ledger renders the full exchange and the summary statically when reduced).
-   This is the CSS backstop. */
-@media (prefers-reduced-motion: reduce) {
-  .lx-breathe,
-  .lx-listen span {
-    transform: none;
-  }
+   Anything whose JS timeline bails out under reduced motion must already be in
+   its finished state, or it stays invisible forever. That is a correctness bug,
+   not a missing flourish — and on a product whose accessibility page promises
+   that "every animation here turns off, not softened, off", shipping a blank
+   panel to the people who took us at our word would be the worst possible way to
+   keep that promise.
 
-  .lx-wash-sweep::before,
-  .lx-wash-sweep[data-swept='false']::before {
-    transform: scaleX(1);
+   The demo's own React path handles this (KaiDemo renders the full conversation
+   and the summary statically when reduced). This is the CSS backstop. */
+@media (prefers-reduced-motion: reduce) {
+  .lx-flow,
+  .lx-breathe,
+  .lx-demo-frame,
+  .lx-marquee-track {
+    opacity: 1;
+    transform: none;
   }
 }
