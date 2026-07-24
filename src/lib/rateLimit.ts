@@ -59,6 +59,10 @@ const IP_ENDPOINT_CONFIGS: Record<string, RateLimitConfig> = {
   report_patch: { limit: 60,  windowMs: 60 * 60 * 1000 }, // 60 note saves per IP/hour
   translate:    { limit: 500, windowMs: 60 * 60 * 1000 }, // 500 translations per IP/hour
   transcribe:   { limit: 400, windowMs: 60 * 60 * 1000 }, // 400 transcriptions per IP/hour
+  // Mic diagnostics are client-fired and unauthenticated, so this is the only
+  // tier guarding the table. Generous enough for a genuinely broken device
+  // (a patient may retry many times), low enough to bound flooding.
+  mic_diagnostics: { limit: 60, windowMs: 60 * 60 * 1000 }, // 60 mic reports per IP/hour
 }
 
 const IP_DEFAULT_CONFIG: RateLimitConfig = { limit: 100, windowMs: 60 * 60 * 1000 }

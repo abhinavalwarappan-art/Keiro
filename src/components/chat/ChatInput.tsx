@@ -1,10 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Mic, MicOff, ArrowUp, Loader2 } from 'lucide-react'
+import { Mic, MicOff, ArrowUp, Loader2, Info } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { AIVoiceInput } from '@/components/ui/ai-voice-input'
 import { useVoiceInput } from '@/hooks/useVoiceInput'
+import MicHelpModal from '@/components/chat/MicHelpModal'
+import { useTranslations, type MessageKey } from '@/i18n/useTranslations'
+import type { MicErrorKind } from '@/lib/micDiagnostics'
 
 const DRAFT_KEY = 'keiro_chat_draft'
 
@@ -67,6 +70,16 @@ function getStopRecordingLabel(langCode: string): string {
   )
 }
 
+/** Each mic failure gets its own copy — only `denied` offers the recovery steps. */
+const MIC_ERROR_KEY: Record<MicErrorKind, MessageKey> = {
+  denied: 'mic.error.denied',
+  'no-hardware': 'mic.error.noHardware',
+  'in-use': 'mic.error.inUse',
+  insecure: 'mic.error.insecure',
+  unsupported: 'mic.error.unsupported',
+  unknown: 'mic.error.unknown',
+}
+
 interface ChatInputProps {
   onSend: (text: string) => Promise<boolean>
   disabled: boolean
@@ -85,9 +98,21 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
   })
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const t = useTranslations(langCode)
 
-  const { recording, transcribing, error: voiceError, toggle, stop } = useVoiceInput({
+  const {
+    recording,
+    transcribing,
+    error: voiceError,
+    errorKind,
+    permission,
+    inAppBrowser,
+    toggle,
+    stop,
+    recheckPermission,
+  } = useVoiceInput({
     langCode,
     onTranscript: setText,
     // After transcription: size the box to the transcript and scroll to the newest
@@ -167,6 +192,24 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
   const canSend = text.trim() && !isPending && !capturing
   const stopRecordingLabel = getStopRecordingLabel(langCode)
 
+  // Recovery steps are offered ONLY for a confirmed denial. A device-busy or
+  // no-hardware fault has no fix in the browser's permission settings, and
+  // pointing there is what made the old messaging useless.
+  const isBlocked = permission === 'denied' || errorKind === 'denied'
+  const voiceMessage = errorKind ? t(MIC_ERROR_KEY[errorKind]) : voiceError
+
+  const handleMicClick = () => {
+    // Short-circuit a known denial: getUserMedia would reject instantly without
+    // showing a prompt, so the patient would just see the button do nothing.
+    // Every other state — including 'prompt' and 'unsupported' — falls through
+    // to toggle(), which must reach getUserMedia inside this same gesture.
+    if (permission === 'denied') {
+      setHelpOpen(true)
+      return
+    }
+    toggle()
+  }
+
   return (
     <div className="flex flex-col px-4 pb-4 pt-2">
       {/* Inline send error */}
@@ -176,10 +219,32 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
         </p>
       )}
 
-      {/* Inline voice error */}
-      {voiceError && (
+      {/* In-app browser notice. Deliberately a banner, not a modal: these
+          webviews block the mic with no user-reachable setting, so there is
+          nothing to dismiss and nothing to fix here — typing must stay usable
+          without interacting with this at all. */}
+      {inAppBrowser && (
+        <p
+          className="mb-1.5 flex items-start gap-1.5 rounded-md bg-sunken px-2.5 py-2 text-xs leading-relaxed text-text-secondary"
+          role="status"
+        >
+          <Info size={14} className="mt-0.5 shrink-0" aria-hidden />
+          <span>{t('mic.inApp.banner', { app: inAppBrowser })}</span>
+        </p>
+      )}
+
+      {/* Inline voice error, with recovery steps only when truly blocked */}
+      {voiceMessage && (
         <p className="mb-1.5 px-1 text-xs font-medium text-error-text" role="alert">
-          {voiceError}
+          {voiceMessage}
+          {isBlocked && (
+            <button
+              onClick={() => setHelpOpen(true)}
+              className="ml-1.5 font-semibold text-brand-ink underline underline-offset-2"
+            >
+              {t('mic.error.learnMore')}
+            </button>
+          )}
         </p>
       )}
 
@@ -243,7 +308,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
             </div>
           )}
           <motion.button
-            onClick={toggle}
+            onClick={handleMicClick}
             disabled={(disabled && !speaking) || sending || transcribing}
             className={`flex size-12 min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-lg border transition-colors duration-150 disabled:opacity-50 ${
               recording
@@ -286,6 +351,13 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
           )}
         </motion.button>
       </div>
+
+      <MicHelpModal
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        langCode={langCode}
+        onRecheck={recheckPermission}
+      />
     </div>
   )
 }

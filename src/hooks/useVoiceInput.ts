@@ -1,19 +1,38 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { stopSpeech } from '@/lib/speech'
+import {
+  classifyMicError,
+  classifyMissingMediaDevices,
+  detectInAppBrowser,
+  queryMicPermission,
+  reportMicFailure,
+  requestMicStream,
+  watchMicPermission,
+  type MicErrorKind,
+  type MicPermissionState,
+} from '@/lib/micDiagnostics'
 
 /**
  * Voice input with a two-tier strategy:
  *  1. Browser Web Speech API — real-time, free, no server round-trip. Used when
  *     the browser supports the language.
- *  2. Server-side OpenAI Whisper (`/api/transcribe`) — the fallback for languages
- *     the browser's speech engine can't handle (e.g. Amharic, Somali) or browsers
+ *  2. Server-side Whisper (`/api/transcribe`) — the fallback for languages the
+ *     browser's speech engine can't handle (e.g. Amharic, Somali) or browsers
  *     with no SpeechRecognition at all (Firefox). Records via MediaRecorder,
  *     uploads the clip, and fills in the transcript when it returns.
  *
  * When Web Speech reports `language-not-supported`, that language is remembered
  * for the rest of the session and routed straight to Whisper on the next tap.
+ *
+ * Both tiers are gated behind ONE explicit getUserMedia probe fired straight
+ * from the tap (see `toggle`). That probe exists for two reasons:
+ *  • iOS Safari only honours a mic request while the tap's user-gesture token is
+ *    live, and letting SpeechRecognition ask implicitly loses that race.
+ *  • getUserMedia rejects with a specific DOMException name, so a failure can be
+ *    told apart (denied / no hardware / device busy / insecure) instead of
+ *    collapsing into one useless "blocked" message.
  */
 
 // Languages this browser's Web Speech engine has rejected this session. Kept in
@@ -38,6 +57,12 @@ const WHISPER_FIRST_LANGS = new Set<string>([
 
 const WHISPER_MIME_PREFS = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg']
 
+// The user agent never changes, so there is nothing to subscribe to.
+const noopSubscribe = () => () => {}
+// Server render has no navigator; returning null keeps the markup identical on
+// both sides so reading the UA can't cause a hydration mismatch.
+const noInAppBrowserOnServer = () => null
+
 function pickWhisperMimeType(): string | undefined {
   if (typeof MediaRecorder === 'undefined') return undefined
   for (const type of WHISPER_MIME_PREFS) {
@@ -52,18 +77,40 @@ function isSafariBrowser(): boolean {
   return /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 }
 
+/**
+ * One message per failure mode. `denied` is the ONLY one that means "the patient
+ * must change a setting" — the others previously shared that copy, which sent
+ * testers to a permission switch that was already on.
+ */
+const MIC_ERROR_MESSAGE: Record<MicErrorKind, string> = {
+  denied:
+    'Microphone access is turned off for Keiro. Tap “How to turn it on” for the steps — or type your message instead.',
+  'no-hardware':
+    'No microphone was found on this device. Please type your message instead.',
+  'in-use':
+    'Your microphone is busy in another app or browser tab. Close it and try again — or type your message instead.',
+  insecure:
+    'Voice input needs a secure connection on this device. Please type your message instead.',
+  unsupported:
+    'This browser does not support voice input. Please type your message instead, or open Keiro in Safari or Chrome.',
+  unknown:
+    'Voice input could not start on this device. Please type your message instead.',
+}
+
+// Mic faults raised by the Web Speech engine rather than the getUserMedia probe.
+// Everything else the engine reports is a speech/network problem, not a mic one.
+const SPEECH_MIC_ERROR_KINDS: Record<string, MicErrorKind> = {
+  'not-allowed': 'denied',
+  'audio-capture': 'no-hardware',
+}
+
 function getSpeechErrorMessage(error: string): string | null {
   switch (error) {
     case 'aborted':
     case 'no-speech':
       return null
-    case 'audio-capture':
-      return 'No microphone was found. Please check your microphone and try again.'
     case 'network':
       return 'Voice input needs an internet connection. Please type your message instead.'
-    case 'not-allowed':
-    case 'service-not-allowed':
-      return 'Microphone access is blocked. Please allow microphone access in your browser settings and try again.'
     default:
       return 'Voice input failed in this browser. Please type your message instead.'
   }
@@ -81,15 +128,35 @@ interface UseVoiceInput {
   recording: boolean
   transcribing: boolean
   error: string | null
+  /** Set only for microphone faults — null for transcription/network errors. */
+  errorKind: MicErrorKind | null
+  /** Live Permissions API reading; 'unsupported' where the API is unavailable. */
+  permission: MicPermissionState
+  /** Host app name when running inside a webview that commonly blocks the mic. */
+  inAppBrowser: string | null
   toggle: () => void
   stop: () => void
   clearError: () => void
+  /** Re-read the live permission state — backs the help modal's "Try again". */
+  recheckPermission: () => Promise<MicPermissionState>
 }
 
 export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInputOptions): UseVoiceInput {
   const [recording, setRecording] = useState(false)
   const [transcribing, setTranscribing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorKind, setErrorKind] = useState<MicErrorKind | null>(null)
+  const [permission, setPermission] = useState<MicPermissionState>('unsupported')
+
+  // Read straight from the user agent rather than mirroring it into state: the
+  // value is fixed for the life of the page, and the server snapshot keeps
+  // hydration stable. detectInAppBrowser returns a string or null, so the
+  // snapshot is a primitive and can't loop the store.
+  const inAppBrowser = useSyncExternalStore(
+    noopSubscribe,
+    detectInAppBrowser,
+    noInAppBrowserOnServer,
+  )
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -100,6 +167,22 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   const userStoppedRef = useRef(false)
   const discardRef = useRef(false)
   const fellBackRef = useRef(false)
+  // True between the getUserMedia call and the moment an engine takes over.
+  // `recording` can't cover that window — it only flips once capture actually
+  // starts — so without this a second tap during a slow prompt opens a second
+  // stream and leaks the first (mic stays live, recording indicator stuck on).
+  const openingRef = useRef(false)
+  // Set once a real getUserMedia probe has settled the permission question.
+  // The mount-time Permissions API read is async and can land AFTER a fast tap;
+  // letting it win would overwrite a just-confirmed denial with a stale
+  // 'prompt', and the UI would then stop offering recovery for a mic that
+  // really is blocked.
+  const probedRef = useRef(false)
+
+  const applyProbedPermission = useCallback((state: MicPermissionState) => {
+    probedRef.current = true
+    setPermission(state)
+  }, [])
 
   // Keep callbacks fresh without re-creating start/stop on every render.
   const onTranscriptRef = useRef(onTranscript)
@@ -109,10 +192,58 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     onFinalRef.current = onFinal
   })
 
+  // Read the real permission state up front so the UI can tell "never asked"
+  // apart from "permanently denied" before the patient taps anything, and keep
+  // it live so a fix made in the OS/browser settings recovers the UI without a
+  // reload. Both are no-ops where the Permissions API is missing (Firefox, older
+  // Safari), which leaves `permission` at 'unsupported' — callers must treat
+  // that as "unknown, go ahead and probe", never as a denial.
+  useEffect(() => {
+    let cancelled = false
+    let unsubscribe: (() => void) | undefined
+
+    void queryMicPermission().then(state => {
+      // Never downgrade an answer a live probe already established.
+      if (!cancelled && !probedRef.current) setPermission(state)
+    })
+    // Change events are always newer than whatever we hold, so they apply
+    // unconditionally — this is how the UI recovers when the patient flips the
+    // switch in Settings and comes back.
+    void watchMicPermission(state => {
+      if (!cancelled) setPermission(state)
+    }).then(fn => {
+      if (cancelled) fn()
+      else unsubscribe = fn
+    })
+
+    return () => {
+      cancelled = true
+      unsubscribe?.()
+    }
+  }, [])
+
   const stopTracks = () => {
     streamRef.current?.getTracks().forEach(t => t.stop())
     streamRef.current = null
   }
+
+  /**
+   * Surface a mic fault with its real cause and ship the details to the
+   * diagnostics endpoint. The report is fire-and-forget — nothing here awaits it.
+   */
+  const failMic = useCallback(
+    (kind: MicErrorKind, err: unknown, source: 'getUserMedia' | 'speech-recognition') => {
+      setRecording(false)
+      setErrorKind(kind)
+      setError(MIC_ERROR_MESSAGE[kind])
+      // Only a real NotAllowedError proves a denial. Everything else leaves the
+      // permission reading alone so the help modal isn't offered for faults its
+      // instructions can't fix.
+      if (kind === 'denied') applyProbedPermission('denied')
+      reportMicFailure({ kind, error: err, langCode, source })
+    },
+    [langCode, applyProbedPermission],
+  )
 
   const transcribe = useCallback(async (blob: Blob) => {
     setTranscribing(true)
@@ -142,19 +273,18 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     }
   }, [langCode])
 
-  const startWhisper = useCallback(async () => {
-    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
-      setError('Voice input is not supported in this browser. Please type your message instead.')
+  /**
+   * Record for server-side Whisper using a stream the caller already opened.
+   * The stream is never acquired here: the getUserMedia call has to happen in
+   * the tap handler itself to keep iOS Safari's gesture token alive.
+   */
+  const startWhisper = useCallback((stream: MediaStream) => {
+    if (typeof MediaRecorder === 'undefined') {
+      stream.getTracks().forEach(t => t.stop())
+      failMic('unsupported', null, 'getUserMedia')
       return
     }
 
-    let stream: MediaStream
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    } catch {
-      setError('Microphone access is blocked. Please allow microphone access in your browser settings and try again.')
-      return
-    }
     streamRef.current = stream
 
     const mimeType = pickWhisperMimeType()
@@ -189,7 +319,40 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       mediaRecorderRef.current = null
       setError('Voice input could not start. Please try again.')
     }
-  }, [transcribe])
+  }, [transcribe, failMic])
+
+  /**
+   * Mid-session hand-off to Whisper after the Web Speech engine rejects a
+   * language. The primed stream was released before the recogniser started, so
+   * it has to be re-opened here. That is safe without a fresh user gesture
+   * because the probe in `toggle` has already been granted for this page — and
+   * it is no later in the lifecycle than the getUserMedia call this fallback
+   * always made.
+   */
+  const startWhisperWithFreshStream = useCallback(async () => {
+    const request = requestMicStream()
+    if (!request) {
+      failMic(classifyMissingMediaDevices(), null, 'getUserMedia')
+      return
+    }
+
+    openingRef.current = true
+    let stream: MediaStream
+    try {
+      stream = await request
+    } catch (err) {
+      openingRef.current = false
+      failMic(classifyMicError(err), err, 'getUserMedia')
+      return
+    }
+    openingRef.current = false
+
+    if (discardRef.current) {
+      stream.getTracks().forEach(t => t.stop())
+      return
+    }
+    startWhisper(stream)
+  }, [startWhisper, failMic])
 
   const startWebSpeech = useCallback((Ctor: { new (): SpeechRecognition }) => {
     const isSafari = isSafariBrowser()
@@ -271,12 +434,23 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
           whisperOnlyLangs.add(langCode)
           fellBackRef.current = true
           recognitionRef.current = null
-          void startWhisper()
+          void startWhisperWithFreshStream()
           return
         }
         userStoppedRef.current = false
         setRecording(false)
         recognitionRef.current = null
+
+        // A mic fault reaching here is notable: the getUserMedia probe in
+        // `toggle` already succeeded, so the device works and permission was
+        // granted — the speech engine is failing for its own reason. Log it with
+        // the real cause rather than blaming the patient's settings.
+        const micKind = SPEECH_MIC_ERROR_KINDS[e.error]
+        if (micKind) {
+          failMic(micKind, new Error(`SpeechRecognition: ${e.error}`), 'speech-recognition')
+          return
+        }
+
         const message = getSpeechErrorMessage(e.error)
         if (message) setError(message)
       }
@@ -293,7 +467,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     }
 
     startOne()
-  }, [langCode, startWhisper])
+  }, [langCode, startWhisperWithFreshStream, failMic])
 
   const stop = useCallback(() => {
     if (recognitionRef.current) {
@@ -307,30 +481,104 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     }
   }, [])
 
+  /**
+   * Route the opened stream to whichever engine handles this language, and turn
+   * any rejection into a specific, reportable cause.
+   */
+  const openMic = useCallback(
+    async (micRequest: Promise<MediaStream> | null) => {
+      if (!micRequest) {
+        openingRef.current = false
+        failMic(classifyMissingMediaDevices(), null, 'getUserMedia')
+        return
+      }
+
+      let stream: MediaStream
+      try {
+        stream = await micRequest
+      } catch (err) {
+        openingRef.current = false
+        failMic(classifyMicError(err), err, 'getUserMedia')
+        return
+      }
+      openingRef.current = false
+
+      // The prompt can outlive the component (patient navigates away while it is
+      // open). Releasing here is what actually turns the mic off — otherwise the
+      // browser's recording indicator stays lit with nothing listening.
+      if (discardRef.current) {
+        stream.getTracks().forEach(t => t.stop())
+        return
+      }
+
+      // The stream proves permission regardless of what the Permissions API
+      // says (it reports 'unsupported' on Firefox and older Safari).
+      applyProbedPermission('granted')
+
+      const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition
+      if (!Ctor || whisperOnlyLangs.has(langCode) || WHISPER_FIRST_LANGS.has(langCode)) {
+        startWhisper(stream)
+        return
+      }
+
+      // Web Speech opens its own capture internally. Release the primed stream
+      // first — holding two handles on one mic makes the recogniser fail with a
+      // device-busy error on several Android builds.
+      stream.getTracks().forEach(t => t.stop())
+      startWebSpeech(Ctor)
+    },
+    [langCode, startWhisper, startWebSpeech, failMic, applyProbedPermission],
+  )
+
   const toggle = useCallback(() => {
-    if (transcribing) return
+    if (transcribing || openingRef.current) return
     if (recording) {
       stop()
       return
     }
 
+    // ── iOS Safari gesture rule — this line must stay first ──────────────────
+    // getUserMedia has to be INVOKED as the first synchronous statement of the
+    // tap handler. iOS Safari only honours a mic request while the tap's
+    // user-gesture token is live, and an await, a state read, or a setState
+    // before this point spends that token: the request is then denied SILENTLY
+    // — no prompt, no error, no recording. That is the "works on one phone,
+    // nothing happens on the other" report. Only the promise is created here;
+    // every check, reset and routing decision is sequenced after it in openMic.
+    const micRequest = requestMicStream()
+
+    openingRef.current = true
     stopSpeech()
     setError(null)
+    setErrorKind(null)
     latestTranscriptRef.current = ''
     safariAccumulatedRef.current = ''
     userStoppedRef.current = false
     discardRef.current = false
     fellBackRef.current = false
 
-    const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!Ctor || whisperOnlyLangs.has(langCode) || WHISPER_FIRST_LANGS.has(langCode)) {
-      void startWhisper()
-      return
-    }
-    startWebSpeech(Ctor)
-  }, [recording, transcribing, langCode, stop, startWhisper, startWebSpeech])
+    void openMic(micRequest)
+  }, [recording, transcribing, stop, openMic])
 
-  const clearError = useCallback(() => setError(null), [])
+  const clearError = useCallback(() => {
+    setError(null)
+    setErrorKind(null)
+  }, [])
+
+  /**
+   * Re-read the live permission state. Backs the help modal's "Try again" so a
+   * patient who just flipped the switch in Settings sees the UI recover instead
+   * of being told to fix something they already fixed.
+   */
+  const recheckPermission = useCallback(async () => {
+    const state = await queryMicPermission()
+    applyProbedPermission(state)
+    if (state !== 'denied') {
+      setError(null)
+      setErrorKind(null)
+    }
+    return state
+  }, [applyProbedPermission])
 
   // Discard any in-flight capture on unmount without transcribing it.
   useEffect(() => {
@@ -344,5 +592,16 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     }
   }, [])
 
-  return { recording, transcribing, error, toggle, stop, clearError }
+  return {
+    recording,
+    transcribing,
+    error,
+    errorKind,
+    permission,
+    inAppBrowser,
+    toggle,
+    stop,
+    clearError,
+    recheckPermission,
+  }
 }
