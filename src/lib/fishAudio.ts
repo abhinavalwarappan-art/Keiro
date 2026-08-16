@@ -1,15 +1,14 @@
 import 'server-only'
 import { env } from './env'
 import { fetchUpstream, UpstreamError } from './upstream'
-import type { VoiceType } from '@/types'
 
 /**
  * Kai's spoken voice, via Fish Audio TTS.
  *
- * Two custom voice models ("Keiro Male" / "Keiro Woman") do all 45 languages —
- * the backbone model is multilingual, so the patient's language needs no voice
- * mapping, only the text itself. Which of the two speaks is the patient's own
- * choice at intake, kept in PatientProfile.voiceType.
+ * One custom voice model does all 45 languages — the backbone model is
+ * multilingual, so the patient's language needs no voice mapping, only the text
+ * itself. Kai sounds the same to every patient in every language; nobody picks
+ * a voice, here or in Settings.
  *
  * The API key never reaches the browser: the client posts text to /api/tts and
  * gets audio bytes back.

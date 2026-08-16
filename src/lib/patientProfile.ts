@@ -9,16 +9,14 @@ import type {
 } from '@/types'
 
 /**
- * The voice Kai uses when a profile carries no explicit choice.
+ * The voice Kai speaks in until someone changes it in Settings.
  *
- * Intake requires the patient to pick, so this only covers the seams: a session
- * restored from before the field existed, a report opened from its own row (the
- * reports table has no voice column), or a guest with no profile at all.
- *
- * It matters that this exists. Without it those seams fall through to the
- * device's own speechSynthesis voice, so Kai changes voice between visits for
- * no reason the patient can see — the device voice should mean "Fish is
- * unreachable", never "we forgot to ask".
+ * Intake deliberately does not ask — a voice preference is not clinical data —
+ * so this is what nearly every patient hears. It matters that it exists rather
+ * than leaving the voice unset: unset falls through to the device's own
+ * speechSynthesis voice, which makes Kai change voice between visits for no
+ * reason the patient can see. The device voice should mean exactly one thing,
+ * "Fish Audio is unreachable", never "nobody chose".
  */
 export const DEFAULT_VOICE_TYPE: VoiceType = 'female'
 
@@ -51,9 +49,6 @@ export const patientProfileSchema = z.object({
   dateOfBirth: z.string().trim().max(20),
   age: z.number().int().min(0).max(130).optional(),
   biologicalSex: z.enum(['male', 'female', 'other']),
-  // Optional so a profile stored before intake asked for a voice still parses —
-  // a legacy payload should lose its voice preference, not its whole context.
-  voiceType: z.enum(['male', 'female']).optional(),
   primaryLanguage: z.string().trim().max(50),
   primaryLanguageCode: z.string().trim().max(20),
   chronicConditions: z.string().trim().max(500).optional(),

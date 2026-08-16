@@ -250,7 +250,6 @@ export interface ProfileOpts {
   fullName?: string
   dob?: string // yyyy-mm-dd
   sex?: 'Male' | 'Female' | 'Other'
-  voice?: 'Male' | 'Female'
 }
 
 /** Fill and submit the PatientProfileIntake consent/profile gate that precedes chat. */
@@ -264,16 +263,9 @@ export async function completeProfileIntake(page: Page, o: ProfileOpts = {}): Pr
   // The DOB field is a masked MM/DD/YYYY text input; convert the ISO dob before typing.
   const [y, m, d] = (o.dob ?? '1990-01-01').split('-')
   await dialog.getByLabel('Date of birth').fill(`${m}/${d}/${y}`)
-  // Scope to each fieldset: "Male"/"Female" now name a button in both the
-  // biological-sex group and the voice-type group, so an unscoped lookup is
-  // ambiguous and fails strict mode.
   await dialog
     .getByRole('group', { name: /biological sex/i })
     .getByRole('button', { name: o.sex ?? 'Male', exact: true })
-    .click()
-  await dialog
-    .getByRole('group', { name: /voice type/i })
-    .getByRole('button', { name: o.voice ?? 'Female', exact: true })
     .click()
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: /continue to symptom intake/i }).click()

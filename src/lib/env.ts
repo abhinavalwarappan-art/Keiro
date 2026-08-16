@@ -26,12 +26,11 @@ const envSchema = z.object({
   // error at request time), never at build, so a missing key degrades one feature
   // rather than the whole deploy. GROQ_API_KEY powers voice.
   GROQ_API_KEY: z.string().optional(), // voice transcription (Whisper on Groq)
-  // Kai's spoken voice. Optional on purpose: with no key (or no voice IDs) /api/tts
+  // Kai's spoken voice. Optional on purpose: with no key (or no voice ID) /api/tts
   // reports itself unconfigured and the client falls back to browser speech, so a
   // deploy without these loses voice quality rather than losing speech.
   FISH_AUDIO_API_KEY: z.string().optional(),
-  FISH_AUDIO_VOICE_MALE: z.string().optional(), // "Keiro Male" model id
-  FISH_AUDIO_VOICE_FEMALE: z.string().optional(), // "Keiro Woman" model id
+  FISH_AUDIO_VOICE: z.string().optional(), // Kai's voice model id
   ANTHROPIC_API_KEY: z.string().optional(), // legacy — no longer used by Kai
   OPENAI_API_KEY: z.string().optional(), // legacy — transcription moved to Groq
   DEEPL_API_KEY: z.string().optional(),

@@ -14,8 +14,8 @@ import type { VoiceType } from '@/types'
  * so this list is the same in every language.
  */
 const VOICES: { value: VoiceType; labelKey: MessageKey }[] = [
-  { value: 'female', labelKey: 'intake.voiceFemale' },
-  { value: 'male', labelKey: 'intake.voiceMale' },
+  { value: 'female', labelKey: 'voice.female' },
+  { value: 'male', labelKey: 'voice.male' },
 ]
 
 interface VoicePickerProps {

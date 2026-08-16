@@ -16,7 +16,6 @@ import type {
   PatientProfile,
   TravelRecency,
   TripLength,
-  VoiceType,
 } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -30,11 +29,6 @@ const SEX_OPTIONS: { value: BiologicalSex; labelKey: MessageKey }[] = [
   { value: 'male', labelKey: 'intake.sexMale' },
   { value: 'female', labelKey: 'intake.sexFemale' },
   { value: 'other', labelKey: 'intake.sexOther' },
-]
-
-const VOICE_OPTIONS: { value: VoiceType; labelKey: MessageKey }[] = [
-  { value: 'male', labelKey: 'intake.voiceMale' },
-  { value: 'female', labelKey: 'intake.voiceFemale' },
 ]
 
 const LIFESTYLE_OPTIONS: { key: 'smoker' | 'alcohol' | 'recentTravel'; labelKey: MessageKey }[] = [
@@ -164,7 +158,6 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
   const [fullName, setFullName] = useState('')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [biologicalSex, setBiologicalSex] = useState<BiologicalSex | ''>('')
-  const [voiceType, setVoiceType] = useState<VoiceType | ''>('')
   const [primaryLanguage, setPrimaryLanguage] = useState(langName)
   const [primaryLanguageCode, setPrimaryLanguageCode] = useState(langCode)
   const [chronicConditions, setChronicConditions] = useState('')
@@ -211,7 +204,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
 
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('name, sex, preferred_voice, preferred_language, language_code')
+          .select('name, sex, preferred_language, language_code')
           .eq('id', user.id)
           .single()
 
@@ -223,11 +216,6 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
         if (profile.name) setFullName(profile.name)
         const loadedSex = profile.sex ? fromDbSex(profile.sex) : null
         if (loadedSex) setBiologicalSex(loadedSex)
-        // Rows written before Fish Audio hold a browser voice name here — only a
-        // real VoiceType prefills, anything else leaves the patient to choose.
-        if (profile.preferred_voice === 'male' || profile.preferred_voice === 'female') {
-          setVoiceType(profile.preferred_voice)
-        }
         if (profile.preferred_language) setPrimaryLanguage(profile.preferred_language)
         if (profile.language_code) setPrimaryLanguageCode(profile.language_code)
       } finally {
@@ -248,7 +236,6 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
     else if (computedAge > 120) next.dateOfBirth = t('intake.errDobInvalid')
     else if (computedAge < MINIMUM_AGE) next.dateOfBirth = t('intake.errDobTooYoung', { age: MINIMUM_AGE })
     if (!biologicalSex) next.biologicalSex = t('intake.errSex')
-    if (!voiceType) next.voiceType = t('intake.errVoiceType')
     if (!primaryLanguage.trim()) next.primaryLanguage = t('intake.errPrimaryLanguage')
     if (!consentChecked) next.consent = t('intake.errConsent')
     setErrors(next)
@@ -257,7 +244,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validate() || !biologicalSex || !voiceType) return
+    if (!validate() || !biologicalSex) return
 
     setSubmitting(true)
     setSubmitError(null)
@@ -268,7 +255,6 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
       dateOfBirth,
       age: computedAge ?? undefined,
       biologicalSex,
-      voiceType,
       primaryLanguage: primaryLanguage.trim(),
       primaryLanguageCode,
       chronicConditions: chronicConditions.trim() || undefined,
@@ -298,7 +284,6 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
           age: profile.age,
           date_of_birth: profile.dateOfBirth,
           sex: toDbSex(profile.biologicalSex),
-          preferred_voice: profile.voiceType,
           chronic_conditions: profile.chronicConditions ?? null,
           preferred_language: profile.primaryLanguage,
           language_code: profile.primaryLanguageCode,
@@ -437,34 +422,6 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                 </div>
                 {errors.biologicalSex && (
                   <p className="mt-1 text-xs text-error-text" role="alert">{errors.biologicalSex}</p>
-                )}
-              </fieldset>
-
-              <fieldset>
-                <legend className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-text-secondary">
-                  {t('intake.voiceType')}
-                </legend>
-                <p className="mb-2 text-xs text-text-tertiary">{t('intake.voiceTypeHelper')}</p>
-                <div className="flex flex-wrap gap-2">
-                  {VOICE_OPTIONS.map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      aria-pressed={voiceType === opt.value}
-                      onClick={() => setVoiceType(opt.value)}
-                      className={cn(
-                        'min-h-[44px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
-                        voiceType === opt.value
-                          ? 'border-brand-strong bg-brand-subtle text-brand-ink'
-                          : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
-                      )}
-                    >
-                      {t(opt.labelKey)}
-                    </button>
-                  ))}
-                </div>
-                {errors.voiceType && (
-                  <p className="mt-1 text-xs text-error-text" role="alert">{errors.voiceType}</p>
                 )}
               </fieldset>
 

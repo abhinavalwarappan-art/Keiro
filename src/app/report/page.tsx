@@ -16,7 +16,8 @@ import { Report, ReportData, PatientProfile, ConsultMessage } from '@/types'
 import { speakText, stopSpeech } from '@/lib/speech'
 import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { PATIENT_PROFILE_SESSION_KEY } from '@/lib/chatSession'
-import { formatPatientSex, DEFAULT_VOICE_TYPE } from '@/lib/patientProfile'
+import { formatPatientSex } from '@/lib/patientProfile'
+import { useVoicePreference } from '@/hooks/useVoicePreference'
 import { useTranslations } from '@/i18n/useTranslations'
 import { logger } from '@/lib/logger'
 
@@ -404,6 +405,7 @@ function ReportContent() {
      auto-playing audio in the app — everywhere else in chat, speech is opt-in per
      message. So it is opt-in here too: the button below starts it, and stops it. */
   const speaking = useSpeechActive()
+  const voiceType = useVoicePreference()
 
   const toggleSpeech = useCallback(() => {
     if (speaking) {
@@ -411,9 +413,9 @@ function ReportContent() {
       return
     }
     speakText(getLang(COMPLETION_MESSAGES, langCode), langCode, {
-      voiceType: patientProfile?.voiceType ?? DEFAULT_VOICE_TYPE,
+      voiceType,
     })
-  }, [speaking, langCode, patientProfile])
+  }, [speaking, langCode, voiceType])
 
   // Never leave audio playing behind us when the patient navigates away.
   useEffect(() => () => stopSpeech(), [])

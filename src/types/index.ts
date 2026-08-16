@@ -13,9 +13,9 @@ export interface Language {
 export type BiologicalSex = 'male' | 'female' | 'other'
 
 /**
- * Which Keiro voice reads Kai's messages aloud. Asked separately from
- * biologicalSex at intake — the sex a report needs and the voice a patient
- * wants to be spoken to in are two different questions.
+ * Which Keiro voice reads Kai's messages aloud. A user setting, not intake
+ * data — it lives on the profile row (profiles.preferred_voice), never in the
+ * clinical profile the doctor's report is built from.
  */
 export type VoiceType = 'male' | 'female'
 
@@ -24,8 +24,6 @@ export interface PatientProfile {
   dateOfBirth: string
   age?: number
   biologicalSex: BiologicalSex
-  /** Optional on the wire: profiles saved before intake asked this have none. */
-  voiceType?: VoiceType
   primaryLanguage: string
   primaryLanguageCode: string
   chronicConditions?: string
