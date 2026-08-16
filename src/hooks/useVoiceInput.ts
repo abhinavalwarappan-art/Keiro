@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { stopSpeech } from '@/lib/speech'
+import { toWav } from '@/lib/audioWav'
 import {
   classifyMicError,
   classifyMissingMediaDevices,
@@ -15,47 +16,42 @@ import {
 } from '@/lib/micDiagnostics'
 
 /**
- * Voice input with a two-tier strategy:
- *  1. Browser Web Speech API — real-time, free, no server round-trip. Used when
- *     the browser supports the language.
- *  2. Server-side Whisper (`/api/transcribe`) — the fallback for languages the
- *     browser's speech engine can't handle (e.g. Amharic, Somali) or browsers
- *     with no SpeechRecognition at all (Firefox). Records via MediaRecorder,
- *     uploads the clip, and fills in the transcript when it returns.
+ * Voice input: record locally, transcribe on the server.
  *
- * When Web Speech reports `language-not-supported`, that language is remembered
- * for the rest of the session and routed straight to Whisper on the next tap.
+ * The mic captures raw audio with MediaRecorder, re-encodes the clip to WAV
+ * (see `toWav` — Fish cannot decode any container a browser records), and
+ * uploads it to `/api/transcribe`, which transcribes it with Fish Audio ASR —
+ * the same provider and the same key as Kai's voice. There is ONE path for all
+ * 45 languages.
  *
- * Both tiers are gated behind ONE explicit getUserMedia probe fired straight
- * from the tap (see `toggle`). That probe exists for two reasons:
+ * The browser's own SpeechRecognition is deliberately not used. It does not
+ * transcribe locally: Chrome and Safari stream the audio to Google's and
+ * Apple's servers, which would send patient health information to a third party
+ * nobody agreed to, and bypass Fish entirely. The cost of doing without it is
+ * real and worth naming — no interim "words appear as you speak" transcript,
+ * and a round-trip's latency once the patient stops — but neither is worth
+ * leaking PHI for.
+ *
+ * Capture is gated behind ONE explicit getUserMedia probe fired straight from
+ * the tap (see `toggle`). That probe exists for two reasons:
  *  • iOS Safari only honours a mic request while the tap's user-gesture token is
- *    live, and letting SpeechRecognition ask implicitly loses that race.
+ *    live, and asking any later loses that race.
  *  • getUserMedia rejects with a specific DOMException name, so a failure can be
  *    told apart (denied / no hardware / device busy / insecure) instead of
  *    collapsing into one useless "blocked" message.
+ *
+ * Typing is always the fallback: every failure here ends in a message that says
+ * so, and never in a spinner that stays up.
  */
 
-// Languages this browser's Web Speech engine has rejected this session. Kept in
-// module scope so the routing decision survives component remounts. In-memory
-// only (resets on reload) so a browser that later gains support isn't stuck
-// paying for Whisper forever.
-const whisperOnlyLangs = new Set<string>()
-
-// Languages whose browser Web Speech coverage is unreliable across Chrome and
-// Safari (mostly regional South-Asian, East-African, and Southeast-Asian
-// languages). These skip the browser engine and record straight to server-side
-// Whisper, which handles them consistently — so there's no wasted first attempt
-// and no already-spoken audio lost to a mid-stream fallback. Matched on the full
-// BCP-47 `code`. Adjust freely: anything missed here is still caught by the
-// onerror fallback below, which routes any failed browser attempt to Whisper.
-const WHISPER_FIRST_LANGS = new Set<string>([
-  'ta-IN', 'te-IN', 'gu-IN', 'pa-IN', 'ml-IN', 'bn-BD', // South Asian regional
-  'ur-PK', 'fa-IR',                                       // Urdu, Farsi
-  'am-ET', 'so-SO', 'sw-KE',                              // East African
-  'tl-PH',                                                // Tagalog
-])
-
-const WHISPER_MIME_PREFS = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg']
+/**
+ * Recording containers, best first. These are chosen for what browsers record
+ * WELL, not for what Fish can read — nothing MediaRecorder produces is
+ * decodable by /v1/asr, so the clip is re-encoded to WAV before upload (see
+ * `toWav`). That decoupling is deliberate: this list can follow browser support,
+ * and the format contract with Fish is honoured in exactly one place.
+ */
+const RECORDING_MIME_PREFS = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg']
 
 // The user agent never changes, so there is nothing to subscribe to.
 const noopSubscribe = () => () => {}
@@ -63,18 +59,12 @@ const noopSubscribe = () => () => {}
 // both sides so reading the UA can't cause a hydration mismatch.
 const noInAppBrowserOnServer = () => null
 
-function pickWhisperMimeType(): string | undefined {
+function pickRecordingMimeType(): string | undefined {
   if (typeof MediaRecorder === 'undefined') return undefined
-  for (const type of WHISPER_MIME_PREFS) {
+  for (const type of RECORDING_MIME_PREFS) {
     if (MediaRecorder.isTypeSupported(type)) return type
   }
   return undefined
-}
-
-// Safari lacks continuous mode — it fires onend after each utterance pause, so we
-// restart manually and accumulate transcripts across sessions.
-function isSafariBrowser(): boolean {
-  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 }
 
 /**
@@ -97,28 +87,9 @@ const MIC_ERROR_MESSAGE: Record<MicErrorKind, string> = {
     'Voice input could not start on this device. Please type your message instead.',
 }
 
-// Mic faults raised by the Web Speech engine rather than the getUserMedia probe.
-// Everything else the engine reports is a speech/network problem, not a mic one.
-const SPEECH_MIC_ERROR_KINDS: Record<string, MicErrorKind> = {
-  'not-allowed': 'denied',
-  'audio-capture': 'no-hardware',
-}
-
-function getSpeechErrorMessage(error: string): string | null {
-  switch (error) {
-    case 'aborted':
-    case 'no-speech':
-      return null
-    case 'network':
-      return 'Voice input needs an internet connection. Please type your message instead.'
-    default:
-      return 'Voice input failed in this browser. Please type your message instead.'
-  }
-}
-
 interface UseVoiceInputOptions {
   langCode: string
-  /** Called with the running transcript (Web Speech) or the final text (Whisper). */
+  /** Called once with the finished transcript. */
   onTranscript: (text: string) => void
   /** Fires once a user-ended dictation settles with non-empty text — e.g. to refocus. */
   onFinal?: () => void
@@ -158,15 +129,10 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     noInAppBrowserOnServer,
   )
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
 
-  const latestTranscriptRef = useRef('')
-  const safariAccumulatedRef = useRef('')
-  const userStoppedRef = useRef(false)
   const discardRef = useRef(false)
-  const fellBackRef = useRef(false)
   // True between the getUserMedia call and the moment an engine takes over.
   // `recording` can't cover that window — it only flips once capture actually
   // starts — so without this a second tap during a slow prompt opens a second
@@ -245,27 +211,50 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     [langCode, applyProbedPermission],
   )
 
-  const transcribe = useCallback(async (blob: Blob) => {
+  /**
+   * Upload the clip and hand the transcript to the caller.
+   *
+   * Every exit path either delivers text or sets a message — a tap must never
+   * end in a cleared spinner and nothing else, because the patient's only cue
+   * that voice failed is what this writes.
+   */
+  const transcribe = useCallback(async (recorded: Blob) => {
     setTranscribing(true)
     try {
+      // Fish cannot read any container a browser records, so hand it WAV.
+      let wav: Blob
+      try {
+        wav = await toWav(recorded)
+      } catch {
+        setError('Voice input failed. Please type your message instead.')
+        return
+      }
+
       const form = new FormData()
-      form.append('audio', blob)
+      form.append('audio', wav)
       form.append('langCode', langCode)
       const res = await fetch('/api/transcribe', { method: 'POST', body: form })
       if (res.status === 429) {
         setError('Please wait a moment before continuing.')
         return
       }
+      // Everything else — a Fish timeout, a rate limit upstream, malformed
+      // audio, an unconfigured deploy — reads the same to the patient, because
+      // the action is the same: type it instead.
       if (!res.ok) {
         setError('Voice input failed. Please type your message instead.')
         return
       }
       const data = (await res.json()) as { text?: string }
       const text = typeof data.text === 'string' ? data.text.trim() : ''
-      if (text) {
-        onTranscriptRef.current(text)
-        onFinalRef.current?.()
+      if (!text) {
+        // A successful transcription of silence. Saying nothing here would look
+        // identical to the mic being broken.
+        setError('No speech was heard. Please try again, or type your message instead.')
+        return
       }
+      onTranscriptRef.current(text)
+      onFinalRef.current?.()
     } catch {
       setError('Voice input needs an internet connection. Please type your message instead.')
     } finally {
@@ -274,11 +263,11 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   }, [langCode])
 
   /**
-   * Record for server-side Whisper using a stream the caller already opened.
-   * The stream is never acquired here: the getUserMedia call has to happen in
-   * the tap handler itself to keep iOS Safari's gesture token alive.
+   * Record using a stream the caller already opened. The stream is never
+   * acquired here: the getUserMedia call has to happen in the tap handler
+   * itself to keep iOS Safari's gesture token alive.
    */
-  const startWhisper = useCallback((stream: MediaStream) => {
+  const startRecording = useCallback((stream: MediaStream) => {
     if (typeof MediaRecorder === 'undefined') {
       stream.getTracks().forEach(t => t.stop())
       failMic('unsupported', null, 'getUserMedia')
@@ -287,7 +276,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
 
     streamRef.current = stream
 
-    const mimeType = pickWhisperMimeType()
+    const mimeType = pickRecordingMimeType()
     let recorder: MediaRecorder
     try {
       recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream)
@@ -321,160 +310,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     }
   }, [transcribe, failMic])
 
-  /**
-   * Mid-session hand-off to Whisper after the Web Speech engine rejects a
-   * language. The primed stream was released before the recogniser started, so
-   * it has to be re-opened here. That is safe without a fresh user gesture
-   * because the probe in `toggle` has already been granted for this page — and
-   * it is no later in the lifecycle than the getUserMedia call this fallback
-   * always made.
-   */
-  const startWhisperWithFreshStream = useCallback(async () => {
-    const request = requestMicStream()
-    if (!request) {
-      failMic(classifyMissingMediaDevices(), null, 'getUserMedia')
-      return
-    }
-
-    openingRef.current = true
-    let stream: MediaStream
-    try {
-      stream = await request
-    } catch (err) {
-      openingRef.current = false
-      failMic(classifyMicError(err), err, 'getUserMedia')
-      return
-    }
-    openingRef.current = false
-
-    if (discardRef.current) {
-      stream.getTracks().forEach(t => t.stop())
-      return
-    }
-    startWhisper(stream)
-  }, [startWhisper, failMic])
-
-  const startWebSpeech = useCallback((Ctor: { new (): SpeechRecognition }) => {
-    const isSafari = isSafariBrowser()
-
-    const startOne = () => {
-      const recognition = new Ctor()
-      recognition.lang = langCode
-      recognition.continuous = !isSafari
-      recognition.interimResults = !isSafari
-
-      recognition.onstart = () => setRecording(true)
-
-      recognition.onresult = (e: SpeechRecognitionEvent) => {
-        const parts: string[] = []
-        for (let i = 0; i < e.results.length; i++) {
-          parts.push(e.results[i][0].transcript)
-        }
-        const sessionText = parts.join('').trim()
-        const fullText =
-          isSafari && safariAccumulatedRef.current
-            ? `${safariAccumulatedRef.current} ${sessionText}`
-            : sessionText
-        latestTranscriptRef.current = fullText
-        onTranscriptRef.current(fullText)
-      }
-
-      recognition.onend = () => {
-        // A language-not-supported fallback already took over — ignore the trailing onend.
-        if (fellBackRef.current) {
-          fellBackRef.current = false
-          return
-        }
-        if (isSafari && !userStoppedRef.current) {
-          safariAccumulatedRef.current = latestTranscriptRef.current
-          try {
-            startOne()
-          } catch {
-            setRecording(false)
-            recognitionRef.current = null
-            userStoppedRef.current = false
-          }
-          return
-        }
-        setRecording(false)
-        recognitionRef.current = null
-        if (userStoppedRef.current && latestTranscriptRef.current.trim()) {
-          onFinalRef.current?.()
-        }
-        userStoppedRef.current = false
-      }
-
-      recognition.onerror = (e: SpeechRecognitionErrorEvent) => {
-        // A trailing error that arrives AFTER the user has already stopped, or
-        // after we've already captured speech, is teardown noise — not a "this
-        // engine can't do this language" signal. Android Chrome routinely fires a
-        // spurious 'network' error as recognition winds down after stop(), even
-        // when the dictation succeeded. Without this guard that benign error
-        // hijacks the finished session into a fresh Whisper recording, whose
-        // short clip then fails at /api/transcribe and surfaces a false
-        // "Voice input failed" — the exact regression seen only on real phones
-        // (desktop Chrome never emits the spurious error). Let onend finalize the
-        // transcript we already have.
-        if (userStoppedRef.current || latestTranscriptRef.current.trim()) {
-          return
-        }
-        // The browser engine can't transcribe this language here — hand off to
-        // server-side Whisper and remember the language for the rest of the
-        // session. Browsers signal this inconsistently: Chrome tends to fire
-        // 'language-not-supported' or 'network', Safari 'service-not-allowed'.
-        // Treat any of those (and any unexpected code) as a fallback trigger —
-        // everything except a genuine mic permission/hardware fault
-        // ('not-allowed', 'audio-capture') or the benign 'no-speech'/'aborted'.
-        if (
-          e.error !== 'not-allowed' &&
-          e.error !== 'audio-capture' &&
-          e.error !== 'no-speech' &&
-          e.error !== 'aborted'
-        ) {
-          whisperOnlyLangs.add(langCode)
-          fellBackRef.current = true
-          recognitionRef.current = null
-          void startWhisperWithFreshStream()
-          return
-        }
-        userStoppedRef.current = false
-        setRecording(false)
-        recognitionRef.current = null
-
-        // A mic fault reaching here is notable: the getUserMedia probe in
-        // `toggle` already succeeded, so the device works and permission was
-        // granted — the speech engine is failing for its own reason. Log it with
-        // the real cause rather than blaming the patient's settings.
-        const micKind = SPEECH_MIC_ERROR_KINDS[e.error]
-        if (micKind) {
-          failMic(micKind, new Error(`SpeechRecognition: ${e.error}`), 'speech-recognition')
-          return
-        }
-
-        const message = getSpeechErrorMessage(e.error)
-        if (message) setError(message)
-      }
-
-      recognitionRef.current = recognition
-      try {
-        recognition.start()
-      } catch {
-        userStoppedRef.current = false
-        recognitionRef.current = null
-        setRecording(false)
-        setError('Voice input could not start. Please wait a moment and try again.')
-      }
-    }
-
-    startOne()
-  }, [langCode, startWhisperWithFreshStream, failMic])
-
   const stop = useCallback(() => {
-    if (recognitionRef.current) {
-      userStoppedRef.current = true
-      recognitionRef.current.stop()
-      return
-    }
     const recorder = mediaRecorderRef.current
     if (recorder && recorder.state !== 'inactive') {
       recorder.stop()
@@ -482,8 +318,8 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   }, [])
 
   /**
-   * Route the opened stream to whichever engine handles this language, and turn
-   * any rejection into a specific, reportable cause.
+   * Start capture on the opened stream, turning any rejection into a specific,
+   * reportable cause.
    */
   const openMic = useCallback(
     async (micRequest: Promise<MediaStream> | null) => {
@@ -515,19 +351,9 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       // says (it reports 'unsupported' on Firefox and older Safari).
       applyProbedPermission('granted')
 
-      const Ctor = window.SpeechRecognition || window.webkitSpeechRecognition
-      if (!Ctor || whisperOnlyLangs.has(langCode) || WHISPER_FIRST_LANGS.has(langCode)) {
-        startWhisper(stream)
-        return
-      }
-
-      // Web Speech opens its own capture internally. Release the primed stream
-      // first — holding two handles on one mic makes the recogniser fail with a
-      // device-busy error on several Android builds.
-      stream.getTracks().forEach(t => t.stop())
-      startWebSpeech(Ctor)
+      startRecording(stream)
     },
-    [langCode, startWhisper, startWebSpeech, failMic, applyProbedPermission],
+    [startRecording, failMic, applyProbedPermission],
   )
 
   const toggle = useCallback(() => {
@@ -551,11 +377,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     stopSpeech()
     setError(null)
     setErrorKind(null)
-    latestTranscriptRef.current = ''
-    safariAccumulatedRef.current = ''
-    userStoppedRef.current = false
     discardRef.current = false
-    fellBackRef.current = false
 
     void openMic(micRequest)
   }, [recording, transcribing, stop, openMic])
@@ -584,8 +406,6 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   useEffect(() => {
     return () => {
       discardRef.current = true
-      userStoppedRef.current = false
-      recognitionRef.current?.abort()
       const recorder = mediaRecorderRef.current
       if (recorder && recorder.state !== 'inactive') recorder.stop()
       streamRef.current?.getTracks().forEach(t => t.stop())
