@@ -204,8 +204,9 @@ export default function PrivacyPage() {
               submitted to it.
             </li>
             <li>
-              <strong>Groq (Whisper)</strong> — if you use voice input, your audio clip is
-              transcribed and immediately discarded.
+              <strong>Fish Audio</strong> — if you use voice input, your audio clip is sent there,
+              transcribed and immediately discarded. It also generates Kai&apos;s speaking voice
+              from Kai&apos;s replies.
             </li>
             <li>
               <strong>DeepL / Google Translate</strong> — translate interface text and, where

@@ -9,9 +9,44 @@ import { useVoiceInput } from '@/hooks/useVoiceInput'
  *  (c) permission granted at the OS level but getUserMedia still failing —
  *      this must surface a real, non-generic cause rather than "blocked",
  *  (d) the gesture rule: getUserMedia is invoked synchronously from the tap.
+ *
+ * Plus (e): the capture → /api/transcribe → Fish Audio round trip, whose
+ * failure modes must always land the patient on "type it instead" rather than
+ * on a spinner that never clears.
  */
 
 vi.mock('@/lib/speech', () => ({ stopSpeech: vi.fn() }))
+// jsdom has no Web Audio; the WAV re-encode is covered by its own tests. Pass
+// the clip through so these tests still assert on what reaches the network.
+vi.mock('@/lib/audioWav', () => ({
+  toWav: vi.fn(async (blob: Blob) => new Blob([blob], { type: 'audio/wav' })),
+}))
+
+/**
+ * jsdom ships no MediaRecorder. This is the smallest stand-in that exercises
+ * the real control flow: stop() flushes one chunk and then fires onstop, which
+ * is the order a browser guarantees and the order the hook depends on to have
+ * a non-empty blob to upload.
+ */
+class FakeMediaRecorder {
+  static isTypeSupported = () => true
+  state: 'inactive' | 'recording' = 'inactive'
+  mimeType: string
+  ondataavailable: ((e: { data: Blob }) => void) | null = null
+  onstop: (() => void) | null = null
+
+  constructor(_stream: MediaStream, options?: { mimeType?: string }) {
+    this.mimeType = options?.mimeType ?? 'audio/webm'
+  }
+  start() {
+    this.state = 'recording'
+  }
+  stop() {
+    this.state = 'inactive'
+    this.ondataavailable?.({ data: new Blob(['audio-bytes'], { type: this.mimeType }) })
+    this.onstop?.()
+  }
+}
 
 function micError(name: string): Error {
   const err = new Error(`${name} raised`)
@@ -49,10 +84,11 @@ beforeEach(() => {
   vi.restoreAllMocks()
   // Diagnostics are fire-and-forget; keep them off the network in tests.
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 204 })))
-  // Force the Whisper branch so the tests exercise the getUserMedia path rather
-  // than jsdom's absent SpeechRecognition.
-  vi.stubGlobal('SpeechRecognition', undefined)
-  vi.stubGlobal('webkitSpeechRecognition', undefined)
+  // The hook must never touch these — audio goes to Fish, not to Google/Apple.
+  // Defining them proves the recorder path is chosen on its own merits rather
+  // than only because jsdom happens to lack SpeechRecognition.
+  vi.stubGlobal('SpeechRecognition', vi.fn())
+  vi.stubGlobal('webkitSpeechRecognition', vi.fn())
   setPermissionState('prompt')
 })
 
@@ -271,6 +307,109 @@ describe('recheckPermission', () => {
 
     expect(state).toBe('denied')
     expect(result.current.errorKind).toBe('denied')
+  })
+})
+
+describe('(e) capture and transcription', () => {
+  /** Route /api/transcribe to `respond`; everything else (diagnostics) 204s. */
+  function stubTranscribeApi(respond: () => Response) {
+    const fetchMock = vi.fn((url: string, _init?: RequestInit) =>
+      Promise.resolve(url === '/api/transcribe' ? respond() : new Response(null, { status: 204 })),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  /** Tap to record, then tap again to stop — the full patient gesture. */
+  async function recordAndStop(onTranscript = vi.fn()) {
+    const { stream } = fakeStream()
+    setMediaDevices({ getUserMedia: vi.fn().mockResolvedValue(stream) })
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
+
+    const { result } = renderHook(() => useVoiceInput({ langCode: 'ta-IN', onTranscript }))
+
+    await act(async () => {
+      result.current.toggle()
+    })
+    await waitFor(() => expect(result.current.recording).toBe(true))
+
+    await act(async () => {
+      result.current.stop()
+    })
+    return { result, onTranscript }
+  }
+
+  it('uploads the recorded clip to /api/transcribe with the language hint', async () => {
+    const fetchMock = stubTranscribeApi(() => Response.json({ text: 'vayiru valikkirathu' }))
+
+    const { onTranscript } = await recordAndStop()
+
+    await waitFor(() => expect(onTranscript).toHaveBeenCalledWith('vayiru valikkirathu'))
+
+    const call = fetchMock.mock.calls.find(([url]) => url === '/api/transcribe')
+    expect(call).toBeDefined()
+    const body = call![1]!.body as FormData
+    expect(body.get('langCode')).toBe('ta-IN')
+    expect(body.get('audio')).toBeInstanceOf(Blob)
+  })
+
+  it('never starts the browser speech engine — audio must reach Fish, not Google', async () => {
+    stubTranscribeApi(() => Response.json({ text: 'hello' }))
+    await recordAndStop()
+
+    expect(window.SpeechRecognition).not.toHaveBeenCalled()
+    expect(window.webkitSpeechRecognition).not.toHaveBeenCalled()
+  })
+
+  it('falls back to "type instead" when the Fish call fails, and clears the spinner', async () => {
+    stubTranscribeApi(() => new Response('upstream boom', { status: 502 }))
+
+    const { result, onTranscript } = await recordAndStop()
+
+    await waitFor(() => expect(result.current.error).toMatch(/type your message instead/i))
+    // The stuck-state regression: both indicators must settle, or the mic looks
+    // like it is still listening forever.
+    expect(result.current.transcribing).toBe(false)
+    expect(result.current.recording).toBe(false)
+    expect(onTranscript).not.toHaveBeenCalled()
+    // A transcription fault is not a mic fault — offering the permission modal
+    // here would send the patient to a setting that is already correct.
+    expect(result.current.errorKind).toBeNull()
+  })
+
+  it('says so when the clip transcribes to nothing, instead of failing silently', async () => {
+    stubTranscribeApi(() => Response.json({ text: '   ' }))
+
+    const { result, onTranscript } = await recordAndStop()
+
+    await waitFor(() => expect(result.current.error).toMatch(/no speech was heard/i))
+    expect(onTranscript).not.toHaveBeenCalled()
+    expect(result.current.transcribing).toBe(false)
+  })
+
+  it('surfaces a rate limit as a wait message, not as a failure', async () => {
+    stubTranscribeApi(() => new Response('{}', { status: 429 }))
+
+    const { result } = await recordAndStop()
+
+    await waitFor(() => expect(result.current.error).toMatch(/wait a moment/i))
+    expect(result.current.transcribing).toBe(false)
+  })
+
+  it('tells the patient to type when the network drops mid-upload', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) =>
+        url === '/api/transcribe'
+          ? Promise.reject(new TypeError('Failed to fetch'))
+          : Promise.resolve(new Response(null, { status: 204 })),
+      ),
+    )
+
+    const { result } = await recordAndStop()
+
+    await waitFor(() => expect(result.current.error).toMatch(/type your message instead/i))
+    expect(result.current.transcribing).toBe(false)
   })
 })
 

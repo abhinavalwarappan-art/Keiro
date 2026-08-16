@@ -14,7 +14,7 @@ const ENDPOINT_CONFIGS: Record<string, RateLimitConfig> = {
   report_pdf:   { limit: 30, windowMs: 60 * 60 * 1000 },      // 30 PDF renders per hour (download/open/print, own report)
   translate:    { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 translations per hour
   report_patch: { limit: 20, windowMs: 60 * 60 * 1000 },      // 20 note saves per hour
-  transcribe:   { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 Whisper transcriptions per hour (Groq API call)
+  transcribe:   { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 transcriptions per hour (Fish Audio ASR call)
   tts:          { limit: 150, windowMs: 60 * 60 * 1000 },     // 150 Fish Audio syntheses per hour (Kai speaks every reply, patients replay)
 }
 
