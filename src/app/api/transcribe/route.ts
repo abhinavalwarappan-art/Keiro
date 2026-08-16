@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { transcribeSpeech, isFishAsrConfigured } from '@/lib/fishAudio'
+import { transcribeSpeech, isTranscriptionConfigured, providerFor } from '@/lib/transcription'
 import { LANGUAGES } from '@/lib/languages'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
@@ -80,8 +80,10 @@ export async function POST(request: NextRequest) {
     // Answer the misconfiguration directly instead of letting it surface as a
     // generic upstream fault — voice is optional, and this is the one failure
     // mode a deploy can fix.
-    if (!isFishAsrConfigured()) {
-      logger.error('transcription_unconfigured', '/api/transcribe', user.id)
+    if (!isTranscriptionConfigured(langCode)) {
+      logger.error('transcription_unconfigured', '/api/transcribe', user.id, {
+        provider: providerFor(langCode),
+      })
       return NextResponse.json({ error: 'Transcription unavailable' }, { status: 503 })
     }
 
@@ -89,10 +91,12 @@ export async function POST(request: NextRequest) {
 
     // Log the languages only — never the transcribed text (it's patient health
     // info). The detected language is worth keeping next to the hint: a
-    // persistent mismatch means the picker and the patient disagree.
+    // persistent mismatch means the picker and the patient disagree. The
+    // provider is logged so a script regression can be traced to one of them.
     logger.info('transcription_requested', '/api/transcribe', user.id, {
       langCode: langCode ?? 'auto',
       detectedLanguage,
+      provider: providerFor(langCode),
     })
 
     return NextResponse.json({ text })

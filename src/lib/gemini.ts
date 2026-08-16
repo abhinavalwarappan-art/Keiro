@@ -176,3 +176,67 @@ export async function* geminiChatStream(params: GeminiParams): AsyncGenerator<st
     }
   }
 }
+
+/* ── Speech-to-text ─────────────────────────────────────────────────────────
+ * Gemini transcribes the languages Fish Audio cannot write in their own script
+ * (see `GEMINI_SCRIPT_LANGS` in lib/transcription.ts for which, and why).
+ *
+ * This is a second ASR provider, not a replacement: Fish is faster and correct
+ * for most of the 45, and only the scripts it mangles come here.
+ */
+
+/** Audio upload plus a full generation — slower than a plain text turn. */
+const GEMINI_ASR_TIMEOUT_MS = 55_000
+
+/**
+ * Transcribe `audio` verbatim in `languageName`'s own script.
+ *
+ * The instruction is emphatic about script because that is the entire reason
+ * this path exists — a romanized or translated transcript is a failure here,
+ * even though it would look like a plausible answer.
+ */
+export async function transcribeSpeechGemini(
+  audio: Blob,
+  languageName: string,
+): Promise<string> {
+  const bytes = Buffer.from(await audio.arrayBuffer()).toString('base64')
+  const mimeType = audio.type.split(';')[0].trim() || 'audio/wav'
+
+  const response = await fetchUpstream(
+    'gemini',
+    `${GEMINI_BASE_URL}/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': getApiKey(),
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {
+              text:
+                `Transcribe this ${languageName} audio VERBATIM, in the ${languageName} ` +
+                `language's own native script.\n` +
+                `Output ONLY the transcription — no preamble, no quotes, no notes.\n` +
+                `Never romanize. Never translate. Never transliterate into another script.\n` +
+                `If the audio contains no speech, output nothing at all.`,
+            },
+            { inline_data: { mime_type: mimeType, data: bytes } },
+          ],
+        }],
+        // Deterministic: this is a transcription, not a creative turn.
+        generationConfig: { temperature: 0 },
+      }),
+    },
+    GEMINI_ASR_TIMEOUT_MS,
+  )
+
+  const payload = await response.json().catch(() => null)
+  if (payload === null) {
+    throw new UpstreamError('gemini', 'bad_response', 'Gemini returned a non-JSON ASR response')
+  }
+  // Empty is legitimate here — it is how "no speech" and a safety block both
+  // present — so the caller treats it as an empty transcript, not an error.
+  return extractText(payload).trim()
+}
