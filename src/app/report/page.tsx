@@ -410,8 +410,10 @@ function ReportContent() {
       stopSpeech()
       return
     }
-    speakText(getLang(COMPLETION_MESSAGES, langCode), langCode)
-  }, [speaking, langCode])
+    speakText(getLang(COMPLETION_MESSAGES, langCode), langCode, {
+      voiceType: patientProfile?.voiceType,
+    })
+  }, [speaking, langCode, patientProfile])
 
   // Never leave audio playing behind us when the patient navigates away.
   useEffect(() => () => stopSpeech(), [])

@@ -10,7 +10,7 @@ import {
   Download, BarChart3, MessageSquarePlus,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Profile } from '@/types'
+import { Profile, VoiceType } from '@/types'
 import VoicePicker from '@/components/ui/VoicePicker'
 import { getLanguageByCode } from '@/lib/languages'
 import {
@@ -102,14 +102,21 @@ export default function SettingsPage() {
     return () => clearTimeout(timer)
   }, [])
 
-  const handleVoiceSelect = async (voiceName: string) => {
+  // Rows written before Fish Audio hold a device voice name here. Treat anything
+  // that isn't one of Kai's two voices as no choice at all.
+  const selectedVoice: VoiceType | undefined =
+    profile?.preferred_voice === 'male' || profile?.preferred_voice === 'female'
+      ? profile.preferred_voice
+      : undefined
+
+  const handleVoiceSelect = async (voice: VoiceType) => {
     if (!profile) return
     const { error } = await supabase
       .from('profiles')
-      .update({ preferred_voice: voiceName })
+      .update({ preferred_voice: voice })
       .eq('id', profile.id)
     if (!error) {
-      setProfile(p => p ? { ...p, preferred_voice: voiceName } : p)
+      setProfile(p => p ? { ...p, preferred_voice: voice } : p)
     }
   }
 
@@ -286,7 +293,9 @@ export default function SettingsPage() {
                 <RowIcon><Volume2 size={16} style={{ color: C.brand }} /></RowIcon>
                 <div className="flex-1 text-left">
                   <div className="text-[14px] font-medium" style={{ color: C.ink }}>Voice preference</div>
-                  <div className="text-[12px]" style={{ color: C.inkSoft }}>{profile?.preferred_voice || 'Default'}</div>
+                  <div className="text-[12px]" style={{ color: C.inkSoft }}>
+                    {selectedVoice ? (selectedVoice === 'male' ? 'Male' : 'Female') : 'Not set'}
+                  </div>
                 </div>
                 <ChevronRight
                   size={16}
@@ -305,7 +314,7 @@ export default function SettingsPage() {
                       <div className="px-4 pb-4">
                         <VoicePicker
                           langCode={profile.language_code}
-                          selected={profile.preferred_voice}
+                          selected={selectedVoice}
                           onSelect={handleVoiceSelect}
                         />
                       </div>

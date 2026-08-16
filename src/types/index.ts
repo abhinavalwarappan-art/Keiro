@@ -12,11 +12,20 @@ export interface Language {
 
 export type BiologicalSex = 'male' | 'female' | 'other'
 
+/**
+ * Which Keiro voice reads Kai's messages aloud. Asked separately from
+ * biologicalSex at intake — the sex a report needs and the voice a patient
+ * wants to be spoken to in are two different questions.
+ */
+export type VoiceType = 'male' | 'female'
+
 export interface PatientProfile {
   fullName: string
   dateOfBirth: string
   age?: number
   biologicalSex: BiologicalSex
+  /** Optional on the wire: profiles saved before intake asked this have none. */
+  voiceType?: VoiceType
   primaryLanguage: string
   primaryLanguageCode: string
   chronicConditions?: string
@@ -65,6 +74,7 @@ export interface Profile {
   preferred_language: string
   language_code: string
   romanization_enabled: boolean
+  /** A VoiceType since Fish Audio replaced browser TTS; older rows hold a browser voice name. */
   preferred_voice?: string
   is_anonymous: boolean
   created_at: string

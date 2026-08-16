@@ -36,6 +36,9 @@ export const patientProfileSchema = z.object({
   dateOfBirth: z.string().trim().max(20),
   age: z.number().int().min(0).max(130).optional(),
   biologicalSex: z.enum(['male', 'female', 'other']),
+  // Optional so a profile stored before intake asked for a voice still parses —
+  // a legacy payload should lose its voice preference, not its whole context.
+  voiceType: z.enum(['male', 'female']).optional(),
   primaryLanguage: z.string().trim().max(50),
   primaryLanguageCode: z.string().trim().max(20),
   chronicConditions: z.string().trim().max(500).optional(),

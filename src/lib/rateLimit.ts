@@ -15,6 +15,7 @@ const ENDPOINT_CONFIGS: Record<string, RateLimitConfig> = {
   translate:    { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 translations per hour
   report_patch: { limit: 20, windowMs: 60 * 60 * 1000 },      // 20 note saves per hour
   transcribe:   { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 Whisper transcriptions per hour (Groq API call)
+  tts:          { limit: 150, windowMs: 60 * 60 * 1000 },     // 150 Fish Audio syntheses per hour (Kai speaks every reply, patients replay)
 }
 
 const DEFAULT_CONFIG: RateLimitConfig = { limit: 20, windowMs: 60 * 1000 }
@@ -59,6 +60,7 @@ const IP_ENDPOINT_CONFIGS: Record<string, RateLimitConfig> = {
   report_patch: { limit: 60,  windowMs: 60 * 60 * 1000 }, // 60 note saves per IP/hour
   translate:    { limit: 500, windowMs: 60 * 60 * 1000 }, // 500 translations per IP/hour
   transcribe:   { limit: 400, windowMs: 60 * 60 * 1000 }, // 400 transcriptions per IP/hour
+  tts:          { limit: 900, windowMs: 60 * 60 * 1000 }, // 900 syntheses per IP/hour
   // Mic diagnostics are client-fired and unauthenticated, so this is the only
   // tier guarding the table. Generous enough for a genuinely broken device
   // (a patient may retry many times), low enough to bound flooding.

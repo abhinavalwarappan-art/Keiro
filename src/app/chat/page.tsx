@@ -677,7 +677,12 @@ function ChatContent() {
           className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 md:px-8"
         >
           {messages.map(message => (
-            <ChatBubble key={message.id} message={message} langCode={langCode} />
+            <ChatBubble
+              key={message.id}
+              message={message}
+              langCode={langCode}
+              voiceType={patientProfile?.voiceType}
+            />
           ))}
 
           {isTyping && (

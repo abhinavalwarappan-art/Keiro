@@ -184,8 +184,15 @@ export async function installAIMocks(page: Page, opts: AIMockOptions = {}): Prom
  * Remove TTS nondeterminism: with no voices, the app's speakText() no-ops, so
  * `isKaiSpeaking` never blocks the input. Headless already has no voices; this
  * guarantees it everywhere. Must run before navigation.
+ *
+ * Fish Audio is stubbed out too. Without this the suite's behaviour would depend
+ * on whether FISH_AUDIO_API_KEY happens to be set in the dev server's env — Kai
+ * would really speak, and real audio would gate the composer.
  */
 export async function silenceSpeech(page: Page): Promise<void> {
+  await page.route('**/api/tts', async (route: Route) => {
+    await route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Voice unavailable"}' })
+  })
   await page.addInitScript(() => {
     try {
       if ('speechSynthesis' in window) {
@@ -243,6 +250,7 @@ export interface ProfileOpts {
   fullName?: string
   dob?: string // yyyy-mm-dd
   sex?: 'Male' | 'Female' | 'Other'
+  voice?: 'Male' | 'Female'
 }
 
 /** Fill and submit the PatientProfileIntake consent/profile gate that precedes chat. */
@@ -256,7 +264,17 @@ export async function completeProfileIntake(page: Page, o: ProfileOpts = {}): Pr
   // The DOB field is a masked MM/DD/YYYY text input; convert the ISO dob before typing.
   const [y, m, d] = (o.dob ?? '1990-01-01').split('-')
   await dialog.getByLabel('Date of birth').fill(`${m}/${d}/${y}`)
-  await dialog.getByRole('button', { name: o.sex ?? 'Male', exact: true }).click()
+  // Scope to each fieldset: "Male"/"Female" now name a button in both the
+  // biological-sex group and the voice-type group, so an unscoped lookup is
+  // ambiguous and fails strict mode.
+  await dialog
+    .getByRole('group', { name: /biological sex/i })
+    .getByRole('button', { name: o.sex ?? 'Male', exact: true })
+    .click()
+  await dialog
+    .getByRole('group', { name: /voice type/i })
+    .getByRole('button', { name: o.voice ?? 'Female', exact: true })
+    .click()
   await dialog.getByRole('checkbox').check()
   await dialog.getByRole('button', { name: /continue to symptom intake/i }).click()
   await expect(dialog).toBeHidden()

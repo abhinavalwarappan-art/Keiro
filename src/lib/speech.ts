@@ -1,6 +1,16 @@
-/** Shared browser TTS helpers — tuned for clearer, less muffled playback. */
+/**
+ * Kai's voice.
+ *
+ * Two engines behind one entry point. Fish Audio is the real voice — the
+ * "Keiro Male" / "Keiro Woman" models, picked by the patient at intake — and
+ * the browser's own speechSynthesis is the fallback for when the patient has no
+ * voice preference, the API is unconfigured, the network is down, or playback
+ * is blocked. Callers never choose: speakText() tries Fish and drops to the
+ * browser on any failure, so speech degrades in quality but never disappears.
+ */
 
 import { stripMarkdownAndEmoji } from './text'
+import type { VoiceType } from '@/types'
 
 const QUALITY_HINTS = [
   'premium',
@@ -73,6 +83,9 @@ function splitForSpeech(text: string): string[] {
 }
 
 export interface SpeakOptions {
+  /** Which Keiro voice to synthesize. Omitted → browser speech only. */
+  voiceType?: VoiceType
+  /** Browser-fallback voice name (device voice), used only when Fish can't play. */
   voiceName?: string
   onStart?: () => void
   onEnd?: () => void
@@ -105,13 +118,156 @@ export function subscribeSpeechState(listener: SpeechStateListener): () => void 
   }
 }
 
-/** Speak text with the clearest available voice for the language. */
-export function speakText(text: string, langCode: string, options?: SpeakOptions): boolean {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false
+/* ------------------------------------------------------------------ *
+ * Fish Audio playback
+ * ------------------------------------------------------------------ */
 
-  // Never read markdown markers or emoji aloud — strip them before speaking.
-  const spoken = stripMarkdownAndEmoji(text)
-  if (!spoken || spoken.trim().length === 0) {
+let audioEl: HTMLAudioElement | null = null
+let audioObjectUrl: string | null = null
+
+/**
+ * A 44-byte RIFF/WAVE header with no samples — silence, built here rather than
+ * pasted as a base64 blob so it can't rot into something unparseable.
+ */
+function silentWavDataUri(): string {
+  const bytes = new Uint8Array(44)
+  const view = new DataView(bytes.buffer)
+  const ascii = (offset: number, s: string) => {
+    for (let i = 0; i < s.length; i += 1) bytes[offset + i] = s.charCodeAt(i)
+  }
+  ascii(0, 'RIFF')
+  view.setUint32(4, 36, true) // header bytes after this field, data chunk empty
+  ascii(8, 'WAVE')
+  ascii(12, 'fmt ')
+  view.setUint32(16, 16, true) // PCM format chunk length
+  view.setUint16(20, 1, true) // PCM
+  view.setUint16(22, 1, true) // mono
+  view.setUint32(24, 8000, true) // sample rate
+  view.setUint32(28, 8000, true) // byte rate
+  view.setUint16(32, 1, true) // block align
+  view.setUint16(34, 8, true) // bits per sample
+  ascii(36, 'data')
+  view.setUint32(40, 0, true) // zero samples
+
+  let binary = ''
+  bytes.forEach((b) => { binary += String.fromCharCode(b) })
+  return `data:audio/wav;base64,${btoa(binary)}`
+}
+
+function revokeAudioUrl() {
+  if (audioObjectUrl) {
+    URL.revokeObjectURL(audioObjectUrl)
+    audioObjectUrl = null
+  }
+}
+
+/**
+ * Get the shared audio element and "unlock" it for iOS Safari.
+ *
+ * MUST be called synchronously from the click handler, before any await. iOS
+ * only lets media start inside the task the user's tap created, and the Fish
+ * round-trip lands us several tasks later — so we start silence *now*, during
+ * the gesture, which blesses the element for the real audio assigned to it
+ * afterwards. Skip this and Kai is mute on iPhone specifically, which is most
+ * of the patients who need him to talk.
+ */
+function prepareAudioElement(): HTMLAudioElement {
+  if (!audioEl) {
+    audioEl = new Audio()
+    audioEl.preload = 'auto'
+  }
+  audioEl.pause()
+  audioEl.src = silentWavDataUri()
+  // Rejects on browsers that block it outright; the element is unlocked either
+  // way on the platforms where unlocking is what matters.
+  void audioEl.play().catch(() => {})
+  return audioEl
+}
+
+/** Stop whichever engine is mid-playback, without touching the generation. */
+function cancelPlayback() {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.cancel()
+  }
+  if (audioEl) {
+    audioEl.onplay = null
+    audioEl.onended = null
+    audioEl.onerror = null
+    audioEl.pause()
+  }
+  revokeAudioUrl()
+}
+
+/**
+ * Fetch and play the Fish Audio rendering. Resolves true when playback started
+ * (or was superseded by a newer request), false when the caller should fall
+ * back to browser speech.
+ */
+async function speakViaFish(
+  text: string,
+  voiceType: VoiceType,
+  generation: number,
+  audio: HTMLAudioElement,
+  options?: SpeakOptions,
+): Promise<boolean> {
+  let blob: Blob
+  try {
+    const response = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice: voiceType }),
+    })
+    // 401/429/503 all mean "no Fish audio this time" — the browser can still talk.
+    if (!response.ok) return false
+    blob = await response.blob()
+  } catch {
+    return false
+  }
+
+  // A newer speakText() (or a stop) landed while we were fetching. Report success
+  // so the caller doesn't start browser speech over the top of it.
+  if (generation !== speechGeneration) return true
+  if (blob.size === 0) return false
+
+  revokeAudioUrl()
+  audioObjectUrl = URL.createObjectURL(blob)
+  audio.src = audioObjectUrl
+
+  const finishAudio = (handler?: () => void) => {
+    if (generation !== speechGeneration) return
+    notifySpeechState(false)
+    handler?.()
+  }
+
+  audio.onplay = () => {
+    if (generation !== speechGeneration) return
+    notifySpeechState(true)
+    options?.onStart?.()
+  }
+  audio.onended = () => finishAudio(options?.onEnd)
+  audio.onerror = () => finishAudio(options?.onError)
+
+  try {
+    await audio.play()
+  } catch {
+    // Blocked or interrupted. If we've since been superseded that's expected;
+    // otherwise let the browser engine try.
+    return generation !== speechGeneration
+  }
+  return true
+}
+
+/* ------------------------------------------------------------------ *
+ * Browser speechSynthesis fallback
+ * ------------------------------------------------------------------ */
+
+function speakViaBrowser(
+  spoken: string,
+  langCode: string,
+  generation: number,
+  options?: SpeakOptions,
+): boolean {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     options?.onError?.()
     return false
   }
@@ -130,10 +286,6 @@ export function speakText(text: string, langCode: string, options?: SpeakOptions
     options?.onError?.()
     return false
   }
-
-  const generation = ++speechGeneration
-  window.speechSynthesis.cancel()
-  notifySpeechState(false)
 
   let index = 0
   let started = false
@@ -216,11 +368,43 @@ export function speakText(text: string, langCode: string, options?: SpeakOptions
   return true
 }
 
-export function stopSpeech() {
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    speechGeneration += 1
-    window.speechSynthesis.cancel()
+/**
+ * Speak text in the patient's Keiro voice, falling back to the clearest device
+ * voice for the language.
+ *
+ * Returns whether speech was started or is being started — with a voiceType the
+ * Fish request is still in flight when this returns, so a late failure surfaces
+ * through `options.onError` rather than the return value.
+ */
+export function speakText(text: string, langCode: string, options?: SpeakOptions): boolean {
+  if (typeof window === 'undefined') return false
+
+  // Never read markdown markers or emoji aloud — strip them before speaking.
+  const spoken = stripMarkdownAndEmoji(text)
+  if (!spoken || spoken.trim().length === 0) {
+    options?.onError?.()
+    return false
   }
+
+  const generation = ++speechGeneration
+  cancelPlayback()
+  notifySpeechState(false)
+
+  const voiceType = options?.voiceType
+  if (!voiceType) return speakViaBrowser(spoken, langCode, generation, options)
+
+  // Unlock before the await — see prepareAudioElement.
+  const audio = prepareAudioElement()
+  void speakViaFish(spoken, voiceType, generation, audio, options).then((played) => {
+    if (played || generation !== speechGeneration) return
+    speakViaBrowser(spoken, langCode, generation, options)
+  })
+  return true
+}
+
+export function stopSpeech() {
+  speechGeneration += 1
+  cancelPlayback()
   notifySpeechState(false)
 }
 

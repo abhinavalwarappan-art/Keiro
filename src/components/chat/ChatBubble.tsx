@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Volume2 } from 'lucide-react'
-import { ChatMessage } from '@/types'
+import { ChatMessage, VoiceType } from '@/types'
 import KaiAvatar from '@/components/kai/KaiAvatar'
 import { speakText, stopSpeech } from '@/lib/speech'
 import { stripMarkdownAndEmoji } from '@/lib/text'
@@ -155,12 +155,14 @@ function cleanChatContent(raw: string): string {
 interface ChatBubbleProps {
   message: ChatMessage
   langCode: string
+  /** The patient's Keiro voice. Absent → browser speech. */
+  voiceType?: VoiceType
   voiceName?: string
 }
 
 /* Kai speaks without a bubble — brand mark + plain text on the canvas
    (the Claude/Perplexity pattern). Only the patient sits in a bubble. */
-export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleProps) {
+export default function ChatBubble({ message, langCode, voiceType, voiceName }: ChatBubbleProps) {
   const t = useTranslations(langCode)
   const [localSpeaking, setLocalSpeaking] = useState(false)
   const globalSpeaking = useSpeechActive()
@@ -182,13 +184,14 @@ export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleP
 
     stopSpeech()
     const started = speakText(displayContent, langCode, {
+      voiceType,
       voiceName,
       onStart: () => setLocalSpeaking(true),
       onEnd: () => setLocalSpeaking(false),
       onError: () => setLocalSpeaking(false),
     })
     if (!started) setLocalSpeaking(false)
-  }, [globalSpeaking, localSpeaking, displayContent, langCode, voiceName])
+  }, [globalSpeaking, localSpeaking, displayContent, langCode, voiceType, voiceName])
 
   if (!displayContent) return null
 
