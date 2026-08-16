@@ -21,7 +21,7 @@ import { preloadSpeechVoices } from '@/lib/speech'
 import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { trackAIQuerySent, trackConversationStarted, trackReportGenerated } from '@/lib/analytics'
 import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY, PATIENT_PROFILE_SESSION_KEY, SESSION_ID_KEY } from '@/lib/chatSession'
-import { isPatientProfileComplete } from '@/lib/patientProfile'
+import { isPatientProfileComplete, DEFAULT_VOICE_TYPE } from '@/lib/patientProfile'
 import { useTranslations } from '@/i18n/useTranslations'
 
 type QuickReplyType = 'severity' | 'yesno' | null
@@ -681,7 +681,7 @@ function ChatContent() {
               key={message.id}
               message={message}
               langCode={langCode}
-              voiceType={patientProfile?.voiceType}
+              voiceType={patientProfile?.voiceType ?? DEFAULT_VOICE_TYPE}
             />
           ))}
 

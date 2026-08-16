@@ -16,7 +16,7 @@ import { Report, ReportData, PatientProfile, ConsultMessage } from '@/types'
 import { speakText, stopSpeech } from '@/lib/speech'
 import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { PATIENT_PROFILE_SESSION_KEY } from '@/lib/chatSession'
-import { formatPatientSex } from '@/lib/patientProfile'
+import { formatPatientSex, DEFAULT_VOICE_TYPE } from '@/lib/patientProfile'
 import { useTranslations } from '@/i18n/useTranslations'
 import { logger } from '@/lib/logger'
 
@@ -411,7 +411,7 @@ function ReportContent() {
       return
     }
     speakText(getLang(COMPLETION_MESSAGES, langCode), langCode, {
-      voiceType: patientProfile?.voiceType,
+      voiceType: patientProfile?.voiceType ?? DEFAULT_VOICE_TYPE,
     })
   }, [speaking, langCode, patientProfile])
 

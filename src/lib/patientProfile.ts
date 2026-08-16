@@ -5,7 +5,22 @@ import type {
   PatientProfile,
   TravelRecency,
   TripLength,
+  VoiceType,
 } from '@/types'
+
+/**
+ * The voice Kai uses when a profile carries no explicit choice.
+ *
+ * Intake requires the patient to pick, so this only covers the seams: a session
+ * restored from before the field existed, a report opened from its own row (the
+ * reports table has no voice column), or a guest with no profile at all.
+ *
+ * It matters that this exists. Without it those seams fall through to the
+ * device's own speechSynthesis voice, so Kai changes voice between visits for
+ * no reason the patient can see — the device voice should mean "Fish is
+ * unreachable", never "we forgot to ask".
+ */
+export const DEFAULT_VOICE_TYPE: VoiceType = 'female'
 
 /**
  * Validation for the patient profile arriving from the client.
