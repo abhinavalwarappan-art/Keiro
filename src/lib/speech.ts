@@ -1,16 +1,15 @@
 /**
  * Kai's voice.
  *
- * Two engines behind one entry point. Fish Audio is the real voice — the
- * "Keiro Male" / "Keiro Woman" models, picked by the patient at intake — and
- * the browser's own speechSynthesis is the fallback for when the patient has no
- * voice preference, the API is unconfigured, the network is down, or playback
- * is blocked. Callers never choose: speakText() tries Fish and drops to the
- * browser on any failure, so speech degrades in quality but never disappears.
+ * Two engines behind one entry point. Fish Audio is the real voice — one model
+ * for every patient in every language — and the browser's own speechSynthesis
+ * is the fallback for when the API is unconfigured, the network is down, or
+ * playback is blocked. Callers never choose: speakText() tries Fish and drops
+ * to the browser on any failure, so speech degrades in quality but never
+ * disappears.
  */
 
 import { stripMarkdownAndEmoji } from './text'
-import type { VoiceType } from '@/types'
 
 const QUALITY_HINTS = [
   'premium',
@@ -83,8 +82,6 @@ function splitForSpeech(text: string): string[] {
 }
 
 export interface SpeakOptions {
-  /** Which Keiro voice to synthesize. Omitted → browser speech only. */
-  voiceType?: VoiceType
   /** Browser-fallback voice name (device voice), used only when Fish can't play. */
   voiceName?: string
   onStart?: () => void
@@ -205,7 +202,6 @@ function cancelPlayback() {
  */
 async function speakViaFish(
   text: string,
-  voiceType: VoiceType,
   generation: number,
   audio: HTMLAudioElement,
   options?: SpeakOptions,
@@ -215,7 +211,7 @@ async function speakViaFish(
     const response = await fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice: voiceType }),
+      body: JSON.stringify({ text }),
     })
     // 401/429/503 all mean "no Fish audio this time" — the browser can still talk.
     if (!response.ok) return false
@@ -369,12 +365,12 @@ function speakViaBrowser(
 }
 
 /**
- * Speak text in the patient's Keiro voice, falling back to the clearest device
- * voice for the language.
+ * Speak text in Kai's voice, falling back to the clearest device voice for the
+ * language.
  *
- * Returns whether speech was started or is being started — with a voiceType the
- * Fish request is still in flight when this returns, so a late failure surfaces
- * through `options.onError` rather than the return value.
+ * Returns whether speech was started or is being started — the Fish request is
+ * still in flight when this returns, so a late failure surfaces through
+ * `options.onError` rather than the return value.
  */
 export function speakText(text: string, langCode: string, options?: SpeakOptions): boolean {
   if (typeof window === 'undefined') return false
@@ -390,12 +386,9 @@ export function speakText(text: string, langCode: string, options?: SpeakOptions
   cancelPlayback()
   notifySpeechState(false)
 
-  const voiceType = options?.voiceType
-  if (!voiceType) return speakViaBrowser(spoken, langCode, generation, options)
-
   // Unlock before the await — see prepareAudioElement.
   const audio = prepareAudioElement()
-  void speakViaFish(spoken, voiceType, generation, audio, options).then((played) => {
+  void speakViaFish(spoken, generation, audio, options).then((played) => {
     if (played || generation !== speechGeneration) return
     speakViaBrowser(spoken, langCode, generation, options)
   })

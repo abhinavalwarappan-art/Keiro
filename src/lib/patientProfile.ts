@@ -5,20 +5,7 @@ import type {
   PatientProfile,
   TravelRecency,
   TripLength,
-  VoiceType,
 } from '@/types'
-
-/**
- * The voice Kai speaks in until someone changes it in Settings.
- *
- * Intake deliberately does not ask — a voice preference is not clinical data —
- * so this is what nearly every patient hears. It matters that it exists rather
- * than leaving the voice unset: unset falls through to the device's own
- * speechSynthesis voice, which makes Kai change voice between visits for no
- * reason the patient can see. The device voice should mean exactly one thing,
- * "Fish Audio is unreachable", never "nobody chose".
- */
-export const DEFAULT_VOICE_TYPE: VoiceType = 'female'
 
 /**
  * Validation for the patient profile arriving from the client.

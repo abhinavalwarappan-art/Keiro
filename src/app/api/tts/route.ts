@@ -5,14 +5,13 @@ import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
 import { logger } from '@/lib/logger'
 import { UpstreamError } from '@/lib/upstream'
-import type { VoiceType } from '@/types'
 
 // Synthesis plus streaming the MP3 back can outrun the default cap on a cold
 // upstream; the Fish call itself is bounded at 30s inside synthesizeSpeech.
 export const maxDuration = 45
 
 /**
- * Speak Kai's text in the patient's chosen voice.
+ * Speak Kai's text in Kai's one voice.
  *
  * Every failure here is survivable: the client falls back to browser speech on
  * any non-200, so an unset key, a rate limit, or a Fish outage costs voice
@@ -45,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    const { text, voice } = (body ?? {}) as { text?: unknown; voice?: unknown }
+    const { text } = (body ?? {}) as { text?: unknown }
 
     if (typeof text !== 'string' || text.trim().length === 0) {
       return NextResponse.json({ error: 'Missing text' }, { status: 400 })
@@ -53,22 +52,19 @@ export async function POST(request: NextRequest) {
     if (text.length > MAX_TTS_CHARS) {
       return NextResponse.json({ error: 'Text too long' }, { status: 413 })
     }
-    if (voice !== 'male' && voice !== 'female') {
-      return NextResponse.json({ error: 'Unsupported voice' }, { status: 400 })
-    }
 
-    if (!isFishConfigured(voice as VoiceType)) {
+    if (!isFishConfigured()) {
       // Not an error state — a deploy without Fish credentials speaks in the
       // browser instead. Logged at info so it's visible without paging anyone.
-      logger.info('tts_unconfigured', '/api/tts', user.id, { voice })
+      logger.info('tts_unconfigured', '/api/tts', user.id)
       return NextResponse.json({ error: 'Voice unavailable' }, { status: 503 })
     }
 
-    const audio = await synthesizeSpeech(text, voice as VoiceType)
+    const audio = await synthesizeSpeech(text)
 
-    // Log the voice and size only — never the text. It is Kai's clinical dialogue
-    // with the patient, which is health information.
-    logger.info('tts_requested', '/api/tts', user.id, { voice, bytes: audio.byteLength })
+    // Log the size only — never the text. It is Kai's clinical dialogue with the
+    // patient, which is health information.
+    logger.info('tts_requested', '/api/tts', user.id, { bytes: audio.byteLength })
 
     return new NextResponse(audio, {
       status: 200,

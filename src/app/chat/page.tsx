@@ -22,7 +22,6 @@ import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { trackAIQuerySent, trackConversationStarted, trackReportGenerated } from '@/lib/analytics'
 import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY, PATIENT_PROFILE_SESSION_KEY, SESSION_ID_KEY } from '@/lib/chatSession'
 import { isPatientProfileComplete } from '@/lib/patientProfile'
-import { useVoicePreference } from '@/hooks/useVoicePreference'
 import { useTranslations } from '@/i18n/useTranslations'
 
 type QuickReplyType = 'severity' | 'yesno' | null
@@ -217,7 +216,6 @@ function ChatContent() {
   const langNative = searchParams.get('langNative') || 'English'
   const roman = searchParams.get('roman') === '1'
   const t = useTranslations(langCode)
-  const voiceType = useVoicePreference()
   const [restoredSession] = useState(() => restoreChatSession(langCode, langName, langNative, roman))
   const [patientProfile, setPatientProfile] = useState<PatientProfile | null>(
     () => restoredSession?.patientProfile ?? loadStoredPatientProfile(),
@@ -683,7 +681,6 @@ function ChatContent() {
               key={message.id}
               message={message}
               langCode={langCode}
-              voiceType={voiceType}
             />
           ))}
 

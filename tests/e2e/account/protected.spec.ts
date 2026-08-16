@@ -111,10 +111,9 @@ test.describe('guest access to protected pages', () => {
   })
 
   test('guest /settings: renders expected section headings', async () => {
-    // SectionCard labels (src/app/settings/page.tsx:220, 237, 300)
+    // SectionCard labels (src/app/settings/page.tsx)
     // CSS text-transform:uppercase is visual only; DOM text nodes are unchanged
     await expect(page.getByText('Language')).toBeVisible()
-    await expect(page.getByText("Kai's Voice")).toBeVisible()
     await expect(page.getByText('Data & Privacy')).toBeVisible()
   })
 

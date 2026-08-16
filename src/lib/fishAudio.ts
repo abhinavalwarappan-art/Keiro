@@ -33,30 +33,29 @@ const FISH_TIMEOUT_MS = 30_000
  */
 export const MAX_TTS_CHARS = 2000
 
-function voiceId(voice: VoiceType): string | undefined {
-  const id = voice === 'male' ? env.FISH_AUDIO_VOICE_MALE : env.FISH_AUDIO_VOICE_FEMALE
-  return id?.trim() || undefined
+function voiceId(): string | undefined {
+  return env.FISH_AUDIO_VOICE?.trim() || undefined
 }
 
 /**
- * Whether this voice can actually be synthesized. False when the key or that
- * voice's model id is unset — the route then tells the client to fall back to
- * browser speech instead of failing the request.
+ * Whether Kai's voice can actually be synthesized. False when the key or the
+ * model id is unset — the route then tells the client to fall back to browser
+ * speech instead of failing the request.
  */
-export function isFishConfigured(voice: VoiceType): boolean {
-  return Boolean(env.FISH_AUDIO_API_KEY?.trim() && voiceId(voice))
+export function isFishConfigured(): boolean {
+  return Boolean(env.FISH_AUDIO_API_KEY?.trim() && voiceId())
 }
 
 /**
- * Synthesize `text` in the patient's chosen voice, returning MP3 bytes.
+ * Synthesize `text` in Kai's voice, returning MP3 bytes.
  *
  * Throws UpstreamError on any Fish-side failure so the route can log the
  * provider fault without ever echoing the request body — the text is patient
  * health information.
  */
-export async function synthesizeSpeech(text: string, voice: VoiceType): Promise<ArrayBuffer> {
+export async function synthesizeSpeech(text: string): Promise<ArrayBuffer> {
   const apiKey = env.FISH_AUDIO_API_KEY?.trim()
-  const reference = voiceId(voice)
+  const reference = voiceId()
 
   if (!apiKey || !reference) {
     throw new UpstreamError('fish', 'unavailable', 'Fish Audio is not configured')

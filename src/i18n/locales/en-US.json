@@ -11,8 +11,6 @@
   "intake.sexMale": "Male",
   "intake.sexFemale": "Female",
   "intake.sexOther": "Other",
-  "voice.male": "Male",
-  "voice.female": "Female",
   "intake.primaryLanguage": "Primary language",
   "intake.primaryLanguageHelper": "Auto-detected from your app settings — confirm or edit",
   "intake.chronicConditions": "Chronic conditions or allergies",

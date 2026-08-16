@@ -6,12 +6,11 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft, Globe, Volume2, Type, LogOut, Trash2, ChevronRight,
+  ArrowLeft, Globe, Type, LogOut, Trash2, ChevronRight,
   Download, BarChart3, MessageSquarePlus,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { Profile, VoiceType } from '@/types'
-import VoicePicker from '@/components/ui/VoicePicker'
+import { Profile } from '@/types'
 import { getLanguageByCode } from '@/lib/languages'
 import {
   ANALYTICS_CONSENT_KEY, hasAnalyticsConsent, initAnalytics, shutdownAnalytics, trackFeedbackSubmitted,
@@ -62,7 +61,6 @@ export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), [])
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [showVoicePicker, setShowVoicePicker] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [exporting, setExporting] = useState(false)
@@ -82,7 +80,7 @@ export default function SettingsPage() {
       }
       const { data } = await supabase
         .from('profiles')
-        .select('id, language_code, preferred_voice, romanization_enabled')
+        .select('id, language_code, romanization_enabled')
         .eq('id', user.id)
         .single()
       if (!cancelled) {
@@ -101,24 +99,6 @@ export default function SettingsPage() {
     )
     return () => clearTimeout(timer)
   }, [])
-
-  // Rows written before Fish Audio hold a device voice name here. Treat anything
-  // that isn't one of Kai's two voices as no choice at all.
-  const selectedVoice: VoiceType | undefined =
-    profile?.preferred_voice === 'male' || profile?.preferred_voice === 'female'
-      ? profile.preferred_voice
-      : undefined
-
-  const handleVoiceSelect = async (voice: VoiceType) => {
-    if (!profile) return
-    const { error } = await supabase
-      .from('profiles')
-      .update({ preferred_voice: voice })
-      .eq('id', profile.id)
-    if (!error) {
-      setProfile(p => p ? { ...p, preferred_voice: voice } : p)
-    }
-  }
 
   const handleRomanizationToggle = async () => {
     if (!profile) return
@@ -281,47 +261,6 @@ export default function SettingsPage() {
                 </div>
                 <ChevronRight size={16} style={{ color: C.inkSoft }} />
               </motion.button>
-            </SectionCard>
-
-            <SectionCard label="Kai's Voice">
-              <motion.button
-                onClick={() => setShowVoicePicker(p => !p)}
-                className="w-full flex items-center gap-3 px-4 py-4 min-h-[60px]"
-                whileTap={{ scale: 0.98 }}
-                aria-expanded={showVoicePicker}
-              >
-                <RowIcon><Volume2 size={16} style={{ color: C.brand }} /></RowIcon>
-                <div className="flex-1 text-left">
-                  <div className="text-[14px] font-medium" style={{ color: C.ink }}>Voice preference</div>
-                  <div className="text-[12px]" style={{ color: C.inkSoft }}>
-                    {selectedVoice ? (selectedVoice === 'male' ? 'Male' : 'Female') : 'Not set'}
-                  </div>
-                </div>
-                <ChevronRight
-                  size={16}
-                  style={{ color: C.inkSoft, transform: showVoicePicker ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }}
-                />
-              </motion.button>
-              <AnimatePresence>
-                {showVoicePicker && profile && (
-                  <motion.div
-                    initial={{ gridTemplateRows: '0fr', opacity: 0 }}
-                    animate={{ gridTemplateRows: '1fr', opacity: 1 }}
-                    exit={{ gridTemplateRows: '0fr', opacity: 0 }}
-                    style={{ display: 'grid' }}
-                  >
-                    <div className="min-h-0 overflow-hidden">
-                      <div className="px-4 pb-4">
-                        <VoicePicker
-                          langCode={profile.language_code}
-                          selected={selectedVoice}
-                          onSelect={handleVoiceSelect}
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </SectionCard>
 
             {profile && (
