@@ -312,7 +312,7 @@ export function NumberedSteps({ steps }: { steps: Step[] }) {
           className="grid gap-6 rounded-[16px] border border-[var(--band-line)] bg-[var(--band-card)] p-6 sm:p-8 lg:grid-cols-[3.5rem_1fr_1fr] lg:gap-8"
         >
             <span
-              className="lx-mono text-[2rem] leading-none text-[var(--lx-green)] opacity-50"
+              className="lx-mono text-[2rem] leading-none text-[var(--band-ink)]"
               aria-hidden="true"
             >
               {step.n}
@@ -361,7 +361,7 @@ export function ExpandableSteps({ items }: { items: Expandable[] }) {
                   className="lx-focus flex w-full items-center gap-4 p-5 text-left sm:gap-6 sm:p-6"
                 >
                   <span
-                    className="lx-mono shrink-0 text-lg leading-none text-[var(--lx-green)] opacity-60"
+                    className="lx-mono shrink-0 text-lg leading-none text-[var(--band-ink)]"
                     aria-hidden="true"
                   >
                     {item.n}
@@ -409,7 +409,7 @@ export function IndexGrid({ items }: { items: { n: string; label: string }[] }) 
           className="flex h-full items-baseline gap-4 rounded-[12px] border border-[var(--band-line)] bg-[var(--band-card)] p-4"
         >
             <span
-              className="lx-mono shrink-0 text-sm text-[var(--lx-green)] opacity-60"
+              className="lx-mono shrink-0 text-sm text-[var(--band-ink)]"
               aria-hidden="true"
             >
               {item.n}

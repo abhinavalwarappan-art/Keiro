@@ -115,7 +115,7 @@ export default function AccessibilityPage() {
                 note: 'Nothing counts down at you. Nothing flashes, nothing auto-plays, and nothing expires while you are thinking about how to say it.',
                 demo: (
                   <p className="text-sm leading-[1.7] text-[var(--band-muted)]">
-                    <span className="line-through opacity-60">Session expires in 4:59</span>
+                    <span className="line-through">Session expires in 4:59</span>
                     <br />
                     <span className="font-semibold text-[var(--lx-green-ink)]">
                       Take as long as you need.
