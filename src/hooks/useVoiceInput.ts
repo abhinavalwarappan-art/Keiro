@@ -96,6 +96,7 @@ interface UseVoiceInputOptions {
 }
 
 interface UseVoiceInput {
+  requesting: boolean
   recording: boolean
   transcribing: boolean
   error: string | null
@@ -113,6 +114,7 @@ interface UseVoiceInput {
 }
 
 export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInputOptions): UseVoiceInput {
+  const [requesting, setRequesting] = useState(false)
   const [recording, setRecording] = useState(false)
   const [transcribing, setTranscribing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -325,6 +327,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     async (micRequest: Promise<MediaStream> | null) => {
       if (!micRequest) {
         openingRef.current = false
+        setRequesting(false)
         failMic(classifyMissingMediaDevices(), null, 'getUserMedia')
         return
       }
@@ -334,10 +337,12 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
         stream = await micRequest
       } catch (err) {
         openingRef.current = false
+        setRequesting(false)
         failMic(classifyMicError(err), err, 'getUserMedia')
         return
       }
       openingRef.current = false
+      setRequesting(false)
 
       // The prompt can outlive the component (patient navigates away while it is
       // open). Releasing here is what actually turns the mic off — otherwise the
@@ -374,6 +379,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     const micRequest = requestMicStream()
 
     openingRef.current = true
+    setRequesting(true)
     stopSpeech()
     setError(null)
     setErrorKind(null)
@@ -413,6 +419,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   }, [])
 
   return {
+    requesting,
     recording,
     transcribing,
     error,

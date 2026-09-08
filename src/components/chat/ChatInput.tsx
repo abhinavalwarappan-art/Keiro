@@ -103,6 +103,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
   const t = useTranslations(langCode)
 
   const {
+    requesting,
     recording,
     transcribing,
     error: voiceError,
@@ -128,7 +129,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
       }, 50),
   })
 
-  const capturing = recording || transcribing
+  const capturing = requesting || recording || transcribing
 
   // Persist draft on every keystroke
   useEffect(() => {
@@ -281,7 +282,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
                   className="flex items-center gap-1.5 text-brand-ink"
                   role="status"
                   aria-live="polite"
-                  aria-label="Transcribing"
+                  aria-label={requesting ? 'Requesting microphone access' : 'Transcribing'}
                 >
                   <Loader2 size={18} className="animate-spin" aria-hidden />
                   <span className="flex gap-1" aria-hidden>
@@ -309,7 +310,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
           )}
           <motion.button
             onClick={handleMicClick}
-            disabled={(disabled && !speaking) || sending || transcribing}
+            disabled={(disabled && !speaking) || sending || requesting || transcribing}
             className={`flex size-12 min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-lg border transition-colors duration-150 disabled:opacity-50 ${
               recording
                 ? 'border-error bg-error text-white'
@@ -318,10 +319,16 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
             whileTap={{ scale: 0.95 }}
             animate={recording ? { scale: [1, 1.04, 1] } : {}}
             transition={recording ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : {}}
-            aria-label={recording ? stopRecordingLabel : 'Start voice input'}
+            aria-label={
+              requesting
+                ? 'Requesting microphone access'
+                : recording
+                  ? stopRecordingLabel
+                  : 'Start voice input'
+            }
             aria-pressed={recording}
           >
-            {transcribing ? (
+            {requesting || transcribing ? (
               <Loader2 size={18} className="animate-spin" aria-hidden />
             ) : recording ? (
               <MicOff size={18} aria-hidden />

@@ -19,21 +19,21 @@ export const maxDuration = 45
  */
 export async function POST(request: NextRequest) {
   try {
+    const origin = request.headers.get('origin')
+    if (origin !== null && origin !== request.nextUrl.origin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      logger.warn('auth_failure', '/api/tts')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const ipHash = await hashIp(getClientIp(request))
     const [userLimit, ipLimit] = await Promise.all([
-      checkRateLimit(user.id, 'tts', supabase),
+      user ? checkRateLimit(user.id, 'tts', supabase) : Promise.resolve({ allowed: true }),
       checkIpRateLimit(ipHash, 'tts', supabase),
     ])
     if (!userLimit.allowed || !ipLimit.allowed) {
-      logger.warn('rate_limit_hit', '/api/tts', user.id)
+      logger.warn('rate_limit_hit', '/api/tts', user?.id)
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
     }
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (!isFishConfigured()) {
       // Not an error state — a deploy without Fish credentials speaks in the
       // browser instead. Logged at info so it's visible without paging anyone.
-      logger.info('tts_unconfigured', '/api/tts', user.id)
+      logger.info('tts_unconfigured', '/api/tts', user?.id)
       return NextResponse.json({ error: 'Voice unavailable' }, { status: 503 })
     }
 
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     // Log the size only — never the text. It is Kai's clinical dialogue with the
     // patient, which is health information.
-    logger.info('tts_requested', '/api/tts', user.id, { bytes: audio.byteLength })
+    logger.info('tts_requested', '/api/tts', user?.id, { bytes: audio.byteLength })
 
     return new NextResponse(audio, {
       status: 200,

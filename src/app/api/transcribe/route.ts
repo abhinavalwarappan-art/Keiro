@@ -21,21 +21,21 @@ const ALLOWED_AUDIO_TYPES = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg
 
 export async function POST(request: NextRequest) {
   try {
+    const origin = request.headers.get('origin')
+    if (origin !== null && origin !== request.nextUrl.origin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      logger.warn('auth_failure', '/api/transcribe')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const ipHash = await hashIp(getClientIp(request))
     const [userLimit, ipLimit] = await Promise.all([
-      checkRateLimit(user.id, 'transcribe', supabase),
+      user ? checkRateLimit(user.id, 'transcribe', supabase) : Promise.resolve({ allowed: true }),
       checkIpRateLimit(ipHash, 'transcribe', supabase),
     ])
     if (!userLimit.allowed || !ipLimit.allowed) {
-      logger.warn('rate_limit_hit', '/api/transcribe', user.id)
+      logger.warn('rate_limit_hit', '/api/transcribe', user?.id)
       return NextResponse.json(
         { error: 'Please wait a moment before continuing.' },
         { status: 429 }
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     // generic upstream fault — voice is optional, and this is the one failure
     // mode a deploy can fix.
     if (!isTranscriptionConfigured(langCode)) {
-      logger.error('transcription_unconfigured', '/api/transcribe', user.id, {
+      logger.error('transcription_unconfigured', '/api/transcribe', user?.id, {
         provider: providerFor(langCode),
       })
       return NextResponse.json({ error: 'Transcription unavailable' }, { status: 503 })
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     // info). The detected language is worth keeping next to the hint: a
     // persistent mismatch means the picker and the patient disagree. The
     // provider is logged so a script regression can be traced to one of them.
-    logger.info('transcription_requested', '/api/transcribe', user.id, {
+    logger.info('transcription_requested', '/api/transcribe', user?.id, {
       langCode: langCode ?? 'auto',
       detectedLanguage,
       provider: providerFor(langCode),
