@@ -6,7 +6,6 @@
    min-h-12 keeps every target above the 44px floor on a phone. */
 
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 
 type MotionLinkProps = {
@@ -21,12 +20,7 @@ export function MotionLink({ href, children, variant = 'primary', external = fal
   const externalProps = external ? { target: '_blank', rel: 'noopener noreferrer' } : {}
 
   return (
-    <motion.div
-      className="inline-block"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-    >
+    <div className="inline-block">
       <Link
         href={href}
         {...externalProps}
@@ -37,6 +31,6 @@ export function MotionLink({ href, children, variant = 'primary', external = fal
       >
         {children}
       </Link>
-    </motion.div>
+    </div>
   )
 }

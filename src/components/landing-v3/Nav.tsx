@@ -45,6 +45,8 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
   const [openMenu, setOpenMenu] = useState(false)
   const [openAbout, setOpenAbout] = useState(false)
   const aboutRef = useRef<HTMLDivElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const aboutButtonRef = useRef<HTMLButtonElement>(null)
 
   // Close everything on navigation.
   useEffect(() => {
@@ -56,6 +58,8 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
+        if (openMenu) menuButtonRef.current?.focus()
+        else if (openAbout) aboutButtonRef.current?.focus()
         setOpenAbout(false)
         setOpenMenu(false)
       }
@@ -71,7 +75,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
       document.removeEventListener('keydown', onKey)
       document.removeEventListener('mousedown', onClick)
     }
-  }, [])
+  }, [openMenu, openAbout])
 
   const isActive = (href: string) => pathname === href
   const isAboutActive = NAV_LINKS[2].children!.some((c) => pathname === c.href)
@@ -106,6 +110,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
               <div key={link.href} ref={aboutRef} className="relative">
                 <button
                   type="button"
+                  ref={aboutButtonRef}
                   aria-expanded={openAbout}
                   aria-haspopup="true"
                   onClick={() => setOpenAbout((v) => !v)}
@@ -171,6 +176,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
           {/* ── Mobile toggle ── */}
           <button
             type="button"
+            ref={menuButtonRef}
             aria-expanded={openMenu}
             aria-controls="mobile-menu"
             aria-label={openMenu ? 'Close menu' : 'Open menu'}

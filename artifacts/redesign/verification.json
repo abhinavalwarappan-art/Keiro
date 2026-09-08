@@ -1,0 +1,287 @@
+{
+  "contrast": [
+    {
+      "fg": "ink",
+      "bg": "paper",
+      "ratio": 11.01
+    },
+    {
+      "fg": "paper",
+      "bg": "pine",
+      "ratio": 6.86
+    },
+    {
+      "fg": "slate",
+      "bg": "paper",
+      "ratio": 5.94
+    },
+    {
+      "fg": "blue",
+      "bg": "paper",
+      "ratio": 6.88
+    },
+    {
+      "fg": "ink",
+      "bg": "sage",
+      "ratio": 10.07
+    },
+    {
+      "fg": "slate",
+      "bg": "sage",
+      "ratio": 5.43
+    },
+    {
+      "fg": "paper",
+      "bg": "ink",
+      "ratio": 11.01
+    },
+    {
+      "fg": "pine",
+      "bg": "paper",
+      "ratio": 6.86
+    },
+    {
+      "fg": "blue",
+      "bg": "sage",
+      "ratio": 6.29
+    }
+  ],
+  "layouts": [
+    {
+      "width": 375,
+      "scroll": 375,
+      "headline": "36px",
+      "targets": [
+        {
+          "width": 161.5,
+          "height": 83
+        },
+        {
+          "width": 161.5,
+          "height": 83
+        },
+        {
+          "width": 161.5,
+          "height": 83
+        },
+        {
+          "width": 161.5,
+          "height": 83
+        },
+        {
+          "width": 161.5,
+          "height": 83
+        },
+        {
+          "width": 161.5,
+          "height": 83
+        },
+        {
+          "width": 335,
+          "height": 60
+        }
+      ]
+    },
+    {
+      "width": 768,
+      "scroll": 768,
+      "headline": "48px",
+      "targets": [
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 696,
+          "height": 60
+        }
+      ]
+    },
+    {
+      "width": 1024,
+      "scroll": 1024,
+      "headline": "48px",
+      "targets": [
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 342,
+          "height": 83
+        },
+        {
+          "width": 696,
+          "height": 60
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "scroll": 1440,
+      "headline": "56px",
+      "targets": [
+        {
+          "width": 268,
+          "height": 83
+        },
+        {
+          "width": 268,
+          "height": 83
+        },
+        {
+          "width": 268,
+          "height": 83
+        },
+        {
+          "width": 268,
+          "height": 83
+        },
+        {
+          "width": 268,
+          "height": 83
+        },
+        {
+          "width": 268,
+          "height": 83
+        },
+        {
+          "width": 548,
+          "height": 60
+        }
+      ]
+    }
+  ],
+  "rtl": [
+    {
+      "code": "ar-SA",
+      "lang": "ar-SA",
+      "dir": "rtl",
+      "direction": "rtl",
+      "announcement": "Example now in Arabic. The doctor's note is in English.",
+      "noteDirection": "ltr"
+    },
+    {
+      "code": "ur-PK",
+      "lang": "ur-PK",
+      "dir": "rtl",
+      "direction": "rtl",
+      "announcement": "Example now in Urdu. The doctor's note is in English.",
+      "noteDirection": "ltr"
+    },
+    {
+      "code": "fa-IR",
+      "lang": "fa-IR",
+      "dir": "rtl",
+      "direction": "rtl",
+      "announcement": "Example now in Farsi. The doctor's note is in English.",
+      "noteDirection": "ltr"
+    }
+  ],
+  "checks": [],
+  "axe": [],
+  "focus": {
+    "text": "EspañolSpanish",
+    "outline": "rgb(36, 90, 129) solid 3px",
+    "offset": "4px"
+  },
+  "keyboardSelection": "Español\nSpanish",
+  "menuEscape": true,
+  "search": [
+    "Tiếng ViệtVietnamese"
+  ],
+  "noMatch": "No matching languages. Try another spelling.",
+  "allLanguageAttributes": true,
+  "textPairs": [
+    {
+      "fg": "rgb(36, 60, 58)",
+      "bg": "rgb(250, 247, 240)",
+      "ratio": 11.01
+    },
+    {
+      "fg": "rgb(250, 247, 240)",
+      "bg": "rgb(49, 94, 85)",
+      "ratio": 6.86
+    },
+    {
+      "fg": "rgb(82, 99, 94)",
+      "bg": "rgb(250, 247, 240)",
+      "ratio": 5.94
+    },
+    {
+      "fg": "rgb(36, 90, 129)",
+      "bg": "rgb(250, 247, 240)",
+      "ratio": 6.88
+    },
+    {
+      "fg": "rgb(36, 60, 58)",
+      "bg": "rgb(232, 239, 232)",
+      "ratio": 10.07
+    },
+    {
+      "fg": "rgb(82, 99, 94)",
+      "bg": "rgb(232, 239, 232)",
+      "ratio": 5.43
+    },
+    {
+      "fg": "rgb(250, 247, 240)",
+      "bg": "rgb(36, 60, 58)",
+      "ratio": 11.01
+    },
+    {
+      "fg": "rgb(36, 90, 129)",
+      "bg": "rgb(232, 239, 232)",
+      "ratio": 6.29
+    }
+  ],
+  "normalIdleAnimations": 0,
+  "reduced": "none",
+  "screenReaderTree": "- region \"Choose your language\":\n  - heading \"Choose your language\" [level=2]\n  - paragraph: See how Kai helps you prepare for your visit.\n  - button \"Search all 45 languages\"\n  - group \"Choose your language\":\n    - button \"English\" [pressed]\n    - button \"Español Spanish\"\n    - button \"中文 Mandarin\"\n    - button \"العربية Arabic\"\n    - button \"اردو Urdu\"\n    - button \"فارسی Farsi\"\n- status: Example now in English. The doctor's note is in English.\n- region \"An example conversation\":\n  - heading \"An example conversation\" [level=3]\n  - paragraph: Hello, I’m Kai.\n  - paragraph: Hello, I'm Kai. Tell me what hurts, in your own words. I'll explain it to your doctor.\n  - paragraph: My chest hurts when I climb the stairs.\n- region \"What your doctor reads\":\n  - heading \"What your doctor reads\" [level=3]\n  - paragraph: Example note in English\n  - paragraph: “My chest hurts when I climb the stairs.”\n  - paragraph: Your own words, written clearly for your doctor. No diagnosis.\n- link \"Start talking to Kai\":\n  - /url: /onboarding?fresh=1&lang=en-US\n- paragraph: Keiro is free and always will be. You don’t need an account. You can stop whenever you want.\n- link \"See how it works\":\n  - /url: /how-it-works",
+  "enlargement": {
+    "width": 375,
+    "scroll": 375,
+    "bodyText": "40px",
+    "offscreen": []
+  },
+  "idleAnimations": 0,
+  "reflow320": {
+    "width": 320,
+    "scroll": 320
+  }
+}
