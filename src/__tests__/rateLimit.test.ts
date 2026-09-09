@@ -54,6 +54,16 @@ describe('checkRateLimit', () => {
     }))
   })
 
+  it('uses the strict feedback submission limit', async () => {
+    const supabase = makeSupabase(true)
+    await checkRateLimit('user-456', 'feedback', supabase)
+    expect(supabase.rpc).toHaveBeenCalledWith('check_and_record_api_call', expect.objectContaining({
+      p_endpoint: 'feedback',
+      p_limit: 5,
+      p_window_ms: 15 * 60 * 1000,
+    }))
+  })
+
   it('uses DEFAULT_CONFIG for unknown endpoints', async () => {
     const supabase = makeSupabase(true)
     await checkRateLimit('user-123', 'unknown_endpoint', supabase)

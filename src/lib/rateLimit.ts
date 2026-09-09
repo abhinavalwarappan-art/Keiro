@@ -16,6 +16,7 @@ const ENDPOINT_CONFIGS: Record<string, RateLimitConfig> = {
   report_patch: { limit: 20, windowMs: 60 * 60 * 1000 },      // 20 note saves per hour
   transcribe:   { limit: 60, windowMs: 60 * 60 * 1000 },      // 60 transcriptions per hour (Fish Audio ASR call)
   tts:          { limit: 150, windowMs: 60 * 60 * 1000 },     // 150 Fish Audio syntheses per hour (Kai speaks every reply, patients replay)
+  feedback:     { limit: 5,  windowMs: 15 * 60 * 1000 },      // 5 feedback submissions per 15 minutes
 }
 
 const DEFAULT_CONFIG: RateLimitConfig = { limit: 20, windowMs: 60 * 1000 }
