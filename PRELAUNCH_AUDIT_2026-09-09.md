@@ -15,6 +15,7 @@ Scope: Next.js 16.2.6 application, Supabase backend, Fish Audio ASR/TTS, and the
 - Rate limits: primary per-user limits fail closed. Synthetic repeated calls reached 429 at the configured boundary (chat request 31 and contact request 6). Upstream/database error probes returned safe client messages without stack traces. The secondary IP tier intentionally fails open while the primary user tier remains closed; see the decision item below.
 - Secrets/config: 912 Git history blobs were scanned for provider keys, private keys, and exact local secret values; no findings. `.env.example` now documents all application-controlled runtime variables and uses `https://keiro.space` as the canonical URL. CI, Node, Port, Vercel, and audit variables are platform/tool-owned and intentionally not application secrets.
 - Live schema snapshot: every observed public table has RLS enabled. Keiro-owned tables observed were `api_calls`, `consents`, `contact_attempts`, `feedback`, `hospitals`, `ip_calls`, `messages`, `profiles`, `reports`, and `sessions`. Ownership policies protect patient rows; hospitals are intentionally public-read. Rate-limit storage tables are not intended for direct public access.
+- Deployment: merge commit `88aa565` was pushed to `main`; `keiro.space` began serving the new `/api/feedback` route at 08:47 America/Chicago. A post-deploy Playwright run against the public domain passed 33/33 health, smoke, API-auth, and public axe tests.
 
 ## 2. Fixed
 
@@ -45,7 +46,7 @@ Scope: Next.js 16.2.6 application, Supabase backend, Fish Audio ASR/TTS, and the
 - Tamil, Vietnamese, Arabic, Urdu, Persian, and other non-English ASR/TTS pronunciation and accuracy require human listeners. Only English provider audio was verified end to end.
 - Email receipt in the Gmail inbox cannot be confirmed without a production submission and inbox access.
 - Slow-network behavior has loading/typing states and bounded ASR timeouts, but field behavior on poor senior-home Wi-Fi should still be observed during the pilot.
-- The public deployment can only be confirmed after the merge-triggered Vercel build. The local Vercel CLI credential is invalid, so deployment observation must use Git and the public site.
+- The local Vercel CLI credential is invalid, so deployment health was observed through Git, the public route marker, and live browser tests rather than the Vercel dashboard/API.
 
 ## Migration reconciliation
 
