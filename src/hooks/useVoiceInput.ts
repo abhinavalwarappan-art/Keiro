@@ -108,6 +108,8 @@ interface UseVoiceInput {
   inAppBrowser: string | null
   toggle: () => void
   stop: () => void
+  /** Abandon capture/upload so typing is immediately available. */
+  cancel: () => void
   clearError: () => void
   /** Re-read the live permission state — backs the help modal's "Try again". */
   recheckPermission: () => Promise<MicPermissionState>
@@ -133,6 +135,8 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  const requestGenerationRef = useRef(0)
+  const transcriptionAbortRef = useRef<AbortController | null>(null)
 
   const discardRef = useRef(false)
   // True between the getUserMedia call and the moment an engine takes over.
@@ -221,6 +225,9 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
    * that voice failed is what this writes.
    */
   const transcribe = useCallback(async (recorded: Blob) => {
+    const controller = new AbortController()
+    transcriptionAbortRef.current = controller
+    const timeout = setTimeout(() => controller.abort(new DOMException('Transcription timed out', 'TimeoutError')), 45_000)
     setTranscribing(true)
     try {
       // Fish cannot read any container a browser records, so hand it WAV.
@@ -233,11 +240,12 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       }
 
       const form = new FormData()
+      if (controller.signal.aborted) return
       form.append('audio', wav)
       form.append('langCode', langCode)
-      const res = await fetch('/api/transcribe', { method: 'POST', body: form })
+      const res = await fetch('/api/transcribe', { method: 'POST', body: form, signal: controller.signal })
       if (res.status === 429) {
-        setError('Please wait a moment before continuing.')
+        setError('Please wait a moment before trying voice again, or type your message instead.')
         return
       }
       // Everything else — a Fish timeout, a rate limit upstream, malformed
@@ -248,6 +256,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
         return
       }
       const data = (await res.json()) as { text?: string }
+      if (controller.signal.aborted) return
       const text = typeof data.text === 'string' ? data.text.trim() : ''
       if (!text) {
         // A successful transcription of silence. Saying nothing here would look
@@ -258,9 +267,15 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       onTranscriptRef.current(text)
       onFinalRef.current?.()
     } catch {
-      setError('Voice input needs an internet connection. Please type your message instead.')
+      if (controller.signal.reason?.name !== 'AbortError') {
+        setError('Voice input could not finish. Please try again, or type your message instead.')
+      }
     } finally {
-      setTranscribing(false)
+      clearTimeout(timeout)
+      if (transcriptionAbortRef.current === controller) {
+        transcriptionAbortRef.current = null
+        setTranscribing(false)
+      }
     }
   }, [langCode])
 
@@ -293,7 +308,9 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       if (e.data.size > 0) chunks.push(e.data)
     }
     recorder.onstop = () => {
-      stopTracks()
+      stream.getTracks().forEach(t => t.stop())
+      if (mediaRecorderRef.current !== recorder) return
+      streamRef.current = null
       setRecording(false)
       mediaRecorderRef.current = null
       if (discardRef.current || chunks.length === 0) return
@@ -324,7 +341,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
    * reportable cause.
    */
   const openMic = useCallback(
-    async (micRequest: Promise<MediaStream> | null) => {
+    async (micRequest: Promise<MediaStream> | null, generation: number) => {
       if (!micRequest) {
         openingRef.current = false
         setRequesting(false)
@@ -336,9 +353,14 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       try {
         stream = await micRequest
       } catch (err) {
+        if (generation !== requestGenerationRef.current) return
         openingRef.current = false
         setRequesting(false)
         failMic(classifyMicError(err), err, 'getUserMedia')
+        return
+      }
+      if (generation !== requestGenerationRef.current) {
+        stream.getTracks().forEach(t => t.stop())
         return
       }
       openingRef.current = false
@@ -385,8 +407,22 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     setErrorKind(null)
     discardRef.current = false
 
-    void openMic(micRequest)
+    void openMic(micRequest, ++requestGenerationRef.current)
   }, [recording, transcribing, stop, openMic])
+
+  const cancel = useCallback(() => {
+    requestGenerationRef.current += 1
+    discardRef.current = true
+    openingRef.current = false
+    transcriptionAbortRef.current?.abort()
+    transcriptionAbortRef.current = null
+    stop()
+    mediaRecorderRef.current = null
+    stopTracks()
+    setRequesting(false)
+    setRecording(false)
+    setTranscribing(false)
+  }, [stop])
 
   const clearError = useCallback(() => {
     setError(null)
@@ -411,6 +447,8 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   // Discard any in-flight capture on unmount without transcribing it.
   useEffect(() => {
     return () => {
+      requestGenerationRef.current += 1
+      transcriptionAbortRef.current?.abort()
       discardRef.current = true
       const recorder = mediaRecorderRef.current
       if (recorder && recorder.state !== 'inactive') recorder.stop()
@@ -428,6 +466,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     inAppBrowser,
     toggle,
     stop,
+    cancel,
     clearError,
     recheckPermission,
   }

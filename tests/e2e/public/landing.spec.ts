@@ -28,7 +28,7 @@ test.describe('landing page — initial paint', () => {
     const text = await h1.textContent()
     // Copy was rewritten in the site rebuild — the old headline
     // ("Healthcare that speaks your language") no longer exists anywhere in src/.
-    expect(text).toMatch(/Tell me what hurts.*language you think in/i)
+    expect(text).toMatch(/Tell Kai how you feel.*In your own language/i)
   })
 
   test('hero section is present in the DOM', async ({ page }) => {

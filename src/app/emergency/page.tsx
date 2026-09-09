@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { MessageCircle, Phone } from 'lucide-react'
 import { trackEmergencyShown } from '@/lib/analytics'
@@ -32,6 +32,7 @@ const RTL_LANGUAGES = new Set(['العربية', 'اردو', 'فارسی'])
 
 export default function EmergencyPage() {
   const router = useRouter()
+  const reducedMotion = useReducedMotion()
 
   // The patient's locale decides which country's emergency number to show. We start
   // from the safe global fallback (112) so the first paint is never wrong, then
@@ -93,13 +94,13 @@ export default function EmergencyPage() {
                   key={i}
                   className="absolute rounded-full border border-white/35 shadow-[0_0_28px_rgba(255,255,255,0.22)]"
                   style={{ width: 38 + i * 22, height: 38 + i * 22 }}
-                  animate={{ scale: [0.82, 1.28], opacity: [0.55, 0] }}
+                  animate={reducedMotion ? { opacity: 0 } : { scale: [0.82, 1.28], opacity: [0.55, 0] }}
                   transition={{ duration: 1.8, repeat: Infinity, delay: i * 0.24, ease: 'easeOut' }}
                 />
               ))}
               <motion.div
                 className="relative z-10 flex size-[4.5rem] items-center justify-center rounded-full border border-white/35 bg-white/20 text-4xl shadow-inner backdrop-blur-md"
-                animate={{ scale: [1, 1.04, 1], rotate: [0, -2, 2, 0] }}
+                animate={reducedMotion ? {} : { scale: [1, 1.04, 1], rotate: [0, -2, 2, 0] }}
                 transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
               >
                 🚨
@@ -118,7 +119,7 @@ export default function EmergencyPage() {
           <motion.a
             href={`tel:${number}`}
             className="flex min-h-[60px] w-full items-center justify-center gap-3 rounded-xl bg-error py-4 text-lg font-semibold text-white shadow-[0_12px_28px_rgba(220,38,38,0.25)] transition-[background-color,box-shadow,transform] duration-150 hover:bg-red-700 active:scale-[0.98]"
-            animate={{ boxShadow: ['0 12px 28px rgba(220,38,38,0.22)', '0 16px 36px rgba(220,38,38,0.32)', '0 12px 28px rgba(220,38,38,0.22)'] }}
+            animate={reducedMotion ? {} : { boxShadow: ['0 12px 28px rgba(220,38,38,0.22)', '0 16px 36px rgba(220,38,38,0.32)', '0 12px 28px rgba(220,38,38,0.22)'] }}
             transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
           >
             <Phone size={22} aria-hidden />
@@ -151,9 +152,9 @@ export default function EmergencyPage() {
               return (
                 <motion.article
                   key={t.lang}
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={reducedMotion ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.035, duration: 0.22 }}
+                  transition={{ delay: reducedMotion ? 0 : i * 0.035, duration: reducedMotion ? 0 : 0.22 }}
                   className="grid grid-cols-[6.75rem_1fr] gap-3 rounded-xl border border-border-subtle bg-surface p-3.5 shadow-xs sm:grid-cols-[7.5rem_1fr] sm:p-4"
                 >
                   <div className="flex min-w-0 items-start gap-2 border-r border-border-subtle pr-3">

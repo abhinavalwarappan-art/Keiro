@@ -9,14 +9,13 @@ import { FileText, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import TopBar from '@/components/layout/TopBar'
 import Kai, { KaiState } from '@/components/kai/Kai'
-import KaiAvatar from '@/components/kai/KaiAvatar'
 import ChatBubble from '@/components/chat/ChatBubble'
 import ChatInput from '@/components/chat/ChatInput'
 import { SeverityPicker, YesNoPicker } from '@/components/chat/SeverityPicker'
 import { PatientProfileIntake } from '@/components/chat/PatientProfileIntake'
 import ReportCard from '@/components/report/ReportCard'
 import { ChatMessage, PatientProfile, Report } from '@/types'
-import { getInputPlaceholder, getOpeningMessage } from '@/lib/languages'
+import { getInputPlaceholder, getLanguageByCode } from '@/lib/languages'
 import { preloadSpeechVoices } from '@/lib/speech'
 import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { trackAIQuerySent, trackConversationStarted, trackReportGenerated } from '@/lib/analytics'
@@ -215,6 +214,12 @@ function ChatContent() {
   const langName = searchParams.get('langName') || 'English'
   const langNative = searchParams.get('langNative') || 'English'
   const roman = searchParams.get('roman') === '1'
+  const direction = getLanguageByCode(langCode)?.rtl && !roman ? 'rtl' : 'ltr'
+  useEffect(() => {
+    const previous = document.documentElement.lang
+    document.documentElement.lang = langCode
+    return () => { document.documentElement.lang = previous }
+  }, [langCode])
   const t = useTranslations(langCode)
   const [restoredSession] = useState(() => restoreChatSession(langCode, langName, langNative, roman))
   const [patientProfile, setPatientProfile] = useState<PatientProfile | null>(
@@ -456,7 +461,7 @@ function ChatContent() {
         if (chatAbortRef.current === controller) chatAbortRef.current = null
       }
     },
-    [langName, roman, patientProfile, router, scrollToBottom],
+    [langCode, langName, roman, patientProfile, router, scrollToBottom],
   )
 
   const sendMessage = useCallback(
@@ -647,7 +652,9 @@ function ChatContent() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="flex h-dvh flex-col bg-transparent"
+      className="flex h-dvh flex-col overflow-x-hidden bg-transparent"
+      lang={langCode}
+      dir={direction}
     >
       <TopBar
         kaiState={kaiState}

@@ -311,9 +311,24 @@ describe('recheckPermission', () => {
 })
 
 describe('(e) capture and transcription', () => {
+  it('releases a late permission grant after the patient switches to typing', async () => {
+    const { stream, track } = fakeStream()
+    let grant!: (stream: MediaStream) => void
+    setMediaDevices({ getUserMedia: vi.fn(() => new Promise<MediaStream>(resolve => { grant = resolve })) })
+    vi.stubGlobal('MediaRecorder', FakeMediaRecorder)
+    const { result } = renderVoiceInput()
+    act(() => result.current.toggle())
+    expect(result.current.requesting).toBe(true)
+    act(() => result.current.cancel())
+    expect(result.current.requesting).toBe(false)
+    await act(async () => grant(stream))
+    expect(track.stop).toHaveBeenCalled()
+    expect(result.current.recording).toBe(false)
+  })
+
   /** Route /api/transcribe to `respond`; everything else (diagnostics) 204s. */
   function stubTranscribeApi(respond: () => Response) {
-    const fetchMock = vi.fn((url: string, _init?: RequestInit) =>
+    const fetchMock = vi.fn((url: string) =>
       Promise.resolve(url === '/api/transcribe' ? respond() : new Response(null, { status: 204 })),
     )
     vi.stubGlobal('fetch', fetchMock)
@@ -338,6 +353,22 @@ describe('(e) capture and transcription', () => {
     })
     return { result, onTranscript }
   }
+
+  it('aborts a stalled upload when switching to typing without overwriting the draft', async () => {
+    let signal: AbortSignal | undefined
+    vi.stubGlobal('fetch', vi.fn((url: string, init?: RequestInit) => {
+      if (url !== '/api/transcribe') return Promise.resolve(new Response(null, { status: 204 }))
+      signal = init?.signal as AbortSignal
+      return new Promise((_resolve, reject) => signal!.addEventListener('abort', () => reject(signal!.reason)))
+    }))
+    const { result, onTranscript } = await recordAndStop()
+    expect(result.current.transcribing).toBe(true)
+    await act(async () => result.current.cancel())
+    expect(signal?.aborted).toBe(true)
+    expect(result.current.transcribing).toBe(false)
+    expect(result.current.error).toBeNull()
+    expect(onTranscript).not.toHaveBeenCalled()
+  })
 
   it('uploads the recorded clip to /api/transcribe with the language hint', async () => {
     const fetchMock = stubTranscribeApi(() => Response.json({ text: 'vayiru valikkirathu' }))
