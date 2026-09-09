@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Mic, MicOff, ArrowUp, Loader2, Info } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { AIVoiceInput } from '@/components/ui/ai-voice-input'
 import { useVoiceInput } from '@/hooks/useVoiceInput'
 import MicHelpModal from '@/components/chat/MicHelpModal'
@@ -90,6 +90,7 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({ onSend, disabled, speaking = false, placeholder, langCode }: ChatInputProps) {
+  const reducedMotion = useReducedMotion()
   const [text, setText] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(DRAFT_KEY) ?? ''
@@ -112,6 +113,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
     inAppBrowser,
     toggle,
     stop,
+    cancel,
     recheckPermission,
   } = useVoiceInput({
     langCode,
@@ -257,20 +259,22 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
             ref={inputRef}
             value={text}
             onChange={e => {
+              if (capturing) cancel()
               setText(e.target.value)
               setSendError(false)
             }}
             onKeyDown={handleKeyDown}
+            onFocus={() => { if (capturing) cancel() }}
             placeholder={placeholder}
             disabled={isPending}
             rows={2}
             className={`min-h-[72px] w-full resize-none overflow-y-auto rounded-lg border bg-sunken px-4 py-3 text-base leading-relaxed text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-border-default focus:shadow-xs focus:outline-none disabled:opacity-60 ${
               sendError ? 'border-error' : 'border-border-subtle'
-            } ${capturing ? 'pointer-events-none opacity-0' : ''}`}
+            }`}
             aria-label="Message input"
           />
           {capturing && (
-            <div className="absolute inset-0 flex items-center justify-center overflow-hidden rounded-lg border border-brand bg-brand-subtle">
+            <div className="mt-2 flex min-h-12 items-center justify-center overflow-hidden rounded-lg border border-brand bg-brand-subtle">
               {recording ? (
                 <AIVoiceInput
                   isRecording={true}
@@ -316,8 +320,8 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
                 ? 'border-error bg-error text-white'
                 : 'border-border-subtle bg-surface text-brand-ink hover:border-border-default hover:bg-sunken'
             }`}
-            whileTap={{ scale: 0.95 }}
-            animate={recording ? { scale: [1, 1.04, 1] } : {}}
+            whileTap={reducedMotion ? undefined : { scale: 0.95 }}
+            animate={recording && !reducedMotion ? { scale: [1, 1.04, 1] } : {}}
             transition={recording ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : {}}
             aria-label={
               requesting

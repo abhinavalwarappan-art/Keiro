@@ -16,7 +16,7 @@ test.describe('GET /api/health', () => {
 
 test.describe('protected APIs reject anonymous requests', () => {
   // Middleware (src/proxy.ts) gates these; no session ⇒ 401 (or 403 on CSRF/origin checks).
-  for (const path of ['/api/chat', '/api/report', '/api/translate'] as const) {
+  for (const path of ['/api/chat', '/api/report', '/api/translate', '/api/feedback'] as const) {
     test(`POST ${path} without a session is rejected`, async ({ request }) => {
       const res = await request.post(path, { data: {} })
       expect([401, 403]).toContain(res.status())

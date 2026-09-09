@@ -196,14 +196,16 @@ export default function SettingsPage() {
     const trimmed = feedbackText.trim()
     if (trimmed.length === 0) return
     setFeedbackState('sending')
-    const { data: { user } } = await supabase.auth.getUser()
-    const { error } = await supabase.from('feedback').insert({
-      user_id: user?.id ?? null,
-      type: feedbackType,
-      message: trimmed.slice(0, 4000),
-      page_url: '/settings',
-    })
-    if (error) {
+    const response = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: feedbackType,
+        message: trimmed.slice(0, 4000),
+        pageUrl: '/settings',
+      }),
+    }).catch(() => null)
+    if (!response?.ok) {
       setFeedbackState('error')
       return
     }
@@ -390,6 +392,9 @@ export default function SettingsPage() {
             onClick={() => setShowFeedback(false)}
           >
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="feedback-dialog-title"
               initial={{ y: 40, scale: 0.95 }}
               animate={{ y: 0, scale: 1 }}
               exit={{ y: 40, scale: 0.95 }}
@@ -397,7 +402,7 @@ export default function SettingsPage() {
               className="w-full max-w-sm rounded-lg p-6"
               style={{ background: C.surface }}
             >
-              <h3 className="font-bold text-lg mb-3" style={{ color: C.ink }}>Send feedback</h3>
+              <h3 id="feedback-dialog-title" className="font-bold text-lg mb-3" style={{ color: C.ink }}>Send feedback</h3>
               <div className="flex gap-2 mb-3">
                 {(['bug', 'feature', 'general'] as FeedbackType[]).map(type => (
                   <button

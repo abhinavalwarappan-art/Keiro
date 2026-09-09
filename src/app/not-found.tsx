@@ -4,7 +4,7 @@ export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-transparent px-6 text-center">
       <p
-        className="select-none text-8xl font-bold tracking-tight text-border-default"
+        className="select-none text-8xl font-bold tracking-tight text-text-tertiary"
         aria-hidden
       >
         404

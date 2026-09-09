@@ -1,5 +1,7 @@
 import { test as base, expect, type Page, type Route, type Locator } from '@playwright/test'
 
+import { isolateBrowser } from '../../../scripts/audit/browser-isolation.mjs'
+
 export { expect }
 
 /**
@@ -11,6 +13,7 @@ export { expect }
  */
 export const test = base.extend({
   page: async ({ page }, use) => {
+    if (process.env.AUDIT_ISOLATED === 'true') await isolateBrowser(page.context())
     await page.addInitScript(() => {
       try {
         window.localStorage.setItem('keiro_cookie_consent', 'declined')
@@ -235,6 +238,7 @@ function chatQuery(o: LangOpts): string {
  * text match anyway. Keep this keyed to the test id.
  */
 export async function guestLogin(page: Page, o: LangOpts = {}): Promise<void> {
+  if (process.env.AUDIT_ISOLATED === 'true') await isolateBrowser(page.context())
   await silenceSpeech(page)
   await page.goto(`/auth?${chatQuery(o)}`)
   const startButton = page.getByTestId('guest-start')

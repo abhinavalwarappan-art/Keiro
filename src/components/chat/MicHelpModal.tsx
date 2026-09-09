@@ -89,15 +89,42 @@ function MicHelpDialog({ onClose, langCode, onRecheck }: Omit<MicHelpModalProps,
   const [result, setResult] = useState<'fixed' | 'still-blocked' | null>(null)
 
   useEffect(() => {
+    const previousFocus = document.activeElement as HTMLElement | null
     dialogRef.current?.focus()
+    return () => { previousFocus?.focus() }
   }, [])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
+      if (e.key === 'Tab') {
+        const dialog = dialogRef.current
+        const controls = dialog?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), [tabindex="0"]')
+        if (!dialog || !controls?.length) return
+        const first = controls[0]
+        const last = controls[controls.length - 1]
+        if (!dialog.contains(document.activeElement)) {
+          e.preventDefault()
+          ;(e.shiftKey ? last : first).focus()
+        } else if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+          e.preventDefault()
+          last.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first.focus()
+        }
+      }
+    }
+    const onFocusIn = (event: FocusEvent) => {
+      const dialog = dialogRef.current
+      if (dialog && !dialog.contains(event.target as Node)) dialog.focus()
     }
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
+    document.addEventListener('focusin', onFocusIn)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('focusin', onFocusIn)
+    }
   }, [onClose])
 
   const handleTryAgain = async () => {

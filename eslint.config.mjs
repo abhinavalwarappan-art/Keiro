@@ -17,6 +17,12 @@ const eslintConfig = defineConfig([
     "test-results/**",
     "coverage/**",
     "graphify-out/**",
+    // Local agent checkouts and audit evidence are not part of this application.
+    ".claude/**",
+    ".remember/**",
+    "artifacts/**",
+    "scripts/audit/**",
+    "supabase/.temp/**",
   ]),
   {
     // These react-hooks rules flag idiomatic patterns / dead code here, not bugs,

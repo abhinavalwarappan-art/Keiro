@@ -162,6 +162,25 @@ test.describe('guest access to protected pages', () => {
     await expect(page.getByRole('button', { name: /Sign out/i })).toBeVisible()
   })
 
+  test('guest /settings: feedback is submitted through the server endpoint', async () => {
+    let submitted: unknown
+    await page.route('**/api/feedback', async route => {
+      submitted = route.request().postDataJSON()
+      await route.fulfill({ status: 201, contentType: 'application/json', body: '{"success":true}' })
+    })
+
+    await page.getByRole('button', { name: /Send feedback/i }).click()
+    await page.getByPlaceholder("Tell us what's on your mind…").fill('Pilot feedback test')
+    await page.getByRole('button', { name: 'Send', exact: true }).click()
+
+    await expect(page.getByRole('button', { name: 'Sent!', exact: true })).toBeVisible()
+    expect(submitted).toEqual({
+      type: 'general',
+      message: 'Pilot feedback test',
+      pageUrl: '/settings',
+    })
+  })
+
   // Sign-out runs LAST — it invalidates the session. After this, the shared
   // `page` would no longer be authenticated, so no further tests should use it.
   test('sign out from /settings redirects to /', async () => {
