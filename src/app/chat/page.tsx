@@ -676,7 +676,7 @@ function ChatContent() {
       <main id="main-content" ref={scrollRef} data-lenis-prevent className="flex-1 overflow-y-auto">
         {/* sr-only h1: the chat screen's visible chrome is the TopBar, which has
             no heading — screen-reader users still deserve a page title. */}
-        <h1 className="sr-only">{t('chat.log')}</h1>
+        <h1 className="sr-only left-0">{t('chat.log')}</h1>
         <div
           role="log"
           aria-label={t('chat.log')}
