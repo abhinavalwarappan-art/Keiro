@@ -1,5 +1,5 @@
 -- PRE-LAUNCH AUDIT: keep rate-limit state private and prevent cross-user DoS.
--- Validated as SQL only. Do not apply without production approval.
+-- Applied manually in the Supabase SQL editor on 2026-09-09.
 
 REVOKE ALL ON TABLE public.api_calls FROM anon, authenticated;
 REVOKE ALL ON TABLE public.ip_calls FROM anon, authenticated;

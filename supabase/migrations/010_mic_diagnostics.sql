@@ -1,6 +1,6 @@
 -- Migration 010: microphone failure diagnostics
 --
--- PROPOSED — not yet applied. Review before running.
+-- Applied manually in the Supabase SQL editor on 2026-09-09.
 --
 -- Voice input fails silently for some testers and works for others on the same
 -- build. Without the browser's actual error name we can only guess: a tester who
