@@ -11,7 +11,7 @@
    rhythm comes from the *ground* changing, not just the layout. */
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { useInView } from 'framer-motion'
 import { LANGUAGES } from '@/lib/languages'
 import { Reveal } from './Reveal'
 import { IconCheck, IconPlus, IconX } from './icons'

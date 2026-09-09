@@ -133,7 +133,7 @@ const PLACEHOLDER_BY_CODE: Record<string, string> = {
  * localized opening exists. Romanization is opt-in elsewhere and currently
  * resolves to the base (native-script) opening.
  */
-export function getOpeningMessage(code: string, _romanization?: boolean): string {
+export function getOpeningMessage(code: string): string {
   return OPENING_BY_CODE[code] ?? OPENING_BY_CODE['en-US']
 }
 

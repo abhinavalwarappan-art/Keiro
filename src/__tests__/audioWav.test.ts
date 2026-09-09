@@ -115,7 +115,7 @@ describe('toWav', () => {
     vi.stubGlobal('AudioContext', TrackingContext)
     vi.stubGlobal('OfflineAudioContext', class {
       destination = {}
-      constructor(..._a: unknown[]) {}
+      constructor(...args: unknown[]) { void args }
       createBufferSource() { return { buffer: null, connect: vi.fn(), start: vi.fn() } }
       startRendering = async () => ({ getChannelData: () => new Float32Array([0]) })
     })

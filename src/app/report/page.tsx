@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, useRef, Suspense, useCallback, useMemo } from 'react'
+import { useState, useEffect, Suspense, useCallback, useMemo } from 'react'
 import ReportLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { motion } from 'framer-motion'
