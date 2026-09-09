@@ -33,8 +33,7 @@ Scope: Next.js 16.2.6 application, Supabase backend, Fish Audio ASR/TTS, and the
 
 ## 3. Still broken or needs owner decision
 
-- **Apply migrations only after review:** `010_mic_diagnostics.sql` is not present in the live schema snapshot (`mic_diagnostics` and `record_mic_diagnostic` were absent). The API deliberately returns 204 even when diagnostic storage fails, so patient UX works but production mic telemetry is currently not retained.
-- **Apply migration only after review:** `20260909_harden_rate_limit_storage.sql` is new and unapplied. The live snapshot shows `api_calls` still has the old “Users see own api calls” policy and the live rate-limit function does not contain the new `auth.uid() = p_user_id` identity guard. The migration revokes direct table access, drops that policy, and adds the guard.
+- `010_mic_diagnostics.sql` and `20260909_harden_rate_limit_storage.sql` were applied manually on 2026-09-09. Live Data API verification confirms all diagnostic/rate-limit tables deny anonymous reads, anonymous callers cannot execute `check_and_record_api_call`, and the diagnostic RPC exists. `20260909222719_harden_mic_diagnostic_rpc.sql` is a new, unapplied defense-in-depth follow-up that validates and rate-limits direct diagnostic RPC calls.
 - **Migration history certainty:** schema effects confirm 001 and 003–009, plus the performance indexes, are present. Migration 002 is a no-op UTF-8 confirmation and has no durable schema marker. The Supabase CLI is not authenticated/linked, so exact entries in `supabase_migrations.schema_migrations` could not be independently listed. Do not describe 002 as confirmed applied based only on schema.
 - **Feedback email production configuration:** code defaults to the requested inbox, but Vercel must have a valid `RESEND_API_KEY` and a verified `FEEDBACK_FROM_EMAIL` for reliable delivery. A real production submission was not made because the ground rules prohibit production-data mutation. The authenticated UI/server contract was tested with interception.
 - **Secondary IP rate limiting:** `checkIpRateLimit` intentionally fails open on RPC/database failure to avoid locking a whole senior community out when Supabase has trouble. The primary per-user tier fails closed. Changing the secondary tier to fail closed is a product/reliability tradeoff, not a silent audit fix.
@@ -61,6 +60,7 @@ Scope: Next.js 16.2.6 application, Supabase backend, Fish Audio ASR/TTS, and the
 | `007_ip_rate_limit.sql` | IP table/function/index present |
 | `008_contact_rate_limit.sql` | Contact rate-limit function present |
 | `009_contact_attempts_hardening.sql` | RLS/grant posture present |
-| `010_mic_diagnostics.sql` | **Not applied; table/function absent** |
+| `010_mic_diagnostics.sql` | Applied manually; table/RPC and denied public table reads verified live |
 | `20260609_add_performance_indexes.sql` | Named indexes present |
-| `20260909_harden_rate_limit_storage.sql` | **New, staged, not applied** |
+| `20260909_harden_rate_limit_storage.sql` | Applied manually; denied table/RPC access verified live |
+| `20260909222719_harden_mic_diagnostic_rpc.sql` | **New defense-in-depth follow-up; not applied** |
