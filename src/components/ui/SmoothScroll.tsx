@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname } from 'next/navigation'
 import { cancelFrame, frame } from 'framer-motion'
 import Lenis from 'lenis'
 
@@ -22,17 +21,15 @@ export function smoothScrollTo(
   }
 
   if (typeof target === 'number') {
-    window.scrollTo({ top: target, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.location.pathname === '/' ? 'instant' : 'smooth' })
+    window.scrollTo({ top: target, behavior: 'smooth' })
     return
   }
   const el = typeof target === 'string' ? document.querySelector(target) : target
-  el?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.location.pathname === '/' ? 'instant' : 'smooth', block: 'start' })
+  el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 export function SmoothScroll() {
-  const pathname = usePathname()
   useEffect(() => {
-    if (pathname === '/') return
     // Reduced-motion users get native scrolling — no JS interpolation at all.
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
@@ -57,7 +54,7 @@ export function SmoothScroll() {
       lenisInstance.destroy()
       lenis = null
     }
-  }, [pathname])
+  }, [])
 
   return null
 }
