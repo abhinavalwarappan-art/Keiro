@@ -1,13 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { sourceSans } from '@/components/landing-v3/fonts'
 import { ANALYTICS_CONSENT_KEY, initAnalytics, shutdownAnalytics } from '@/lib/analytics'
 
 export function CookieConsent() {
-  const isHome = usePathname() === '/'
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -44,13 +42,17 @@ export function CookieConsent() {
   }
 
   return (
-    <>
+    <AnimatePresence>
       {visible && (
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 24 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           role="dialog"
           aria-modal="false"
           aria-label="Cookie consent"
-          className={`${isHome ? `keiro-consent ${sourceSans.variable}` : 'fixed bottom-4 left-4 right-4 z-50 mx-auto flex max-w-[480px] flex-col gap-3 rounded-lg border border-border-subtle bg-surface px-5 py-4 shadow-md'}`}
+          className="fixed bottom-4 left-4 right-4 z-50 mx-auto flex max-w-[480px] flex-col gap-3 rounded-lg border border-border-subtle bg-surface px-5 py-4 shadow-md"
         >
           <p className="text-sm leading-relaxed text-text-secondary">
             Essential session cookies are always on. With your OK we also use
@@ -77,8 +79,8 @@ export function CookieConsent() {
               Essential only
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
-    </>
+    </AnimatePresence>
   )
 }
