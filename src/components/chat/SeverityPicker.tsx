@@ -27,7 +27,7 @@ export function SeverityPicker({ onSelect, disabled = false, langCode }: Severit
 
   return (
     <div
-      className={`grid grid-cols-4 gap-2 pb-1 ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+      className={`grid grid-cols-2 gap-2 pb-1 sm:grid-cols-4 ${disabled ? 'pointer-events-none opacity-50' : ''}`}
       role="group"
       aria-label={t('picker.severityGroup')}
     >
@@ -41,14 +41,14 @@ export function SeverityPicker({ onSelect, disabled = false, langCode }: Severit
             aria-disabled={disabled}
             aria-label={t('picker.severityOption', { word, range: opt.range })}
             type="button"
-            className={`flex min-h-[72px] min-w-0 flex-col items-center justify-center rounded-[1.25rem] border px-1.5 py-3 transition-colors duration-150 ${opt.classes}`}
+            className={`flex min-h-14 min-w-0 flex-row items-center justify-center gap-2 rounded-[1.25rem] border px-3 py-2 sm:min-h-16 sm:flex-col sm:gap-0.5 transition-colors duration-150 ${opt.classes}`}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.97 }}
           >
             <span className="text-xl font-semibold leading-tight tabular-nums">{opt.range}</span>
-            <span dir="auto" className="mt-0.5 max-w-full break-words text-center text-sm font-medium leading-tight">{word}</span>
+            <span dir="auto" className="max-w-full text-center text-base font-medium leading-tight">{word}</span>
           </motion.button>
         )
       })}

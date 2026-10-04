@@ -19,6 +19,10 @@ function HistoryInner() {
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  // Deleting a medical report is permanent, so the trash button only asks; the
+  // inline row underneath is what actually deletes.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [deleteFailedId, setDeleteFailedId] = useState<string | null>(null)
   const supabase = createClient()
 
   const load = useCallback(async () => {
@@ -51,6 +55,7 @@ function HistoryInner() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     setDeleting(id)
+    setDeleteFailedId(null)
     try {
       const { error } = await supabase
         .from('reports')
@@ -59,8 +64,10 @@ function HistoryInner() {
         .eq('user_id', user.id)
       if (error) throw error
       setReports(prev => prev.filter(r => r.id !== id))
+      setConfirmingId(null)
     } catch {
-      // deletion failed — leave the item in the list so the user can retry
+      // Leave the item in place and say so, so the patient can retry.
+      setDeleteFailedId(id)
     } finally {
       setDeleting(null)
     }
@@ -150,13 +157,44 @@ function HistoryInner() {
                     onClick={() => handleReportClick(report)}
                   />
                   <button
-                    onClick={() => handleDelete(report.id)}
-                    disabled={deleting === report.id}
-                    className="absolute right-2 top-2 flex size-11 items-center justify-center rounded-md text-text-tertiary transition-colors duration-150 hover:bg-error-subtle hover:text-error active:scale-95 disabled:opacity-50"
+                    onClick={() => setConfirmingId(confirmingId === report.id ? null : report.id)}
+                    aria-expanded={confirmingId === report.id}
+                    className="absolute right-2 top-2 flex size-11 items-center justify-center rounded-full text-text-tertiary transition-colors duration-150 hover:bg-error-subtle hover:text-error active:scale-95"
                     aria-label="Delete report"
                   >
                     <Trash2 size={16} aria-hidden />
                   </button>
+                  {confirmingId === report.id && (
+                    <div
+                      role="group"
+                      aria-label="Confirm delete"
+                      className="mt-2 flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] bg-error-subtle px-4 py-3"
+                    >
+                      <p className="text-base text-error-text" role={deleteFailedId === report.id ? 'alert' : undefined}>
+                        {deleteFailedId === report.id
+                          ? 'Couldn’t delete. Check your connection and try again.'
+                          : 'Delete this report? This can’t be undone.'}
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setConfirmingId(null)}
+                          className="min-h-11 rounded-full px-4 text-base font-semibold text-text-primary hover:bg-surface"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(report.id)}
+                          aria-busy={deleting === report.id || undefined}
+                          disabled={deleting === report.id}
+                          className="min-h-11 rounded-full bg-error px-4 text-base font-semibold text-white disabled:opacity-60"
+                        >
+                          {deleting === report.id ? 'Deleting…' : 'Delete'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>

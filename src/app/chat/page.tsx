@@ -322,6 +322,12 @@ function ChatContent() {
     }
   }, [messages, langCode, langName, langNative, roman, quickReply, showPrepareReport, preparedReport, patientProfile])
 
+  // The report offer (and the "preparing" state) appear below the last message —
+  // bring them into view, or the second choice sits hidden under the composer.
+  useEffect(() => {
+    if (showPrepareReport || generatingReport) scrollToBottom()
+  }, [showPrepareReport, generatingReport, scrollToBottom])
+
   // Preload TTS voices once so the first Listen press has a voice ready. Kai never
   // speaks on its own — a patient opts in with the Listen button on each message.
   useEffect(() => {

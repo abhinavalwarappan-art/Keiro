@@ -158,5 +158,11 @@
   "mic.help.close": "Close",
   "mic.help.fixed": "Your microphone is on. You can tap the microphone button now.",
   "mic.help.stillBlocked": "The microphone is still turned off. Please check the steps above — or type your message instead.",
-  "mic.help.typeInstead": "You can always type instead. The message box works the same way."
+  "mic.help.typeInstead": "You can always type instead. The message box works the same way.",
+  "report.preparingPdf": "Preparing PDF…",
+  "report.open": "Open",
+  "report.print": "Print",
+  "report.share": "Share",
+  "report.pdfFailed": "The PDF couldn't be created.",
+  "report.copyFailed": "Couldn't copy automatically — press and hold the link to copy it."
 }
