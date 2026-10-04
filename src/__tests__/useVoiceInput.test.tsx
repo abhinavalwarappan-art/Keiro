@@ -15,7 +15,7 @@ import { useVoiceInput } from '@/hooks/useVoiceInput'
  * on a spinner that never clears.
  */
 
-vi.mock('@/lib/speech', () => ({ stopSpeech: vi.fn() }))
+vi.mock('@/lib/speech', () => ({ stopSpeech: vi.fn(), setAudioSessionType: vi.fn() }))
 // jsdom has no Web Audio; the WAV re-encode is covered by its own tests. Pass
 // the clip through so these tests still assert on what reaches the network.
 vi.mock('@/lib/audioWav', () => ({
@@ -328,7 +328,7 @@ describe('(e) capture and transcription', () => {
 
   /** Route /api/transcribe to `respond`; everything else (diagnostics) 204s. */
   function stubTranscribeApi(respond: () => Response) {
-    const fetchMock = vi.fn((url: string) =>
+    const fetchMock = vi.fn((url: string, _init?: RequestInit) =>
       Promise.resolve(url === '/api/transcribe' ? respond() : new Response(null, { status: 204 })),
     )
     vi.stubGlobal('fetch', fetchMock)

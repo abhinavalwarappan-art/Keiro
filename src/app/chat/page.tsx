@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback, Suspense } from 'react'
+import { useState, useEffect, useRef, useCallback, useSyncExternalStore, Suspense } from 'react'
 import ChatLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -16,7 +16,7 @@ import { PatientProfileIntake } from '@/components/chat/PatientProfileIntake'
 import ReportCard from '@/components/report/ReportCard'
 import { ChatMessage, PatientProfile, Report } from '@/types'
 import { getInputPlaceholder, getLanguageByCode } from '@/lib/languages'
-import { preloadSpeechVoices } from '@/lib/speech'
+import { preloadSpeechVoices, stopSpeech } from '@/lib/speech'
 import { useSpeechActive } from '@/hooks/useSpeechActive'
 import { trackAIQuerySent, trackConversationStarted, trackReportGenerated } from '@/lib/analytics'
 import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY, PATIENT_PROFILE_SESSION_KEY, SESSION_ID_KEY } from '@/lib/chatSession'
@@ -259,11 +259,14 @@ function ChatContent() {
   const supabase = createClient()
 
   const kaiState: KaiState = generatingReport || isTyping ? 'thinking' : isKaiSpeaking ? 'talking' : 'idle'
-  // Lock every patient control while Kai is thinking, writing, speaking, or building
-  // the report. `isStreaming` is the important addition: without it the input and the
-  // quick-reply buttons stayed live for the entire time Kai was typing out a reply.
-  const inputDisabled =
-    isTyping || isStreaming || generatingReport || showProfileIntake || isKaiSpeaking
+  // Lock every patient control while Kai is thinking, writing, or building the
+  // report. `isStreaming` matters: without it the input and the quick-reply buttons
+  // stayed live for the entire time Kai was typing out a reply.
+  //
+  // Kai SPEAKING deliberately does not lock anything. It used to, which turned the
+  // Yes/No buttons and the text box into dead clicks for as long as a reply was
+  // being read aloud. Answering now simply interrupts Kai (sendMessage stops speech).
+  const inputDisabled = isTyping || isStreaming || generatingReport || showProfileIntake
 
   const scrollToBottom = useCallback(() => {
     requestAnimationFrame(() => {
@@ -477,6 +480,8 @@ function ChatContent() {
       }
       const nextHistory = [...messages, userMessage]
 
+      // The patient has answered; Kai stops reading the question out loud.
+      stopSpeech()
       setMessages(nextHistory)
       setQuickReply(null)
       setShowPrepareReport(false)
@@ -625,10 +630,11 @@ function ChatContent() {
     }
   }, [router])
 
-  // Abort any in-flight stream on unmount.
+  // Abort any in-flight stream, and silence Kai, on unmount.
   useEffect(() => {
     return () => {
       chatAbortRef.current?.abort()
+      stopSpeech()
     }
   }, [])
 
@@ -683,11 +689,12 @@ function ChatContent() {
           aria-live="polite"
           className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 md:px-8"
         >
-          {messages.map(message => (
+          {messages.map((message, index) => (
             <ChatBubble
               key={message.id}
               message={message}
               langCode={langCode}
+              streaming={isStreaming && index === messages.length - 1}
             />
           ))}
 
@@ -825,11 +832,25 @@ function ChatContent() {
   )
 }
 
+const noopSubscribe = () => () => {}
+
+/**
+ * The conversation lives in sessionStorage, which the server can't see: it
+ * rendered the intake form while the client restored the chat, and React threw
+ * a hydration error and rebuilt the whole tree. Render the skeleton on the
+ * server and during hydration, then the real chat — one deliberate swap instead
+ * of a mismatch.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false)
+}
+
 export default function ChatPage() {
+  const hydrated = useHydrated()
   return (
     <ErrorBoundary>
       <Suspense fallback={<ChatLoading />}>
-        <ChatContent />
+        {hydrated ? <ChatContent /> : <ChatLoading />}
       </Suspense>
     </ErrorBoundary>
   )

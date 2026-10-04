@@ -1,14 +1,15 @@
 import 'server-only'
 import { env } from './env'
 import { fetchUpstream, UpstreamError } from './upstream'
+import { resolveKaiVoice } from './kaiVoices'
 
 /**
  * Both directions of Keiro's voice pipeline, on one Fish Audio account.
  *
  *  • TTS  (/v1/tts) — Kai's spoken voice. One custom voice model does all 45
- *    languages: the backbone model is multilingual, so the patient's language
- *    needs no voice mapping, only the text itself. Kai sounds the same to every
- *    patient in every language; nobody picks a voice, here or in Settings.
+ *    languages: the backbone model is multilingual. Per-language voices, if
+ *    they are ever recorded, are mapped in ONE place — `kaiVoices.ts`. Nobody
+ *    picks a voice, here or in Settings.
  *  • ASR  (/v1/asr) — the patient's speech, transcribed. Everything the mic
  *    captures lands here.
  *
@@ -40,17 +41,13 @@ const FISH_TIMEOUT_MS = 30_000
  */
 export const MAX_TTS_CHARS = 2000
 
-function voiceId(): string | undefined {
-  return env.FISH_AUDIO_VOICE?.trim() || undefined
-}
-
 /**
  * Whether Kai's voice can actually be synthesized. False when the key or the
  * model id is unset — the route then tells the client to fall back to browser
  * speech instead of failing the request.
  */
-export function isFishConfigured(): boolean {
-  return Boolean(env.FISH_AUDIO_API_KEY?.trim() && voiceId())
+export function isFishConfigured(langCode?: string): boolean {
+  return Boolean(env.FISH_AUDIO_API_KEY?.trim() && resolveKaiVoice(langCode))
 }
 
 /**
@@ -60,9 +57,9 @@ export function isFishConfigured(): boolean {
  * provider fault without ever echoing the request body — the text is patient
  * health information.
  */
-export async function synthesizeSpeech(text: string): Promise<ArrayBuffer> {
+export async function synthesizeSpeech(text: string, langCode?: string): Promise<ArrayBuffer> {
   const apiKey = env.FISH_AUDIO_API_KEY?.trim()
-  const reference = voiceId()
+  const reference = resolveKaiVoice(langCode)
 
   if (!apiKey || !reference) {
     throw new UpstreamError('fish', 'unavailable', 'Fish Audio is not configured')
