@@ -103,8 +103,8 @@
   font-family: var(--font-literata), Georgia, 'Times New Roman', serif;
   font-optical-sizing: auto;
   font-weight: 430;
-  letter-spacing: -0.015em;
-  line-height: 1.08;
+  letter-spacing: -0.022em;
+  line-height: 1.06;
   /* Figures in a stat row must not jitter in place as they count up, and a
      book face defaults to oldstyle figures — force lining for display work. */
   font-variant-numeric: lining-nums tabular-nums;

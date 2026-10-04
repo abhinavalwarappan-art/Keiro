@@ -42,7 +42,7 @@ export function Hero() {
             I&apos;m Kai. Tell me what hurts, <Accent>in the language you think in.</Accent>
           </h1>
 
-          <p className="mt-6 max-w-xl text-pretty text-lg leading-[1.8] text-[var(--lx-muted)] sm:text-xl">
+          <p className="mt-6 max-w-xl text-pretty text-lg leading-[1.55] text-[var(--lx-muted)] sm:text-xl">
             Then I&apos;ll write it down for your doctor, in clear English. I&apos;m not a doctor and
             I won&apos;t diagnose you. I&apos;ll just make sure you&apos;re understood.
           </p>
@@ -57,11 +57,8 @@ export function Hero() {
               'You can stop at any point.',
             ].map((item) => (
               <li key={item} className="flex items-center gap-3 text-[var(--lx-body)]">
-                <span
-                  className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[var(--lx-green)] text-white"
-                  aria-hidden="true"
-                >
-                  <IconCheck size={11} strokeWidth={2} />
+                <span className="shrink-0 text-[var(--lx-green-ink)]" aria-hidden="true">
+                  <IconCheck size={16} strokeWidth={2.25} />
                 </span>
                 {item}
               </li>

@@ -26,9 +26,8 @@ test.describe('landing page — initial paint', () => {
     const h1 = page.getByTestId('hero-headline')
     await expect(h1).toBeAttached()
     const text = await h1.textContent()
-    // Copy was rewritten in the site rebuild — the old headline
-    // ("Healthcare that speaks your language") no longer exists anywhere in src/.
-    expect(text).toMatch(/Tell Kai how you feel.*In your own language/i)
+    // Hero is first-person from Kai ("I'm Kai. Tell me what hurts, …").
+    expect(text).toMatch(/Tell me what hurts.*in the language you think in/i)
   })
 
   test('hero section is present in the DOM', async ({ page }) => {
