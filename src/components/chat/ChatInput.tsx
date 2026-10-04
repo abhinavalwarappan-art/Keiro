@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Mic, MicOff, ArrowUp, Loader2, Info } from 'lucide-react'
+import { ArrowUp, Loader2, Info } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { AIVoiceInput } from '@/components/ui/ai-voice-input'
+import MicButton, { type MicState } from '@/components/chat/MicButton'
+import CaptureStrip from '@/components/chat/CaptureStrip'
 import { useVoiceInput } from '@/hooks/useVoiceInput'
 import MicHelpModal from '@/components/chat/MicHelpModal'
 import { useTranslations, type MessageKey } from '@/i18n/useTranslations'
@@ -132,6 +133,13 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
   })
 
   const capturing = requesting || recording || transcribing
+  const micState: MicState = recording
+    ? 'recording'
+    : transcribing
+      ? 'transcribing'
+      : requesting
+        ? 'requesting'
+        : 'idle'
 
   // Persist draft on every keystroke
   useEffect(() => {
@@ -217,7 +225,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
     <div className="flex flex-col px-4 pb-4 pt-2">
       {/* Inline send error */}
       {sendError && (
-        <p className="mb-1.5 px-1 text-xs font-medium text-error-text" role="alert">
+        <p className="mb-2 px-1 text-sm font-medium text-error-text" role="alert">
           Message failed to send. Please try again.
         </p>
       )}
@@ -238,7 +246,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
 
       {/* Inline voice error, with recovery steps only when truly blocked */}
       {voiceMessage && (
-        <p className="mb-1.5 px-1 text-xs font-medium text-error-text" role="alert">
+        <p className="mb-2 px-1 text-base font-medium leading-snug text-error-text" role="alert">
           {voiceMessage}
           {isBlocked && (
             <button
@@ -251,7 +259,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
         </p>
       )}
 
-      <div className="flex min-h-[72px] items-end gap-2">
+      <div className="flex min-h-[72px] items-center gap-2.5">
         {/* Text input / waveform */}
         <div className="relative min-h-[72px] flex-1">
           <textarea
@@ -268,90 +276,40 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
             placeholder={placeholder}
             disabled={isPending}
             rows={2}
-            className={`min-h-[72px] w-full resize-none overflow-y-auto rounded-lg border bg-sunken px-4 py-3 text-base leading-relaxed text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-border-default focus:shadow-xs focus:outline-none disabled:opacity-60 ${
-              sendError ? 'border-error' : 'border-border-subtle'
-            }`}
+            className={`min-h-[72px] w-full resize-none overflow-y-auto rounded-lg border bg-surface px-4 py-3 text-base leading-relaxed text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-brand-ink focus:ring-2 focus:ring-brand-ink/20 focus:outline-none disabled:opacity-60 ${
+              sendError ? 'border-error' : 'border-border-default'
+            } ${capturing ? 'opacity-0' : ''}`}
+            aria-hidden={capturing || undefined}
+            tabIndex={capturing ? -1 : undefined}
             aria-label="Message input"
           />
           {capturing && (
-            <div className="mt-2 flex min-h-12 items-center justify-center overflow-hidden rounded-lg border border-brand bg-brand-subtle">
-              {recording ? (
-                <AIVoiceInput
-                  isRecording={true}
-                  visualizerBars={36}
-                  className="py-0 flex-1"
-                />
-              ) : (
-                <span
-                  className="flex items-center gap-1.5 text-brand-ink"
-                  role="status"
-                  aria-live="polite"
-                  aria-label={requesting ? 'Requesting microphone access' : 'Transcribing'}
-                >
-                  <Loader2 size={18} className="animate-spin" aria-hidden />
-                  <span className="flex gap-1" aria-hidden>
-                    <span className="size-1.5 animate-pulse rounded-full bg-brand-ink [animation-delay:0ms]" />
-                    <span className="size-1.5 animate-pulse rounded-full bg-brand-ink [animation-delay:150ms]" />
-                    <span className="size-1.5 animate-pulse rounded-full bg-brand-ink [animation-delay:300ms]" />
-                  </span>
-                </span>
-              )}
-            </div>
+            <CaptureStrip
+              mode={recording ? 'recording' : transcribing ? 'transcribing' : 'requesting'}
+              stopLabel={stopRecordingLabel}
+            />
           )}
         </div>
 
-        {/* Mic button */}
-        <div className="relative flex size-12 shrink-0 items-center justify-center">
-          {recording && (
-            <div
-              className="absolute bottom-full left-1/2 mb-2 w-max max-w-40 -translate-x-1/2 rounded-full bg-black px-3 py-1.5 text-center text-xs font-semibold leading-tight text-white shadow-md"
-              role="status"
-              dir="auto"
-            >
-              {stopRecordingLabel}
-              <span className="absolute left-1/2 top-full size-2 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-black" />
-            </div>
-          )}
-          <motion.button
-            onClick={handleMicClick}
-            disabled={(disabled && !speaking) || sending || requesting || transcribing}
-            className={`flex size-12 min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-lg border transition-colors duration-150 disabled:opacity-50 ${
-              recording
-                ? 'border-error bg-error text-white'
-                : 'border-border-subtle bg-surface text-brand-ink hover:border-border-default hover:bg-sunken'
-            }`}
-            whileTap={reducedMotion ? undefined : { scale: 0.95 }}
-            animate={recording && !reducedMotion ? { scale: [1, 1.04, 1] } : {}}
-            transition={recording ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : {}}
-            aria-label={
-              requesting
-                ? 'Requesting microphone access'
-                : recording
-                  ? stopRecordingLabel
-                  : 'Start voice input'
-            }
-            aria-pressed={recording}
-          >
-            {requesting || transcribing ? (
-              <Loader2 size={18} className="animate-spin" aria-hidden />
-            ) : recording ? (
-              <MicOff size={18} aria-hidden />
-            ) : (
-              <Mic size={18} aria-hidden />
-            )}
-          </motion.button>
-        </div>
+        {/* Mic button — the primary target, so it is the large one */}
+        <MicButton
+          state={micState}
+          disabled={(disabled && !speaking) || sending || requesting || transcribing}
+          onClick={handleMicClick}
+          stopLabel={stopRecordingLabel}
+        />
 
         {/* Send button */}
         <motion.button
           onClick={handleSend}
           disabled={!canSend}
-          className={`flex size-12 min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-lg transition-colors duration-150 ${
+          className={`flex size-12 min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-full transition-colors duration-150 ${
             canSend
               ? 'bg-brand-ink text-white hover:bg-brand-ink-hover'
               : 'cursor-not-allowed bg-sunken text-text-placeholder'
           }`}
-          whileTap={canSend ? { scale: 0.95 } : {}}
+          whileTap={canSend && !reducedMotion ? { scale: 0.93 } : {}}
+          transition={{ type: 'spring', stiffness: 700, damping: 45 }}
           aria-label="Send message"
           aria-disabled={!canSend}
         >

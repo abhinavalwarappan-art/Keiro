@@ -581,3 +581,22 @@
   stroke-dashoffset: 48;
   animation: check-draw 0.45s cubic-bezier(0.65, 0, 0.35, 1) 0.15s forwards;
 }
+
+/* ─── Voice capture ───
+   Compositor-only motion (transform/opacity). The level bars breathe while
+   Keiro is listening; the ring radiates from the mic. Reduced motion keeps
+   every state legible but static — shape, timer and label carry the meaning. */
+@keyframes mic-bar {
+  0%, 100% { transform: scaleY(0.35); }
+  50%      { transform: scaleY(1); }
+}
+@keyframes mic-ring {
+  0%   { transform: scale(1);   opacity: 0.45; }
+  100% { transform: scale(1.65); opacity: 0; }
+}
+.mic-bar  { transform-origin: center; animation: mic-bar 900ms ease-in-out infinite; }
+.mic-ring { animation: mic-ring 1600ms cubic-bezier(0.16, 1, 0.3, 1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .mic-bar  { animation: none; transform: scaleY(0.7); }
+  .mic-ring { animation: none; opacity: 0.25; transform: scale(1.25); }
+}
