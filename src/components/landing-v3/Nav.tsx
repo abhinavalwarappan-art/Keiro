@@ -44,7 +44,18 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
   const pathname = usePathname()
   const [openMenu, setOpenMenu] = useState(false)
   const [openAbout, setOpenAbout] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const aboutRef = useRef<HTMLDivElement>(null)
+
+  // Scroll-edge effect: no hairline while the bar sits over the page top; it
+  // fades in only once content actually slides underneath. State flips at a
+  // single threshold, so the listener causes no per-frame re-renders.
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   // Close everything on navigation.
   useEffect(() => {
@@ -78,9 +89,9 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
 
   return (
     <header
-      className={`sticky z-50 border-b border-[var(--lx-line)] bg-[var(--lx-cream)]/90 backdrop-blur ${
-        hasSessionBanner ? 'top-12' : 'top-0'
-      }`}
+      className={`sticky z-50 border-b bg-[var(--lx-cream)]/80 backdrop-blur-xl backdrop-saturate-150 transition-[border-color] duration-200 ${
+        isScrolled ? 'border-[var(--lx-line)]' : 'border-transparent'
+      } ${hasSessionBanner ? 'top-12' : 'top-0'}`}
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8 lg:px-16">
         {/* Kai is the logo — he's the product's face, so he leads the wordmark.
@@ -109,7 +120,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
                   aria-expanded={openAbout}
                   aria-haspopup="true"
                   onClick={() => setOpenAbout((v) => !v)}
-                  className={`lx-focus inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 font-medium transition-colors duration-200 hover:bg-[var(--lx-mint)] hover:text-[var(--lx-ink)] ${
+                  className={`lx-focus inline-flex min-h-11 items-center gap-1.5 rounded-[10px] px-3 font-medium transition-colors duration-200 hover:bg-[var(--lx-mint)] hover:text-[var(--lx-ink)] ${
                     isAboutActive ? 'text-[var(--lx-ink)]' : 'text-[var(--lx-muted)]'
                   }`}
                 >
@@ -145,7 +156,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
               <Link
                 key={link.href}
                 href={link.href}
-                className={`lx-focus inline-flex min-h-11 items-center rounded-full px-3 font-medium transition-colors duration-200 hover:bg-[var(--lx-mint)] hover:text-[var(--lx-ink)] ${
+                className={`lx-focus inline-flex min-h-11 items-center rounded-[10px] px-3 font-medium transition-colors duration-200 hover:bg-[var(--lx-mint)] hover:text-[var(--lx-ink)] ${
                   isActive(link.href) ? 'text-[var(--lx-ink)]' : 'text-[var(--lx-muted)]'
                 }`}
               >
@@ -162,7 +173,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
           <Link
             href={CTA.href}
             data-testid="nav-cta"
-            className="lx-focus lx-btn lx-btn-primary inline-flex min-h-11 shrink-0 items-center justify-center rounded-full px-4 font-semibold sm:px-5"
+            className="lx-focus lx-btn lx-btn-primary inline-flex min-h-11 shrink-0 items-center justify-center rounded-[12px] px-4 font-semibold sm:px-5"
           >
             <span className="hidden sm:inline">{CTA.label}</span>
             <span className="sm:hidden">Start</span>
@@ -175,7 +186,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
             aria-controls="mobile-menu"
             aria-label={openMenu ? 'Close menu' : 'Open menu'}
             onClick={() => setOpenMenu((v) => !v)}
-            className="lx-focus inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--lx-line)] text-[var(--lx-ink)] lg:hidden"
+            className="lx-focus inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] border border-[var(--lx-line)] text-[var(--lx-ink)] lg:hidden"
           >
             <span aria-hidden="true" className="grid place-items-center">
               {openMenu ? <IconX size={16} /> : <IconMenu size={17} />}

@@ -139,10 +139,16 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
         aria-label="Available languages"
       >
         {showSuggestion && (
-          <section aria-label="Suggested language" className="border-y border-brand-border bg-brand-subtle/60">
-            <p className="px-5 pt-3 text-sm font-medium text-brand-ink">Your device language</p>
+          <div
+            role="group"
+            aria-labelledby="device-language-label"
+            className="border-y border-brand-border bg-brand-subtle/60"
+          >
+            <div id="device-language-label" aria-hidden className="px-5 pt-3 text-sm font-medium text-brand-ink">
+              Your device language
+            </div>
             <LanguageRow lang={deviceLang} onPick={handleSelect} />
-          </section>
+          </div>
         )}
 
         {listed.length === 0 ? (
