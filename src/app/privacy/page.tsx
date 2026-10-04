@@ -103,7 +103,7 @@ export default function PrivacyPage() {
             off because the app would not function without it.
           </p>
           <p>
-            If — and only if — you tap &quot;Allow analytics&quot; in the cookie banner, we also
+            If — and only if — you tap &quot;Allow&quot; in the cookie banner, we also
             collect anonymous usage events through PostHog: which pages were visited, which language
             was chosen, and how many messages were sent. <strong>Never the content of anything you
             typed or said.</strong> Session recording is disabled. If you decline, analytics stays

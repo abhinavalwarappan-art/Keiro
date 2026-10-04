@@ -1,27 +1,82 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useState, useSyncExternalStore } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import Kai from '@/components/kai/Kai'
-import { getLanguageDisplayLines, LANGUAGES, type Language } from '@/lib/languages'
+import { getLanguageDisplayLines, LANGUAGES, resolveLanguage, type Language } from '@/lib/languages'
 import { trackLanguageSelected } from '@/lib/analytics'
 
 interface AppLanguagePickerProps {
   onSelect: (lang: Language) => void
 }
 
-/** Simple, high-contrast language list for app entry — easier for older users than the landing spiral. */
+/** Press feedback is a tight spring: it starts on pointer-down and can be
+ *  re-targeted mid-flight, so a fast tap never waits on an animation. */
+const PRESS_SPRING = { type: 'spring', stiffness: 700, damping: 45 } as const
+
+/** Code of the first browser language Keiro supports, or '' (also the server
+ *  snapshot, so hydration matches and the suggestion appears after mount). */
+function getDeviceLanguageCode(): string {
+  for (const tag of navigator.languages ?? [navigator.language]) {
+    const match = resolveLanguage(tag) ?? resolveLanguage(tag.split('-')[0])
+    if (match) return match.code
+  }
+  return ''
+}
+const subscribeNever = () => () => {}
+const getServerDeviceLanguageCode = () => ''
+
+function LanguageRow({ lang, onPick }: { lang: Language; onPick: (lang: Language) => void }) {
+  const reduceMotion = useReducedMotion()
+  const lines = getLanguageDisplayLines(lang)
+  // A patient reads their own script first; English is the helper line.
+  const primary = lines.find((l) => l.role === 'native') ?? lines[0]
+  const secondary = lines.filter((l) => l !== primary && l.role === 'english')
+  const dir = lang.rtl ? 'rtl' : 'ltr'
+
+  return (
+    <motion.button
+      type="button"
+      onClick={() => onPick(lang)}
+      role="option"
+      aria-selected={false}
+      whileTap={reduceMotion ? undefined : { scale: 0.985 }}
+      transition={PRESS_SPRING}
+      className="flex min-h-[72px] w-full items-center gap-4 px-5 py-3 text-start transition-colors duration-100 active:bg-brand-muted hover:bg-brand-subtle focus-visible:bg-brand-subtle"
+    >
+      <span className="shrink-0 text-[1.75rem] leading-none" aria-hidden>
+        {lang.flag}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span
+          lang={lang.googleCode}
+          dir={dir}
+          className="block text-left text-xl font-semibold leading-snug text-text-primary"
+        >
+          {primary.text}
+        </span>
+        {secondary.map((l) => (
+          <span key={l.text} className="block text-base leading-snug text-text-secondary">
+            {l.text}
+          </span>
+        ))}
+      </span>
+    </motion.button>
+  )
+}
+
+/** Language list for app entry. Built for the person who may not read the page
+ *  heading: every row is in its own script, the device language leads, and each
+ *  target is a full-width 72px row. */
 export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) {
   const [query, setQuery] = useState('')
-  const listRef = useRef<HTMLDivElement>(null)
-
-  const lowerQuery = query.toLowerCase()
-  const filtered = LANGUAGES.filter(
-    (lang) =>
-      lang.en.toLowerCase().includes(lowerQuery) ||
-      lang.native.toLowerCase().includes(lowerQuery) ||
-      lang.roman.toLowerCase().includes(lowerQuery),
+  const deviceCode = useSyncExternalStore(
+    subscribeNever,
+    getDeviceLanguageCode,
+    getServerDeviceLanguageCode,
   )
+  const deviceLang = deviceCode ? resolveLanguage(deviceCode) : undefined
 
   const handleSelect = (lang: Language) => {
     trackLanguageSelected(lang.code)
@@ -33,82 +88,75 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
     onSelect(lang)
   }
 
-  return (
-    <div className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col bg-transparent">
-      <header className="shrink-0 px-5 pb-4 pt-6 text-center sm:pt-8">
-        <div className="mx-auto flex justify-center">
-          <Kai size="md" state="waving" interactive={false} />
-        </div>
-        <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight text-white">
-          Choose your language
-        </h1>
-        <p className="mt-1.5 text-sm leading-relaxed text-white/55">
-          Tap your language, then confirm on the next screen.
-        </p>
-      </header>
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return LANGUAGES
+    return LANGUAGES.filter(
+      (l) =>
+        l.en.toLowerCase().includes(q) ||
+        l.native.toLowerCase().includes(q) ||
+        l.roman.toLowerCase().includes(q),
+    )
+  }, [query])
 
-      <div className="shrink-0 px-5 pb-3">
-        <div className="flex items-center gap-3 rounded-xl border border-white/15 bg-white/8 px-4 py-1 backdrop-blur-md">
-          <Search size={18} className="shrink-0 text-white/45" aria-hidden />
+  const showSuggestion = deviceLang && !query.trim()
+  const listed = showSuggestion ? filtered.filter((l) => l.code !== deviceLang.code) : filtered
+
+  return (
+    <div className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col">
+      <header className="shrink-0 px-5 pb-4 pt-5">
+        <div className="flex items-center gap-4">
+          <Kai size="xs" state="waving" interactive={false} />
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl font-semibold leading-tight tracking-tight text-text-primary">
+              Choose your language
+            </h1>
+            <p className="mt-1 text-base leading-snug text-text-secondary">
+              Tap once. You&apos;ll confirm next.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3 rounded-xl border border-border-default bg-surface px-4 transition-colors duration-150 focus-within:border-brand-ink focus-within:ring-2 focus-within:ring-brand-ink/20">
+          <Search size={20} className="shrink-0 text-text-tertiary" aria-hidden />
           <input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search languages…"
-            className="min-h-[44px] flex-1 bg-transparent text-base text-white placeholder:text-white/35 focus:outline-none"
+            placeholder="Search languages"
+            className="min-h-[52px] flex-1 bg-transparent text-lg text-text-primary placeholder:text-text-placeholder focus:outline-none"
             aria-label="Search languages"
             autoComplete="off"
             enterKeyHint="search"
           />
         </div>
-      </div>
+      </header>
 
       <div
-        ref={listRef}
         data-lenis-prevent
-        className="lang-scroll lang-scroll--dark min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain px-3 pb-6"
+        className="lang-scroll lang-scroll--light min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-[max(1.5rem,env(safe-area-inset-bottom))]"
         role="listbox"
         aria-label="Available languages"
       >
-        {filtered.length === 0 ? (
-          <p className="px-4 py-8 text-center text-base text-white/55">No languages match your search.</p>
-        ) : (
-          filtered.map((lang) => {
-            const displayLines = getLanguageDisplayLines(lang)
-            const primaryLine = displayLines.find((line) => line.role === 'english') ?? displayLines[0]
-            const secondaryLines = displayLines.filter((line) => line !== primaryLine)
+        {showSuggestion && (
+          <section aria-label="Suggested language" className="border-y border-brand-border bg-brand-subtle/60">
+            <p className="px-5 pt-3 text-sm font-medium text-brand-ink">Your device language</p>
+            <LanguageRow lang={deviceLang} onPick={handleSelect} />
+          </section>
+        )}
 
-            return (
-              <button
-                key={lang.code}
-                type="button"
-                onClick={() => handleSelect(lang)}
-                role="option"
-                aria-selected={false}
-                className="mb-2 flex min-h-[68px] w-full items-center gap-4 rounded-xl border border-white/10 bg-white/6 px-4 py-3.5 text-left transition-colors hover:border-white/20 hover:bg-white/10 active:scale-[0.99]"
-              >
-                <span className="shrink-0 text-3xl leading-none">{lang.flag}</span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-lg font-semibold leading-tight text-white">{primaryLine.text}</div>
-                  <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                    {secondaryLines.map((line) => (
-                      <span
-                        key={`${line.role}-${line.text}`}
-                        className={
-                          line.role === 'roman'
-                            ? 'text-sm text-white/45'
-                            : 'text-base text-white/75'
-                        }
-                        style={line.role === 'native' ? { direction: lang.rtl ? 'rtl' : 'ltr' } : undefined}
-                      >
-                        {line.text}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </button>
-            )
-          })
+        {listed.length === 0 ? (
+          <p className="px-5 py-10 text-center text-base text-text-secondary">
+            No languages match your search.
+          </p>
+        ) : (
+          <div
+            className={`divide-y divide-border-subtle border-b border-border-subtle bg-surface ${showSuggestion ? '' : 'border-t'}`}
+          >
+            {listed.map((lang) => (
+              <LanguageRow key={lang.code} lang={lang} onPick={handleSelect} />
+            ))}
+          </div>
         )}
       </div>
     </div>
