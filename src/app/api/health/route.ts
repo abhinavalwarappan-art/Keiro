@@ -8,11 +8,11 @@ import { NextRequest, NextResponse } from 'next/server'
  * version and timestamp for deployment verification.
  *
  * Example (public):
- *   curl https://keiro.app/api/health
+ *   curl https://keiro.space/api/health
  *   {"status":"ok"}
  *
  * Example (internal):
- *   curl -H "x-health-token: $HEALTH_CHECK_SECRET" https://keiro.app/api/health
+ *   curl -H "x-health-token: $HEALTH_CHECK_SECRET" https://keiro.space/api/health
  *   {"status":"ok","version":"v1.4.2","timestamp":"2026-06-09T12:00:00.000Z"}
  */
 export async function GET(request: NextRequest) {

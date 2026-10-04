@@ -11,7 +11,7 @@ import { CookieConsent } from '@/components/ui/CookieConsent'
 import { LangUpdater } from '@/components/ui/LangUpdater'
 import { PostHogProvider } from '@/components/PostHogProvider'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://keiro.app'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://keiro.space'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

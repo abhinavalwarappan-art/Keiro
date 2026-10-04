@@ -186,8 +186,8 @@ export default function PrivacyPage() {
           </p>
           <p>
             If you believe a child under 13 has provided us information, please contact us at{' '}
-            <a href="mailto:privacy@keiro.app" className="underline" style={{ color: 'var(--brand-ink)' }}>
-              privacy@keiro.app
+            <a href="mailto:keiro.contact@gmail.com" className="underline" style={{ color: 'var(--brand-ink)' }}>
+              keiro.contact@gmail.com
             </a>{' '}
             and we will delete it immediately.
           </p>
@@ -245,8 +245,8 @@ export default function PrivacyPage() {
           <p>
             If you have any question about this policy, or want to exercise any of your rights,
             email us at:{' '}
-            <a href="mailto:privacy@keiro.app" className="underline" style={{ color: 'var(--brand-ink)' }}>
-              privacy@keiro.app
+            <a href="mailto:keiro.contact@gmail.com" className="underline" style={{ color: 'var(--brand-ink)' }}>
+              keiro.contact@gmail.com
             </a>
             . We will reply within 10 business days.
           </p>
