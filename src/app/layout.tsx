@@ -1,15 +1,7 @@
 import type { Metadata, Viewport } from 'next'
-import { DM_Sans } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
 import './globals.css'
 import '@/lib/env' // fail fast on misconfigured deploys
-
-// Self-hosted via next/font: no render-blocking request, no CSP exception needed
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
-  variable: '--font-dm-sans',
-  display: 'swap',
-})
 
 import { SmoothScroll } from '@/components/ui/SmoothScroll'
 import { LanguageProvider } from '@/context/LanguageContext'
@@ -52,7 +44,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={dmSans.variable}>
+    <html lang="en" data-scroll-behavior="smooth" className={GeistSans.variable}>
       <body className="bg-canvas">
         <div className="relative">
         {/* Skip-to-content link — first focusable element on every page (WCAG 2.4.1) */}

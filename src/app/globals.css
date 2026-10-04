@@ -146,9 +146,9 @@
   --color-keiro-red:     var(--keiro-red);
   --color-off-white:     var(--off-white);
 
-  --font-sans:    var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono:    var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -184,7 +184,7 @@
      smooth here double-smooths and fights Lenis on anchor/programmatic jumps. */
 
   body {
-    font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
     background: transparent;
     color: var(--text-primary);
     overflow-x: hidden;
@@ -242,14 +242,14 @@
   }
 }
 
-/* Display headings — DM Sans (site-wide single typeface) */
+/* Display headings — Geist (site-wide single typeface) */
 .font-display {
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.025em;
 }
 
 .font-body {
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* ─── Reduced motion: collapse all animation to near-instant ─── */

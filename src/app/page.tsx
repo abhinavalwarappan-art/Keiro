@@ -1,18 +1,12 @@
 'use client'
 
 /* ============================================================================
-   Keiro landing page
-
-   Motion policy: no scroll-position-linked animation anywhere. Reveals are
-   `whileInView` with `once: true`; ambient motion (marquee, Kai's breathing) is
-   CSS keyframes; the step disclosures animate grid-template-rows. All of it is
-   disabled under prefers-reduced-motion.
-
-   Section spine — deliberately no archetype twice in a row, and the ground
-   changes underneath most of them:
-     hero -> marquee -> thesis(mint) -> expandable steps(cream)
-          -> split/mascot(mint) -> glass cards(DEEP) -> clinics(cream) -> cta(mint)
-   ========================================================================== */
+   Keiro home — "quiet product".
+   Narrative: what it does -> watch it happen -> how simple -> language coverage
+   -> why it's safe -> start. White ground, one deep pine, no scroll-driven or
+   fade-up reveals; the only motion is the live translation demo and press/hover
+   feedback. All of it respects prefers-reduced-motion.
+   ============================================================================ */
 
 import { Suspense } from 'react'
 import { MotionConfig } from 'framer-motion'
@@ -20,18 +14,10 @@ import { useSearchParams } from 'next/navigation'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 import '@/components/landing-v3/landing.css'
-import { literata, sourceSans, splineMono } from '@/components/landing-v3/fonts'
+import '@/components/home/home.css'
+import { geistSans, literata, sourceSans, splineMono } from '@/components/landing-v3/fonts'
 import { Nav } from '@/components/landing-v3/Nav'
-import { Hero } from '@/components/landing-v3/Hero'
-import {
-  LanguageStrip,
-  WhyBand,
-  StepsBand,
-  MeetKaiBand,
-  TrustBand,
-  ClinicsStrip,
-  HomeCta,
-} from '@/components/landing-v3/HomeSections'
+import { HomeHero, Steps, LanguageWall, Trust, FinalCta } from '@/components/home/HomeSections'
 import { Footer } from '@/components/landing-v3/Footer'
 import { LandingScrollReset } from '@/components/landing-v3/LandingScrollReset'
 
@@ -62,10 +48,8 @@ export default function LandingPage() {
         <div
           id="main-content"
           data-flow="home"
-          className={`lx ${literata.variable} ${sourceSans.variable} ${splineMono.variable} relative min-h-screen overflow-x-clip`}
+          className={`lx hm ${geistSans.variable} ${literata.variable} ${sourceSans.variable} ${splineMono.variable} relative min-h-screen overflow-x-clip`}
         >
-          <div className="lx-grain" aria-hidden="true" />
-
           <Suspense>
             <LandingChrome />
           </Suspense>
@@ -73,14 +57,11 @@ export default function LandingPage() {
           <LandingScrollReset />
 
           <main className="relative z-[1]">
-            <Hero />
-            <LanguageStrip />
-            <WhyBand />
-            <StepsBand />
-            <MeetKaiBand />
-            <TrustBand />
-            <ClinicsStrip />
-            <HomeCta />
+            <HomeHero />
+            <Steps />
+            <LanguageWall />
+            <Trust />
+            <FinalCta />
           </main>
 
           <Footer />
