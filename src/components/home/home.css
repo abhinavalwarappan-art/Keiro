@@ -133,3 +133,87 @@
   .hm-sheet { animation: none; }
   .hm-btn .hm-btn-arrow { transition: none; }
 }
+
+/* ============================================================================
+   Inner pages — the shared landing primitives, re-skinned under `.hm`.
+   Pages keep their structure and copy; ground, type, bands and cards change,
+   so every page lands in the same visual system as the home page.
+   ========================================================================== */
+.hm {
+  --lx-cream: #ffffff;
+  --lx-paper: #ffffff;
+  --lx-mint: var(--hm-warm);
+  --lx-line: var(--hm-line);
+  --lx-body: var(--hm-text);
+  --lx-muted: var(--hm-sub);
+}
+
+/* No gradient light-fields, no paper grain: white ground, one deep band. */
+.hm .lx-flow,
+.hm .lx-grain { display: none; }
+
+/* Headlines: product sans, tight tracking; the accent phrase is the one
+   Literata-italic voice, exactly as on the home page. */
+.hm .lx-display,
+.hm .lx-heading {
+  font-family: var(--hm-sans);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  font-optical-sizing: auto;
+}
+.hm .lx-heading { letter-spacing: -0.03em; line-height: 1.12; }
+.hm .lx-display .lx-accent,
+.hm .lx-heading .lx-accent,
+.hm .lx-accent {
+  font-family: var(--font-literata), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+.hm .lx-band-deep .lx-accent { color: var(--lx-sage); }
+.hm .lx-title { font-family: var(--hm-sans); letter-spacing: -0.02em; }
+
+/* Eyebrows: quiet sentence-case labels instead of mono caps. */
+.hm .lx-label {
+  font-family: var(--hm-sans);
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+
+/* Bands: hairlines only, no tinted washes. */
+.hm .lx-band { border-top-width: 0; border-bottom-width: 0; }
+.hm .lx-band-cream + .lx-band-cream,
+.hm header + .lx-band-cream { border-top: 1px solid var(--hm-line); }
+
+/* Cards: flat, hairline, no hover lift or gradient border. */
+.hm .lx-card,
+.hm .lx-card:hover,
+.hm .lx-card:focus-within {
+  box-shadow: none;
+  transform: none;
+  border-radius: 1.25rem;
+}
+.hm .lx-card::before { display: none; }
+.hm .lx-btn-primary {
+  background: var(--hm-pine);
+  border-radius: 999px;
+}
+.hm .lx-btn-primary:hover { background: var(--hm-pine-hover); }
+.hm .lx-btn-ghost { border-radius: 999px; box-shadow: none; }
+
+/* Body copy rhythm */
+.hm main p { text-wrap: pretty; }
+
+/* The "human voice" blocks (mission thesis, quotes) were a full-size italic
+   serif. Now they are product sans, with the accent phrase carrying the serif. */
+.hm .lx-serif {
+  font-family: var(--hm-sans);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+}
+.hm .lx-serif .lx-accent { font-style: italic; }

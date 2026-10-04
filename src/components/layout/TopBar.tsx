@@ -20,7 +20,7 @@ export default function TopBar({ showBack, backHref, rightElement, kaiState, lan
   const isOnline = kaiState !== 'thinking'
 
   return (
-    <header className="sticky top-0 z-20 flex min-h-14 items-center gap-3 border-b border-border-subtle bg-surface px-4">
+    <header className="sticky top-0 z-20 flex min-h-16 items-center gap-3 border-b border-border-subtle/70 bg-white/80 px-4 backdrop-blur-xl backdrop-saturate-150">
       {showBack && (
         <button
           onClick={() => (backHref ? router.push(backHref) : router.back())}
@@ -35,13 +35,13 @@ export default function TopBar({ showBack, backHref, rightElement, kaiState, lan
         <KaiAvatar pixels={40} state={kaiState ?? 'idle'} />
 
         <div>
-          <div className="text-sm font-semibold leading-tight text-text-primary">Kai</div>
+          <div className="text-lg font-semibold leading-tight tracking-[-0.02em] text-text-primary">Kai</div>
           <div className="flex items-center gap-1.5">
             <span
               className={`size-1.5 shrink-0 rounded-full ${isOnline ? 'bg-success' : 'animate-pulse bg-warning'}`}
               aria-hidden
             />
-            <span className="text-xs font-medium text-text-tertiary">
+            <span className="text-sm font-medium text-text-tertiary">
               {kaiState === 'thinking' ? 'Thinking…' : 'Online'}
             </span>
           </div>
@@ -49,7 +49,7 @@ export default function TopBar({ showBack, backHref, rightElement, kaiState, lan
       </div>
 
       {language && (
-        <span className="max-w-[140px] shrink-0 truncate rounded-full border border-border-subtle bg-sunken px-2.5 py-1 text-xs font-medium text-text-secondary">
+        <span className="max-w-[140px] shrink-0 truncate text-base font-medium text-text-secondary">
           {langNative || language}
         </span>
       )}
