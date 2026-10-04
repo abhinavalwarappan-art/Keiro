@@ -132,7 +132,7 @@ export function DateInput({
     <div className="w-full">
       <label
         htmlFor={inputId}
-        className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-text-secondary"
+        className="mb-1.5 block text-base font-medium text-text-primary"
       >
         {label}
       </label>
@@ -158,7 +158,7 @@ export function DateInput({
         )}
       />
       {error ? (
-        <p id={errorId} className="mt-1 text-xs text-error-text" role="alert" aria-live="polite">
+        <p id={errorId} className="mt-1.5 text-sm text-error-text" role="alert" aria-live="polite">
           {error}
         </p>
       ) : helper ? (

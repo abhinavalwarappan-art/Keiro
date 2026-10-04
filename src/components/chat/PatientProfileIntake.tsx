@@ -77,7 +77,7 @@ function ChoiceRow<T extends string>({
 }) {
   return (
     <div className="mt-3">
-      <p className="mb-1.5 text-xs font-medium text-text-secondary">{label}</p>
+      <p className="mb-2 text-base font-medium text-text-primary">{label}</p>
       <div className="flex flex-wrap gap-2">
         {options.map(opt => {
           const selected = value === opt.value
@@ -88,9 +88,9 @@ function ChoiceRow<T extends string>({
               aria-pressed={selected}
               onClick={() => onSelect(opt.value)}
               className={cn(
-                'min-h-[44px] rounded-md border px-3.5 py-1.5 text-sm font-medium transition-colors duration-150',
+                'min-h-[48px] rounded-lg border px-4 py-1.5 text-base font-medium transition-colors duration-150',
                 selected
-                  ? 'border-brand-strong bg-brand-subtle text-brand-ink'
+                  ? 'border-brand-ink bg-brand-subtle font-semibold text-brand-ink'
                   : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
               )}
             >
@@ -347,19 +347,19 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
         aria-labelledby="profile-intake-title"
       >
         <motion.form
-          initial={{ y: 24, scale: 0.97 }}
-          animate={{ y: 0, scale: 1 }}
-          exit={{ y: 24, opacity: 0 }}
-          transition={{ ease: [0.16, 1, 0.3, 1], duration: 0.25 }}
+          initial={{ y: 32, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 32, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 38 }}
           onSubmit={handleSubmit}
           dir={rtl ? 'rtl' : 'ltr'}
-          className="my-auto flex w-full max-w-lg flex-col gap-5 rounded-lg bg-surface p-6 shadow-md"
+          className="my-auto flex w-full max-w-lg flex-col gap-6 rounded-2xl bg-surface p-6 shadow-lg"
         >
           <div className="flex flex-col gap-1">
-            <h2 id="profile-intake-title" className="text-lg font-semibold text-text-primary">
+            <h2 id="profile-intake-title" className="font-display text-2xl font-semibold leading-tight tracking-tight text-text-primary">
               {t('intake.title')}
             </h2>
-            <p className="text-sm leading-relaxed text-text-secondary">
+            <p className="text-base leading-relaxed text-text-secondary">
               {t('intake.subtitle')}
             </p>
           </div>
@@ -400,7 +400,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
               </div>
 
               <fieldset>
-                <legend className="mb-2 block text-xs font-medium uppercase tracking-wide text-text-secondary">
+                <legend className="mb-2 block text-base font-medium text-text-primary">
                   {t('intake.biologicalSex')}
                 </legend>
                 <div className="flex flex-wrap gap-2">
@@ -410,9 +410,9 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                       type="button"
                       onClick={() => setBiologicalSex(opt.value)}
                       className={cn(
-                        'min-h-[44px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
+                        'min-h-[48px] rounded-lg border px-5 py-2 text-base font-medium transition-colors duration-150',
                         biologicalSex === opt.value
-                          ? 'border-brand-strong bg-brand-subtle text-brand-ink'
+                          ? 'border-brand-ink bg-brand-subtle font-semibold text-brand-ink'
                           : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
                       )}
                     >
@@ -421,7 +421,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                   ))}
                 </div>
                 {errors.biologicalSex && (
-                  <p className="mt-1 text-xs text-error-text" role="alert">{errors.biologicalSex}</p>
+                  <p className="mt-1.5 text-sm text-error-text" role="alert">{errors.biologicalSex}</p>
                 )}
               </fieldset>
 
@@ -437,7 +437,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
               <div>
                 <label
                   htmlFor="chronic-conditions"
-                  className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-text-secondary"
+                  className="mb-1.5 block text-base font-medium text-text-primary"
                 >
                   {t('intake.chronicConditions')} <span className="normal-case text-text-tertiary">{t('common.optional')}</span>
                 </label>
@@ -452,10 +452,10 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
               </div>
 
               <fieldset>
-                <legend className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-text-secondary">
+                <legend className="mb-1.5 block text-base font-medium text-text-primary">
                   {t('intake.lifestyle')} <span className="normal-case text-text-tertiary">{t('common.optional')}</span>
                 </legend>
-                <p className="mb-2 text-xs text-text-tertiary">{t('intake.lifestyleHelper')}</p>
+                <p className="mb-2 text-sm text-text-tertiary">{t('intake.lifestyleHelper')}</p>
                 <div className="flex flex-wrap gap-2">
                   {LIFESTYLE_OPTIONS.map(opt => {
                     const active = lifestyle[opt.key]
@@ -466,9 +466,9 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                         aria-pressed={active}
                         onClick={() => toggleLifestyle(opt.key)}
                         className={cn(
-                          'min-h-[44px] rounded-md border px-4 py-2 text-sm font-medium transition-colors duration-150',
+                          'min-h-[48px] rounded-lg border px-5 py-2 text-base font-medium transition-colors duration-150',
                           active
-                            ? 'border-brand-strong bg-brand-subtle text-brand-ink'
+                            ? 'border-brand-ink bg-brand-subtle font-semibold text-brand-ink'
                             : 'border-border-subtle bg-surface text-text-primary hover:border-border-default hover:bg-sunken',
                         )}
                       >
@@ -529,24 +529,24 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
                   onChange={e => setConsentChecked(e.target.checked)}
                   className="mt-0.5 size-5 shrink-0 rounded border-border-default accent-brand-ink"
                 />
-                <span className="text-sm leading-relaxed text-text-secondary">
+                <span className="text-base leading-relaxed text-text-secondary">
                   {renderConsent(t)}
                 </span>
               </label>
               {errors.consent && (
-                <p className="-mt-2 text-xs text-error-text" role="alert">{errors.consent}</p>
+                <p className="-mt-2 text-sm text-error-text" role="alert">{errors.consent}</p>
               )}
             </div>
           )}
 
           {submitError && (
-            <p className="text-xs text-error-text" role="alert">{submitError}</p>
+            <p className="text-sm text-error-text" role="alert">{submitError}</p>
           )}
 
           <button
             type="submit"
             disabled={submitting || loadingProfile}
-            className="min-h-[48px] w-full rounded-md bg-brand-ink py-3 text-base font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-[56px] w-full rounded-xl bg-brand-ink py-3 text-lg font-semibold text-white shadow-md transition-[background-color,transform] duration-100 hover:bg-brand-ink-hover active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting ? t('intake.submitting') : t('intake.submit')}
           </button>
