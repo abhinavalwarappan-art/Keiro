@@ -82,7 +82,7 @@
   "chat.stopReading": "Спрете да четете на глас",
   "chat.preparingAudio": "Подготовка на аудио…",
   "chat.pause": "Пауза",
-  "chat.resume": "Автобиография",
+  "chat.resume": "Продължи",
   "chat.retryAudio": "Опитай отново",
   "chat.pauseReading": "Пауза при четене на глас",
   "chat.resumeReading": "Възобновете четенето на глас",
@@ -160,9 +160,9 @@
   "mic.help.stillBlocked": "Микрофонът все още е изключен. Моля, проверете стъпките по-горе или вместо това напишете съобщението си.",
   "mic.help.typeInstead": "Винаги можете да пишете вместо това. Полето за съобщение работи по същия начин.",
   "report.preparingPdf": "Подготовка на PDF файл…",
-  "report.open": "Отворено",
+  "report.open": "Отвори",
   "report.print": "Печат",
-  "report.share": "Споделяне",
+  "report.share": "Сподели",
   "report.pdfFailed": "PDF файлът не можа да бъде създаден.",
   "report.copyFailed": "Не можа да се копира автоматично — натиснете и задръжте връзката, за да я копирате."
 }

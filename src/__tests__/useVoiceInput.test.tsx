@@ -328,7 +328,7 @@ describe('(e) capture and transcription', () => {
 
   /** Route /api/transcribe to `respond`; everything else (diagnostics) 204s. */
   function stubTranscribeApi(respond: () => Response) {
-    const fetchMock = vi.fn((url: string, _init?: RequestInit) =>
+    const fetchMock = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>((url) =>
       Promise.resolve(url === '/api/transcribe' ? respond() : new Response(null, { status: 204 })),
     )
     vi.stubGlobal('fetch', fetchMock)

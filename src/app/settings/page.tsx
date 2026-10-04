@@ -62,6 +62,7 @@ export default function SettingsPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteFailed, setDeleteFailed] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [analyticsOn, setAnalyticsOn] = useState(false)
@@ -160,6 +161,7 @@ export default function SettingsPage() {
   const handleDeleteAllData = async () => {
     if (!profile) return
     setDeleting(true)
+    setDeleteFailed(false)
     try {
       const { error: reportsError } = await supabase
         .from('reports')
@@ -182,8 +184,10 @@ export default function SettingsPage() {
       await supabase.auth.signOut()
       router.push('/')
     } catch {
+      // Keep the dialog open and say so — closing it made a failed deletion look
+      // like a successful one.
       setDeleting(false)
-      setShowDeleteConfirm(false)
+      setDeleteFailed(true)
     }
   }
 
@@ -472,25 +476,35 @@ export default function SettingsPage() {
               animate={{ y: 0, scale: 1 }}
               exit={{ y: 40, scale: 0.95 }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm rounded-lg p-6"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="delete-title"
+              className="w-full max-w-sm rounded-[1.75rem] p-6"
               style={{ background: C.surface }}
             >
-              <h3 className="font-bold text-lg mb-2" style={{ color: C.ink }}>Delete all data?</h3>
-              <p className="text-sm mb-6" style={{ color: C.inkSoft }}>
-                This will permanently delete your account, all reports, and all data. This action cannot be undone.
+              <h3 id="delete-title" className="mb-2 text-[1.375rem] font-semibold tracking-[-0.025em]" style={{ color: C.ink }}>Delete all data?</h3>
+              <p className="mb-6 text-base leading-relaxed" style={{ color: C.inkSoft }}>
+                This permanently deletes your reports and profile, then signs you out. This can’t be undone.
               </p>
+              {deleteFailed && (
+                <p role="alert" className="-mt-3 mb-5 rounded-2xl bg-error-subtle px-4 py-3 text-base text-error-text">
+                  Nothing was deleted — the request didn’t go through. Check your connection and try again.
+                </p>
+              )}
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 py-3 rounded-lg font-semibold text-[14px]"
-                  style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.brandDeep }}
+                  autoFocus
+                  className="min-h-12 flex-1 rounded-full text-base font-semibold"
+                  style={{ background: C.bg, color: C.brandDeep }}
                 >
                   Cancel
                 </button>
                 <motion.button
                   onClick={handleDeleteAllData}
                   disabled={deleting}
-                  className="flex-1 py-3 rounded-lg font-semibold text-[14px] text-white disabled:opacity-60"
+                  aria-busy={deleting || undefined}
+                  className="min-h-12 flex-1 rounded-full text-base font-semibold text-white disabled:opacity-60"
                   style={{ background: C.dangerInk }}
                   whileTap={{ scale: 0.97 }}
                 >

@@ -41,8 +41,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
 }
 
 export function ErrorFallback({ onReset }: { onReset: () => void }) {
+  // A full reload on purpose: whatever crashed is still in memory, and a client
+  // navigation would carry it along. Absolute so it never resolves against a subpath.
   const handleStartOver = () => {
-    window.location.href = '/'
+    window.location.assign(new URL('/', window.location.origin))
   }
 
   return (
@@ -52,21 +54,22 @@ export function ErrorFallback({ onReset }: { onReset: () => void }) {
       aria-live="assertive"
     >
       <KaiHead />
-      <h1 className="mt-6 text-2xl font-semibold leading-snug tracking-tight text-text-primary">
-        Something went wrong.
-        <br />
-        Please try again.
+      <h1 className="mt-6 text-balance text-[2rem] font-semibold leading-[1.1] tracking-[-0.035em] text-text-primary">
+        Something didn&apos;t load.
       </h1>
+      <p className="mt-3 max-w-sm text-pretty text-lg leading-relaxed text-text-secondary">
+        Nothing you said was lost or shared. Try again — or start over from the beginning.
+      </p>
       <button
         type="button"
         onClick={onReset}
-        className="mt-6 min-h-[48px] rounded-md bg-brand-ink px-8 py-3 text-base font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover active:scale-[0.98]"
+        className="mt-8 min-h-14 w-full max-w-[20rem] rounded-full bg-brand-ink px-8 text-lg font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-brand-ink-hover active:scale-[0.97]"
       >
         Try again
       </button>
       <button
         type="button"
-        className="mt-4 min-h-[44px] rounded-sm text-sm font-medium text-text-secondary underline underline-offset-2 transition-colors duration-150 hover:text-text-primary"
+        className="mt-2 min-h-12 w-full max-w-[20rem] rounded-full text-base font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-subtle"
         onClick={handleStartOver}
       >
         Start over

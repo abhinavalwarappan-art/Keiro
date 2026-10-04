@@ -81,8 +81,8 @@
   "chat.listenAloud": "این پیام را با صدای بلند گوش دهید",
   "chat.stopReading": "خواندن با صدای بلند را متوقف کنید",
   "chat.preparingAudio": "آماده‌سازی صدا…",
-  "chat.pause": "مکث",
-  "chat.resume": "رزومه",
+  "chat.pause": "توقف",
+  "chat.resume": "ادامه",
   "chat.retryAudio": "دوباره امتحان کنید",
   "chat.pauseReading": "مکث در خواندن با صدای بلند",
   "chat.resumeReading": "دوباره با صدای بلند بخوانید",
@@ -160,9 +160,9 @@
   "mic.help.stillBlocked": "میکروفون هنوز خاموش است. لطفاً مراحل بالا را بررسی کنید — یا به جای آن پیام خود را تایپ کنید.",
   "mic.help.typeInstead": "شما همیشه می‌توانید به جای آن تایپ کنید. کادر پیام نیز به همین روش کار می‌کند.",
   "report.preparingPdf": "در حال آماده سازی پی دی اف…",
-  "report.open": "باز",
+  "report.open": "باز کردن",
   "report.print": "چاپ",
-  "report.share": "اشتراک گذاری",
+  "report.share": "اشتراک‌گذاری",
   "report.pdfFailed": "فایل PDF ایجاد نشد.",
   "report.copyFailed": "کپی خودکار انجام نشد — برای کپی کردن، لینک را فشار داده و نگه دارید."
 }

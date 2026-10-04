@@ -161,7 +161,7 @@ test.describe('/privacy page', () => {
 
   test('mentions the privacy contact email', async ({ page }) => {
     // Use a text substring match — the email appears in link text and paragraph text
-    await expect(page.getByText('privacy@keiro.app').first()).toBeAttached()
+    await expect(page.getByText('keiro.contact@gmail.com').first()).toBeAttached()
   })
 })
 
