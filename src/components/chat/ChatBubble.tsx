@@ -206,7 +206,7 @@ export default function ChatBubble({ message, langCode, voiceName }: ChatBubbleP
         <div
           lang={langCode}
           dir="auto"
-          className="max-w-[75%] rounded-lg rounded-br-sm bg-brand-ink px-4 py-2.5 text-base leading-relaxed text-white"
+          className="max-w-[75%] rounded-[1.25rem] rounded-br-md bg-brand-ink px-4 py-2.5 text-base leading-relaxed text-white"
         >
           {displayContent}
         </div>

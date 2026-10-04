@@ -441,7 +441,7 @@ export function NumberCards({ items }: { items: NumberCard[] }) {
         <Reveal as="li" key={item.n} delay={i * 0.07} className="lx-card group flex h-full flex-col p-6">
             <div className="flex items-center gap-3">
               <span
-                className="lx-mono text-sm leading-none text-[var(--lx-green)]"
+                className="lx-mono text-sm leading-none text-[var(--lx-green-ink)]"
                 aria-hidden="true"
               >
                 {item.n}
@@ -732,7 +732,7 @@ export function ContrastPair({
       </div>
 
       <div className="bg-[var(--band-card)] p-6 sm:p-8">
-        <p className="lx-label text-xs text-[var(--lx-sage)]">
+        <p className="lx-label text-xs text-[var(--band-ink)]">
           {ours}
         </p>
         <ul className="mt-6 space-y-5">

@@ -101,7 +101,7 @@ function reportToReportData(rd: Report): ReportData {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-8">
-      <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-text-tertiary">{title}</h3>
+      <h3 className="mb-1 text-sm font-semibold text-text-secondary">{title}</h3>
       <div className="mb-3 h-px bg-border-subtle" />
       <div className="px-1">{children}</div>
     </div>
@@ -681,7 +681,7 @@ function ReportContent() {
         <div className="mb-8 rounded-md border border-warning/40 bg-warning-subtle p-4">
           <div className="mb-2 flex items-center gap-2">
             <AlertTriangle size={16} className="text-warning" aria-hidden />
-            <span className="text-xs font-semibold uppercase tracking-wide text-warning-text">
+            <span className="text-sm font-semibold text-warning-text">
               AI-generated intake summary
             </span>
           </div>
@@ -694,7 +694,7 @@ function ReportContent() {
 
         {/* Physician notes */}
         <div>
-          <h3 className="mb-1 text-xs font-medium uppercase tracking-wide text-text-tertiary">Physician Notes</h3>
+          <h3 className="mb-1 text-sm font-semibold text-text-secondary">Physician Notes</h3>
           <div className="mb-3 h-px bg-border-subtle" />
           <textarea
             value={physicianNotes}

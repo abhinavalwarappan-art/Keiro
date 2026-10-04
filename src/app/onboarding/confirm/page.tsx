@@ -71,7 +71,6 @@ function ConfirmContent() {
 
   const displayLines = selected ? getLanguageDisplayLines(selected) : []
   const primaryLine = displayLines.find((line) => line.role === 'english') ?? displayLines[0]
-  const secondaryLines = displayLines.filter((line) => line !== primaryLine)
 
   const allLanguagesHref = hospitalSlug
     ? `/onboarding?fresh=1&hospital=${encodeURIComponent(hospitalSlug)}`
@@ -92,105 +91,60 @@ function ConfirmContent() {
       animate="animate"
       className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col overflow-hidden bg-canvas"
     >
-      <header className="shrink-0 border-b border-border-subtle px-5 pb-3 pt-5">
-        <div className="mb-3 flex items-center justify-between">
-          {/* data-testid: this label is localized to the SELECTED language, so for
-              lang=es-ES it renders "← Todos los idiomas", never "All languages". */}
-          <Link
-            href={allLanguagesHref}
-            data-testid="confirm-all-languages"
-            className="text-xs font-medium text-text-tertiary transition-colors hover:text-text-secondary"
-          >
-            ← {t('confirm.allLanguages')}
-          </Link>
-          <span className="text-xs font-medium text-text-tertiary">{t('confirm.readyToStart')}</span>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="shrink-0 origin-left scale-90">
-            <Kai size="sm" state="waving" interactive={false} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-semibold leading-tight tracking-tight text-text-primary">
-              {greeting}.
-            </h1>
-            <p className="mt-0.5 text-sm leading-snug text-text-secondary">
-              {t('confirm.chatIn')
-                .split(/(\{language\})/)
-                .map((part, i) =>
-                  part === '{language}' ? (
-                    <span key={i}>
-                      <span className="font-medium text-text-primary">{primaryLine?.text}</span>
-                      {secondaryLines.map((line) => (
-                        <span key={`${line.role}-${line.text}`}>
-                          {' · '}
-                          <span style={{ direction: selected.rtl ? 'rtl' : 'ltr' }}>{line.text}</span>
-                        </span>
-                      ))}
-                    </span>
-                  ) : (
-                    <span key={i}>{part}</span>
-                  ),
-                )}
-            </p>
-          </div>
-        </div>
-
-        <p className="mt-3 text-xs leading-relaxed text-text-tertiary">{t('confirm.pitch')}</p>
-
-        <div className="mt-3 flex w-full items-center justify-between">
-          <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} />
-          <span className="text-xs font-medium text-text-tertiary">{t('confirm.languageCount')}</span>
-        </div>
+      <header className="shrink-0 px-5 pt-5">
+        {/* data-testid: this label is localized to the SELECTED language, so for
+            lang=es-ES it renders "← Todos los idiomas", never "All languages". */}
+        <Link
+          href={allLanguagesHref}
+          data-testid="confirm-all-languages"
+          className="inline-flex min-h-11 items-center text-base font-medium text-text-secondary transition-colors hover:text-text-primary"
+        >
+          ← {t('confirm.allLanguages')}
+        </Link>
       </header>
 
-      <section className="flex min-h-0 flex-1 flex-col items-center justify-center bg-surface px-6 py-5">
+      <section className="flex min-h-0 flex-1 flex-col items-center justify-center px-7 text-center">
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-sm rounded-2xl border border-brand-border bg-brand-subtle p-6 text-center shadow-xs"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 220, damping: 28 }}
+          className="flex flex-col items-center"
         >
-          <span className="text-5xl leading-none">{selected.flag}</span>
-          {displayLines
-            .filter((line) => romanization || line.role !== 'roman')
-            .map((line, index) =>
-              line.role === 'roman' ? (
-                <p key={`${line.role}-${line.text}`} className="mt-2 text-sm text-text-tertiary">
-                  {line.text}
-                </p>
-              ) : (
-                <h2
-                  key={`${line.role}-${line.text}`}
-                  className={
-                    index === 0
-                      ? 'mt-4 text-2xl font-semibold tracking-tight text-text-primary'
-                      : 'mt-1 text-xl text-brand-ink'
-                  }
-                  style={line.role === 'native' ? { direction: selected.rtl ? 'rtl' : 'ltr' } : undefined}
-                >
-                  {line.text}
-                </h2>
-              ),
-            )}
-          <p className="mt-5 text-sm leading-relaxed text-text-secondary">
-            {t('confirm.openChatIn', { language: primaryLine?.text ?? selected.en })}
+          <Kai size="md" state="waving" interactive={false} />
+          <h1 className="mt-6 text-balance text-[2.5rem] font-semibold leading-[1.05] tracking-[-0.04em] text-text-primary">
+            {greeting}
+          </h1>
+          <p
+            className="mt-4 text-xl font-medium text-brand-ink"
+            style={{ direction: selected.rtl ? 'rtl' : 'ltr' }}
+          >
+            {displayLines
+              .filter((line) => romanization || line.role !== 'roman')
+              .map((line) => line.text)
+              .join(' · ')}
+          </p>
+          <p className="mt-6 max-w-xs text-pretty text-lg leading-relaxed text-text-secondary">
+            {t('confirm.pitch')}
           </p>
         </motion.div>
       </section>
 
-      <footer className="z-20 shrink-0 border-t border-border-subtle bg-surface px-4 pb-5 pt-3">
+      <footer className="shrink-0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
+        <div className="mb-3 flex justify-center">
+          <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} />
+        </div>
         {/* data-testid: the label is t('confirm.continueIn', { language }) and interpolates
             the language's NATIVE name ("Continue in Español", not "Continue in Spanish"),
             so it is unmatchable by an English display-text locator. Keep this stable. */}
         <motion.button
           onClick={handleContinue}
           data-testid="confirm-continue"
-          className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-md bg-brand-ink py-3 text-base font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover"
-          whileTap={{ scale: 0.98 }}
+          className="flex min-h-[60px] w-full items-center justify-center gap-2.5 rounded-full bg-brand-ink py-3 text-lg font-semibold tracking-[-0.01em] text-white transition-colors duration-150 hover:bg-brand-ink-hover"
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 700, damping: 45 }}
         >
           {t('confirm.continueIn', { language: primaryLine?.text ?? selected.en })}
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+          <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden className="rtl:-scale-x-100">
             <path
               d="M3.5 9h11M10 4.5l4.5 4.5-4.5 4.5"
               stroke="currentColor"

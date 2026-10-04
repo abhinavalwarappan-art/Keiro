@@ -39,7 +39,7 @@ function SectionCard({ label, children }: { label: string; children: React.React
   return (
     <div className="overflow-hidden rounded-lg border border-border-subtle bg-surface">
       <div className="border-b border-border-subtle bg-canvas px-4 py-2.5">
-        <span className="text-xs font-medium uppercase tracking-wide text-text-tertiary">
+        <span className="text-sm font-semibold text-text-secondary">
           {label}
         </span>
       </div>

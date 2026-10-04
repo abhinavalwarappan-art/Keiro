@@ -37,7 +37,7 @@ export function LanguagePicker({
   const greeting = KAI_GREETINGS[active.code] ?? KAI_GREETINGS['en-US']
 
   return (
-    <div className="lx-demo-frame rounded-[16px] border border-[var(--lx-line)] bg-[var(--lx-paper)] p-4 sm:p-6">
+    <div className="rounded-[2rem] bg-[var(--hm-warm)] p-5 sm:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <label htmlFor="lang-search" className="font-semibold text-[var(--lx-ink)]">
           Which language do you speak?
@@ -51,7 +51,7 @@ export function LanguagePicker({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search: Tagalog, தமிழ், Polski"
-        className="lx-focus mt-3 block min-h-11 w-full rounded-[12px] border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70"
+        className="lx-focus mt-4 block min-h-12 w-full rounded-xl border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70"
       />
 
       <div
@@ -59,7 +59,7 @@ export function LanguagePicker({
         aria-label="Choose the language Kai speaks to you in"
         data-lenis-prevent
         className={[
-          'mt-3 flex flex-wrap gap-2 overflow-y-auto pr-1',
+          'mt-3 flex flex-wrap gap-1 overflow-y-auto pr-1',
           // Only fade when the list is actually clipped — a mask over a short,
           // fully-visible list would just make the last row look broken.
           compact ? 'lx-fade-b max-h-[8.5rem] pb-2 sm:max-h-[10rem]' : 'max-h-[22rem]',
@@ -75,13 +75,12 @@ export function LanguagePicker({
               aria-checked={isActive}
               onClick={() => setActive(language)}
               className={[
-                'lx-focus flex min-h-11 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition-colors duration-200',
+                'lx-focus flex min-h-11 items-center rounded-xl px-3.5 text-base font-medium transition-colors duration-150 active:scale-[0.97]',
                 isActive
-                  ? 'border-[var(--lx-ink)] bg-[var(--lx-ink)] text-white'
-                  : 'border-[var(--lx-line)] bg-white text-[var(--lx-body)] hover:border-[var(--lx-sage)]',
+                  ? 'bg-[var(--hm-pine)] text-white'
+                  : 'text-[var(--lx-body)] hover:bg-white',
               ].join(' ')}
             >
-              <span aria-hidden="true">{language.flag}</span>
               <span className="lx-native">{language.native}</span>
             </button>
           )
@@ -100,7 +99,7 @@ export function LanguagePicker({
           a screen-reader user hears the change rather than silently missing the
           entire point. */}
       <div
-        className="mt-5 rounded-[12px] border border-[var(--lx-line)] bg-[var(--lx-mint)]/60 p-4"
+        className="mt-5 rounded-2xl bg-white p-5"
         aria-live="polite"
         dir={active.rtl ? 'rtl' : 'ltr'}
       >

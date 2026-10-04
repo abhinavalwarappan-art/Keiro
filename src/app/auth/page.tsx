@@ -107,7 +107,7 @@ function AuthContent() {
           <ArrowLeft size={17} aria-hidden />
         </button>
         <span className="flex-1" />
-        <span className="rounded-full border border-border-subtle bg-sunken px-2.5 py-1 text-xs font-medium text-text-secondary">
+        <span className="text-base font-medium text-text-secondary">
           {langNative}
         </span>
       </header>
@@ -144,13 +144,13 @@ function AuthContent() {
             </p>
           </div>
 
-          <h2 className="mb-2 text-center text-2xl font-semibold tracking-tight text-text-primary">
+          <h2 className="mb-3 text-balance text-center text-[2rem] font-semibold leading-[1.1] tracking-[-0.035em] text-text-primary">
             {t('auth.title')}
           </h2>
-          <p className="mb-3 text-center text-sm text-text-secondary">
+          <p className="mb-3 text-pretty text-center text-lg leading-relaxed text-text-secondary">
             {t('auth.subtitle')}
           </p>
-          <p className="mb-6 text-center text-sm text-text-secondary">
+          <p className="mb-8 text-pretty text-center text-base leading-relaxed text-text-secondary">
             {t('auth.privacy')}
           </p>
 
@@ -163,12 +163,12 @@ function AuthContent() {
             data-testid="guest-start"
             onClick={handleStart}
             disabled={loading}
-            className="min-h-[48px] w-full rounded-md bg-brand-ink px-5 py-3 text-base font-medium text-white shadow-xs transition-colors duration-150 hover:bg-brand-ink-hover active:scale-[0.98] disabled:opacity-50"
+            className="min-h-[60px] w-full rounded-full bg-brand-ink px-6 py-3 text-lg font-semibold text-white transition-[background-color,transform] duration-100 hover:bg-brand-ink-hover active:scale-[0.97] disabled:opacity-50"
           >
             {loading ? t('auth.starting') : t('auth.start')}
           </button>
 
-          <p className="mt-6 text-center text-xs text-text-tertiary">
+          <p className="mt-6 text-center text-sm text-text-tertiary">
             <LegalLine t={t} />
           </p>
         </div>
