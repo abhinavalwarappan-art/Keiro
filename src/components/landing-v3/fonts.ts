@@ -28,6 +28,11 @@
    Never put translated copy in `.lx-display` or `.lx-serif`. */
 
 import { Literata, Source_Sans_3, Spline_Sans_Mono } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+
+/* Geist — the product face for the redesigned shell (nav, home). Latin only,
+   like the others: patient-language text still goes through `.lx-native`. */
+export const geistSans = GeistSans
 
 export const literata = Literata({
   subsets: ['latin', 'latin-ext', 'vietnamese'],
