@@ -45,18 +45,18 @@ export function CookieConsent() {
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 24 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ opacity: 0, y: 16 }}
+          transition={{ type: 'spring', stiffness: 420, damping: 38 }}
           role="dialog"
           aria-modal="false"
           aria-label="Cookie consent"
-          className="fixed bottom-4 left-4 right-4 z-50 mx-auto flex max-w-[480px] flex-col gap-3 rounded-lg border border-border-subtle bg-surface px-5 py-4 shadow-md"
+          className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-[480px] flex-col gap-3 rounded-2xl border border-border-subtle bg-surface px-4 py-3.5 shadow-lg"
         >
           <p className="text-sm leading-relaxed text-text-secondary">
-            Essential session cookies are always on. With your OK we also use
-            anonymous usage analytics (no health data, ever) to improve Keiro.{' '}
+            We use anonymous usage stats to improve Keiro — never your health
+            information.{' '}
             <Link
               href="/privacy"
               className="font-medium text-brand-ink underline underline-offset-2"
@@ -68,15 +68,15 @@ export function CookieConsent() {
           <div className="flex gap-2">
             <button
               onClick={handleAccept}
-              className="min-h-[44px] flex-1 rounded-md bg-brand-ink py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover"
+              className="min-h-[44px] flex-1 rounded-xl bg-brand-ink py-2.5 text-base font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover"
             >
-              Allow analytics
+              Allow
             </button>
             <button
               onClick={handleDecline}
-              className="min-h-[44px] flex-1 rounded-md border border-border-subtle bg-surface py-2.5 text-sm font-medium text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
+              className="min-h-[44px] flex-1 rounded-xl border border-border-default bg-surface py-2.5 text-base font-medium text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
             >
-              Essential only
+              No thanks
             </button>
           </div>
         </motion.div>

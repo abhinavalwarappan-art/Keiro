@@ -1,5 +1,5 @@
 /* Keiro design system — "Calm clinical warmth"
-   DM Sans everywhere · warm stone neutrals · one teal accent · hairline borders
+   Source Sans 3 · warm stone neutrals · one pine accent · hairline borders
    Tokens defined here are the ONLY colors/radii/shadows allowed in the app.
    Light-only by design: there is no dark theme, and `color-scheme: light` below
    pins the UA to it. See /DESIGN_SYSTEM.md for the rationale behind every value. */
@@ -29,14 +29,14 @@
   --text-inverse:     #FAFAF9;
 
   /* Brand — teal, used sparingly. `ink` shades are the AA-safe fills/links. */
-  --brand-subtle:     #F0FDFA;
-  --brand-muted:      #CCFBF1;
-  --brand-border:     #99F6E4;
-  --brand:            #00c896;
-  --brand-strong:     #00e0aa;
-  --brand-ink:        #0F766E;
-  --brand-ink-hover:  #115E59;
-  --brand-ink-active: #134E4A;
+  --brand-subtle:     #EDFAF4;
+  --brand-muted:      #DCF5E8;
+  --brand-border:     #C5EDD8;
+  --brand:            #2DA866;
+  --brand-strong:     #86D9BC;
+  --brand-ink:        #1A3D2B;
+  --brand-ink-hover:  #14301F;
+  --brand-ink-active: #0F2519;
 
   --success-subtle: #F0FDF4;
   --success:        #16A34A;
@@ -57,11 +57,11 @@
   /* ─── Legacy --keiro-* remap ───
      App pages style via these vars inline. Remapped onto the new palette so
      every surface shifts at the token layer; pages are rebuilt on top. */
-  --keiro-deep:    #134E4A;
-  --keiro-mid:     #0F766E;
-  --keiro-light:   #2DD4BF;
-  --keiro-surface: #F0FDFA;
-  --keiro-border:  #99F6E4;
+  --keiro-deep:    #14301F;
+  --keiro-mid:     #1A3D2B;
+  --keiro-light:   #2DA866;
+  --keiro-surface: #EDFAF4;
+  --keiro-border:  #C5EDD8;
   --keiro-off:     #FAFAF9;
   --keiro-text:    #1C1917;
   --keiro-muted:   #57534E;
@@ -70,16 +70,16 @@
   --keiro-red-surface: #FEF2F2;
   --off-white:     #FAFAF9;
 
-  --keiro-dark:           #134E4A;
+  --keiro-dark:           #14301F;
   --keiro-cream:          #FAFAF9;
   --keiro-white:          #ffffff;
   --keiro-off-white:      #FAFAF9;
   --keiro-text-muted:     #57534E;
-  --keiro-green-dark:     #0F766E;
-  --keiro-green-mid:      #0D9488;
-  --keiro-green-light:    #2DD4BF;
-  --keiro-green-surface:  #F0FDFA;
-  --keiro-green-border:   #99F6E4;
+  --keiro-green-dark:     #1A3D2B;
+  --keiro-green-mid:      #187F48;
+  --keiro-green-light:    #2DA866;
+  --keiro-green-surface:  #EDFAF4;
+  --keiro-green-border:   #C5EDD8;
   --text-dark:            #1C1917;
   --text-muted:           #57534E;
   --amber:                #D97706;
@@ -198,7 +198,7 @@
   }
 
   /* Focus — visible, on-brand, never removed.
-     Ring is --brand-ink, not --brand-strong: the mint #00e0aa measured 1.75:1
+     Ring is --brand-ink, not --brand-strong: the mint #86D9BC measured 1.75:1
      on white — invisible to exactly the low-vision keyboard users who depend
      on it. WCAG 1.4.11 needs ≥3:1; --brand-ink clears 5.9:1 on every app
      surface. The app is light-only, so one ring colour is safe globally. */
