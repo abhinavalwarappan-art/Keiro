@@ -13,9 +13,11 @@ interface TopBarProps {
   kaiState?: KaiState
   language?: string
   langNative?: string
+  /** Localized status line under "Kai"; defaults to English. */
+  statusLabel?: string
 }
 
-export default function TopBar({ showBack, backHref, rightElement, kaiState, language, langNative }: TopBarProps) {
+export default function TopBar({ showBack, backHref, rightElement, kaiState, language, langNative, statusLabel }: TopBarProps) {
   const router = useRouter()
   const isOnline = kaiState !== 'thinking'
 
@@ -41,8 +43,8 @@ export default function TopBar({ showBack, backHref, rightElement, kaiState, lan
               className={`size-1.5 shrink-0 rounded-full ${isOnline ? 'bg-success' : 'animate-pulse bg-warning'}`}
               aria-hidden
             />
-            <span className="text-sm font-medium text-text-tertiary">
-              {kaiState === 'thinking' ? 'Thinking…' : 'Online'}
+            <span className="text-sm font-medium text-text-tertiary" aria-live="polite">
+              {statusLabel ?? (kaiState === 'thinking' ? 'Thinking…' : 'Ready')}
             </span>
           </div>
         </div>

@@ -159,7 +159,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [biologicalSex, setBiologicalSex] = useState<BiologicalSex | ''>('')
   const [primaryLanguage, setPrimaryLanguage] = useState(langName)
-  const [primaryLanguageCode, setPrimaryLanguageCode] = useState(langCode)
+  const [primaryLanguageCode] = useState(langCode)
   const [chronicConditions, setChronicConditions] = useState('')
   const [lifestyle, setLifestyle] = useState<PatientLifestyle>({
     smoker: false,
@@ -204,7 +204,7 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
 
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .select('name, sex, preferred_language, language_code')
+          .select('name, sex')
           .eq('id', user.id)
           .single()
 
@@ -216,8 +216,9 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
         if (profile.name) setFullName(profile.name)
         const loadedSex = profile.sex ? fromDbSex(profile.sex) : null
         if (loadedSex) setBiologicalSex(loadedSex)
-        if (profile.preferred_language) setPrimaryLanguage(profile.preferred_language)
-        if (profile.language_code) setPrimaryLanguageCode(profile.language_code)
+        // Language is deliberately NOT restored from the profile: the patient
+        // picked it one screen ago, and the stored value can be a bare code
+        // ("en") that then showed up in the form as the language's name.
       } finally {
         if (!cancelled) setLoadingProfile(false)
       }

@@ -276,7 +276,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
             placeholder={placeholder}
             disabled={isPending}
             rows={2}
-            className={`min-h-[72px] w-full resize-none overflow-y-auto rounded-lg border bg-surface px-4 py-3 text-base leading-relaxed text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-brand-ink focus:ring-2 focus:ring-brand-ink/20 focus:outline-none disabled:opacity-60 ${
+            className={`min-h-[72px] w-full resize-none overflow-y-auto rounded-[1.25rem] border bg-surface px-4 py-3 text-base leading-relaxed text-text-primary transition-[border-color,box-shadow] duration-150 placeholder:text-text-placeholder focus:border-brand-ink focus:ring-2 focus:ring-brand-ink/20 focus:outline-none disabled:opacity-60 ${
               sendError ? 'border-error' : 'border-border-default'
             } ${capturing ? 'opacity-0' : ''}`}
             aria-hidden={capturing || undefined}
@@ -286,7 +286,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
           {capturing && (
             <CaptureStrip
               mode={recording ? 'recording' : transcribing ? 'transcribing' : 'requesting'}
-              stopLabel={stopRecordingLabel}
+              caption={t(recording ? 'mic.listening' : transcribing ? 'mic.transcribing' : 'mic.requesting')}
             />
           )}
         </div>

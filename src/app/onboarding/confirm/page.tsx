@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Kai from '@/components/kai/Kai'
 import RomanizationToggle from '@/components/language/RomanizationToggle'
-import { Language, resolveLanguage, getOpeningMessage, getLanguageDisplayLines } from '@/lib/languages'
+import { Language, resolveLanguage, getOpeningMessage, getLanguageDisplayLines, usesNonLatinScript } from '@/lib/languages'
 import { pageVariants } from '@/lib/motion'
 import { trackLanguageSelected, trackOnboardingCompleted } from '@/lib/analytics'
 import { useTranslations } from '@/i18n/useTranslations'
@@ -130,9 +130,12 @@ function ConfirmContent() {
       </section>
 
       <footer className="shrink-0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="mb-3 flex justify-center">
-          <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} />
-        </div>
+        {/* Only scripts a patient might not read get the English-letters option. */}
+        {usesNonLatinScript(selected) && (
+          <div className="mb-3 flex justify-center">
+            <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} />
+          </div>
+        )}
         {/* data-testid: the label is t('confirm.continueIn', { language }) and interpolates
             the language's NATIVE name ("Continue in Español", not "Continue in Spanish"),
             so it is unmatchable by an English display-text locator. Keep this stable. */}

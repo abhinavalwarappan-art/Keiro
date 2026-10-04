@@ -27,7 +27,7 @@ export function SeverityPicker({ onSelect, disabled = false, langCode }: Severit
 
   return (
     <div
-      className={`flex gap-2 overflow-x-auto px-4 pb-3 ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+      className={`grid grid-cols-4 gap-2 pb-1 ${disabled ? 'pointer-events-none opacity-50' : ''}`}
       role="group"
       aria-label={t('picker.severityGroup')}
     >
@@ -41,14 +41,14 @@ export function SeverityPicker({ onSelect, disabled = false, langCode }: Severit
             aria-disabled={disabled}
             aria-label={t('picker.severityOption', { word, range: opt.range })}
             type="button"
-            className={`flex min-h-[64px] min-w-[72px] shrink-0 flex-col items-center rounded-lg border px-4 py-3 transition-colors duration-150 ${opt.classes}`}
+            className={`flex min-h-[72px] min-w-0 flex-col items-center justify-center rounded-[1.25rem] border px-1.5 py-3 transition-colors duration-150 ${opt.classes}`}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
             whileTap={{ scale: 0.97 }}
           >
-            <span className="text-lg font-semibold leading-tight tabular-nums">{opt.range}</span>
-            <span className="mt-0.5 text-xs font-medium">{word}</span>
+            <span className="text-xl font-semibold leading-tight tabular-nums">{opt.range}</span>
+            <span dir="auto" className="mt-0.5 max-w-full break-words text-center text-sm font-medium leading-tight">{word}</span>
           </motion.button>
         )
       })}
@@ -56,12 +56,17 @@ export function SeverityPicker({ onSelect, disabled = false, langCode }: Severit
   )
 }
 
+/* Yes and No carry equal visual weight on purpose. A filled "Yes" next to an
+   outlined "No" nudges an answer, and these are clinical answers. */
+const YES_NO_CLASSES =
+  'min-h-14 flex-1 rounded-full border border-border-default bg-surface px-5 text-lg font-semibold text-text-primary transition-colors duration-150 hover:border-brand-ink hover:bg-brand-subtle'
+
 export function YesNoPicker({ onSelect, disabled = false, langCode }: SeverityPickerProps) {
   const t = useTranslations(langCode)
 
   return (
     <div
-      className={`flex gap-2 px-4 pb-3 ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+      className={`flex gap-2 pb-1 ${disabled ? 'pointer-events-none opacity-50' : ''}`}
       role="group"
       aria-label={t('picker.yesNoGroup')}
     >
@@ -70,7 +75,7 @@ export function YesNoPicker({ onSelect, disabled = false, langCode }: SeverityPi
         disabled={disabled}
         aria-disabled={disabled}
         type="button"
-        className="min-h-[48px] flex-1 rounded-lg bg-brand-ink py-3 text-base font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover"
+        className={YES_NO_CLASSES}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         whileTap={{ scale: 0.98 }}
@@ -82,7 +87,7 @@ export function YesNoPicker({ onSelect, disabled = false, langCode }: SeverityPi
         disabled={disabled}
         aria-disabled={disabled}
         type="button"
-        className="min-h-[48px] flex-1 rounded-lg border border-border-subtle bg-surface py-3 text-base font-medium text-text-primary transition-colors duration-150 hover:border-border-default hover:bg-sunken"
+        className={YES_NO_CLASSES}
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}

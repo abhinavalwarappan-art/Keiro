@@ -13,8 +13,8 @@ export function HomeHero() {
     <section id="hero" className={`${SECTION} pb-20 pt-14 sm:pt-20 md:pb-28`}>
       <div className="mx-auto max-w-[70rem] text-center">
         <h1 data-testid="hero-headline" className="hm-h1">
-          Tell it in <span className="hm-serif">your language.</span>
-          <br className="hidden md:block" /> Your doctor reads it in <span className="hm-serif">English.</span>
+          Tell it in your language.
+          <br className="hidden md:block" /> <span className="hm-quiet">Your doctor reads it in English.</span>
         </h1>
         <p className="hm-lede mx-auto mt-7 max-w-[36rem]">
           Keiro is a free assistant that listens in {LANGUAGES.length}{' '}
@@ -47,7 +47,9 @@ export function Steps() {
   return (
     <section className={`${SECTION} border-t border-[var(--hm-line)] py-24 md:py-32`}>
       <div className={INNER}>
-        <h2 className="hm-h2 max-w-[44rem]">Four steps. Nothing to learn.</h2>
+        <h2 className="hm-h2 max-w-[44rem]">
+          Four steps. <span className="hm-quiet">Nothing to learn.</span>
+        </h2>
         <ol className="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4">
           {STEPS.map((step, i) => (
             <li key={step.word} className="border-t border-[var(--hm-ink)] pt-5">
@@ -67,7 +69,7 @@ export function LanguageWall() {
     <section className={`${SECTION} bg-[var(--hm-warm)] py-24 md:py-32`}>
       <div className={INNER}>
         <h2 className="hm-h2 max-w-[44rem]">
-          {LANGUAGES.length} languages. <span className="hm-serif">Yours is one of them.</span>
+          {LANGUAGES.length} languages. <span className="hm-quiet">Yours is one of them.</span>
         </h2>
         <p className="hm-lede mt-5 max-w-[34rem]">Tap a name to start in that language.</p>
         <ul className="mt-12 flex flex-wrap gap-x-5 gap-y-1 md:gap-x-7">
@@ -104,7 +106,7 @@ export function Trust() {
       <div className={`${INNER} grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-20`}>
         <div>
           <h2 className="hm-h2">
-            Built to help you be understood. <span className="hm-serif">Not to diagnose.</span>
+            Built to help you be understood. <span className="hm-quiet">Not to diagnose.</span>
           </h2>
         </div>
         <div>

@@ -6,7 +6,12 @@ import { useRouter } from 'next/navigation'
 import { MessageCircle, Phone } from 'lucide-react'
 import { trackEmergencyShown } from '@/lib/analytics'
 import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY } from '@/lib/chatSession'
-import { resolveEmergencyNumber, type ResolvedEmergency } from '@/lib/emergencyNumbers'
+import {
+  deviceTimeZone,
+  resolveEmergencyForDevice,
+  resolveEmergencyNumber,
+  type ResolvedEmergency,
+} from '@/lib/emergencyNumbers'
 
 // `{n}` is replaced at render time with the patient's locale-resolved emergency
 // number (see resolveEmergencyNumber) — never hardcode a country's number here.
@@ -34,10 +39,10 @@ export default function EmergencyPage() {
   const router = useRouter()
   const reducedMotion = useReducedMotion()
 
-  // The patient's locale decides which country's emergency number to show. We start
-  // from the safe global fallback (112) so the first paint is never wrong, then
-  // resolve the real locale on the client. Locale is a best-guess of the patient's
-  // country, not their verified location — hence the always-visible "verify" note.
+  // Where the phone is decides which number to show: the device time zone first,
+  // the patient's language second. We start from the global fallback (112) so the
+  // server render is never wrong, then resolve on the client. Neither signal is a
+  // verified location — hence the always-visible "verify" note.
   const [emergency, setEmergency] = useState<ResolvedEmergency>(() => resolveEmergencyNumber(null))
   const { number, country, isFallback } = emergency
 
@@ -46,8 +51,8 @@ export default function EmergencyPage() {
   }, [])
 
   useEffect(() => {
-    // Prefer an explicit ?lang= (set by the chat emergency detour); otherwise read
-    // the persisted chat session; otherwise keep the global fallback.
+    // Language is only the tie-breaker when the time zone is unknown: prefer an
+    // explicit ?lang= (set by the chat emergency detour), else the chat session.
     let langCode: string | null = null
     try {
       langCode = new URLSearchParams(window.location.search).get('lang')
@@ -58,7 +63,7 @@ export default function EmergencyPage() {
     } catch {
       // URL or sessionStorage unavailable — keep the global fallback number
     }
-    if (langCode) setEmergency(resolveEmergencyNumber(langCode))
+    setEmergency(resolveEmergencyForDevice(deviceTimeZone(), langCode))
   }, [])
 
   const handleContinueChat = useCallback(() => {

@@ -89,6 +89,16 @@
   "chat.audioBlocked": "Your browser held the audio back. Tap Try again to hear it.",
   "chat.audioFailed": "Kai's voice couldn't load. Check your connection, then tap Try again.",
   "chat.audioUnavailable": "This device can't play Kai's voice right now. The message is written above.",
+  "chat.statusReady": "Ready",
+  "chat.statusThinking": "Thinking…",
+  "chat.statusSpeaking": "Speaking…",
+  "chat.end": "End",
+  "chat.endTitle": "End this conversation?",
+  "chat.endBody": "Your answers will be cleared from this phone. You can start again any time.",
+  "chat.endConfirm": "End conversation",
+  "chat.endCancel": "Keep talking",
+  "chat.ending": "Ending…",
+  "chat.hintSpeak": "Tap the microphone and speak — or type your answer.",
   "picker.severityGroup": "Select severity level",
   "picker.severityOption": "{word}, pain level {range}",
   "picker.mild": "Mild",
@@ -110,5 +120,8 @@
   "report.shareNote": "Anyone with this link and access can open the report.",
   "report.copy": "Copy",
   "report.copied": "Copied",
-  "report.copyLink": "Copy link"
+  "report.copyLink": "Copy link",
+  "mic.listening": "Listening — tap ■ when you're done",
+  "mic.requesting": "Allow the microphone if your phone asks",
+  "mic.transcribing": "Writing down what you said…"
 }

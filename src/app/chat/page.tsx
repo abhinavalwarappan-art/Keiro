@@ -5,11 +5,12 @@ import ChatLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { FileText, LogOut } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import TopBar from '@/components/layout/TopBar'
 import Kai, { KaiState } from '@/components/kai/Kai'
 import ChatBubble from '@/components/chat/ChatBubble'
+import EndSessionDialog from '@/components/chat/EndSessionDialog'
 import ChatInput from '@/components/chat/ChatInput'
 import { SeverityPicker, YesNoPicker } from '@/components/chat/SeverityPicker'
 import { PatientProfileIntake } from '@/components/chat/PatientProfileIntake'
@@ -250,6 +251,7 @@ function ChatContent() {
   const [generatingReport, setGeneratingReport] = useState(false)
   const [preparedReport, setPreparedReport] = useState<Report | null>(restoredSession?.preparedReport ?? null)
   const [reportError, setReportError] = useState(false)
+  const [endDialogOpen, setEndDialogOpen] = useState(false)
   const isKaiSpeaking = useSpeechActive()
   const scrollRef = useRef<HTMLElement>(null)
   const kaiReplyInFlightRef = useRef(false)
@@ -259,6 +261,14 @@ function ChatContent() {
   const supabase = createClient()
 
   const kaiState: KaiState = generatingReport || isTyping ? 'thinking' : isKaiSpeaking ? 'talking' : 'idle'
+  const kaiStatus =
+    kaiState === 'thinking'
+      ? t('chat.statusThinking')
+      : kaiState === 'talking'
+        ? t('chat.statusSpeaking')
+        : t('chat.statusReady')
+  // Until the patient has answered once, say plainly what to do next.
+  const hasAnswered = messages.some(m => m.role === 'user')
   // Lock every patient control while Kai is thinking, writing, or building the
   // report. `isStreaming` matters: without it the input and the quick-reply buttons
   // stayed live for the entire time Kai was typing out a reply.
@@ -494,6 +504,19 @@ function ChatContent() {
     [messages, inputDisabled, langCode, streamKaiReply, scrollToBottom],
   )
 
+  // A failed reply leaves the patient's message in the transcript with nothing
+  // after it (or a half-written reply). Retrying replays that turn — dropping a
+  // partial Kai message so it isn't shown twice — instead of making a nervous
+  // patient retype what they just said.
+  const retryLastTurn = useCallback(() => {
+    if (kaiReplyInFlightRef.current) return
+    const last = messages[messages.length - 1]
+    const history = last?.role === 'kai' ? messages.slice(0, -1) : messages
+    if (history !== messages) setMessages(history)
+    const isOpening = !history.some(m => m.role === 'user')
+    void streamKaiReply(history, isOpening)
+  }, [messages, streamKaiReply])
+
   const handleProfileComplete = useCallback(
     (profile: PatientProfile) => {
       setPatientProfile(profile)
@@ -508,6 +531,7 @@ function ChatContent() {
   )
 
   const handleEndSession = useCallback(async () => {
+    stopSpeech()
     try {
       sessionStorage.removeItem(ACTIVE_CHAT_SESSION_KEY)
       sessionStorage.removeItem(SESSION_ID_KEY)
@@ -641,7 +665,7 @@ function ChatContent() {
   if (showProfileIntake) {
     return (
       <div className="flex h-dvh flex-col bg-transparent">
-        <TopBar kaiState="idle" language={langName} langNative={langNative} />
+        <TopBar kaiState="idle" language={langName} langNative={langNative} statusLabel={t('chat.statusReady')} />
         <main id="main-content" data-lenis-prevent className="flex-1 overflow-y-auto">
           <PatientProfileIntake
             langCode={langCode}
@@ -666,16 +690,24 @@ function ChatContent() {
         kaiState={kaiState}
         language={langName}
         langNative={langNative}
+        statusLabel={kaiStatus}
         rightElement={
           <button
             type="button"
-            onClick={handleEndSession}
+            onClick={() => setEndDialogOpen(true)}
             aria-label={t('chat.endSession')}
-            className="flex size-9 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
+            aria-haspopup="dialog"
+            className="flex min-h-11 shrink-0 items-center rounded-full px-3.5 text-base font-semibold text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary active:scale-[0.97]"
           >
-            <LogOut size={18} aria-hidden />
+            {t('chat.end')}
           </button>
         }
+      />
+      <EndSessionDialog
+        open={endDialogOpen}
+        onCancel={() => setEndDialogOpen(false)}
+        onConfirm={handleEndSession}
+        t={t}
       />
 
       {/* main#main-content on every page: skip-link target + landmark navigation */}
@@ -709,28 +741,28 @@ function ChatContent() {
             </motion.div>
           )}
 
-          {sessionTimeoutWarning && (
-            <div className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-text-secondary">
-              {t('chat.sessionExpiring')}
-            </div>
-          )}
+          {sessionTimeoutWarning && <ChatNotice tone="warning" message={t('chat.sessionExpiring')} />}
 
           {rateLimitError && (
-            <div className="rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-text-secondary">
-              {t('chat.errRateLimit')}
-            </div>
+            <ChatNotice tone="warning" message={t('chat.errRateLimit')} />
           )}
 
           {chatError && (
-            <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-text-secondary">
-              {t('chat.errChat')}
-            </div>
+            <ChatNotice
+              tone="error"
+              message={t('chat.errChat')}
+              actionLabel={t('chat.retryAudio')}
+              onAction={retryLastTurn}
+            />
           )}
 
           {reportError && (
-            <div className="rounded-lg border border-error/40 bg-error/10 px-4 py-3 text-sm text-text-secondary">
-              {t('chat.errReport')}
-            </div>
+            <ChatNotice
+              tone="error"
+              message={t('chat.errReport')}
+              actionLabel={t('chat.retryAudio')}
+              onAction={handlePrepareReport}
+            />
           )}
 
           <AnimatePresence>
@@ -745,7 +777,7 @@ function ChatContent() {
                   type="button"
                   onClick={handlePrepareReport}
                   disabled={inputDisabled}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-ink py-3.5 font-semibold text-white disabled:opacity-50"
+                  className="flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-brand-ink px-6 text-lg font-semibold text-white transition-colors duration-150 hover:bg-brand-ink-hover disabled:opacity-50"
                   whileTap={inputDisabled ? {} : { scale: 0.97 }}
                 >
                   <FileText size={16} aria-hidden /> {t('chat.prepareReport')}
@@ -754,7 +786,7 @@ function ChatContent() {
                   type="button"
                   onClick={() => setShowPrepareReport(false)}
                   disabled={inputDisabled}
-                  className="w-full rounded-lg border border-border-subtle bg-surface py-3.5 text-sm font-semibold text-text-primary disabled:opacity-50"
+                  className="min-h-13 w-full rounded-full px-6 text-base font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-subtle disabled:opacity-50"
                   whileTap={inputDisabled ? {} : { scale: 0.97 }}
                 >
                   {t('chat.moreToAdd')}
@@ -818,7 +850,12 @@ function ChatContent() {
           </motion.div>
         )}
 
-        <div className="mx-auto w-full max-w-2xl px-4 pb-4 pt-3">
+        <div className="mx-auto w-full max-w-2xl pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1">
+          {!hasAnswered && !inputDisabled && !quickReply && (
+            <p className="px-5 pt-2 text-center text-base font-medium text-text-secondary">
+              {t('chat.hintSpeak')}
+            </p>
+          )}
           <ChatInput
             onSend={sendMessage}
             disabled={inputDisabled}
@@ -829,6 +866,38 @@ function ChatContent() {
         </div>
       </section>
     </motion.div>
+  )
+}
+
+interface ChatNoticeProps {
+  tone: 'warning' | 'error'
+  message: string
+  actionLabel?: string
+  onAction?: () => void
+}
+
+/** A calm inline notice in the conversation — what happened, and the one thing to do next. */
+function ChatNotice({ tone, message, actionLabel, onAction }: ChatNoticeProps) {
+  return (
+    <div
+      role={tone === 'error' ? 'alert' : 'status'}
+      className={`flex flex-col gap-3 rounded-[1.25rem] px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${
+        tone === 'error' ? 'bg-error-subtle' : 'bg-warning-subtle'
+      }`}
+    >
+      <p className={`text-base leading-relaxed ${tone === 'error' ? 'text-error-text' : 'text-warning-text'}`}>
+        {message}
+      </p>
+      {actionLabel && onAction && (
+        <button
+          type="button"
+          onClick={onAction}
+          className="inline-flex min-h-11 shrink-0 items-center justify-center self-start rounded-full bg-surface px-5 text-base font-semibold text-text-primary shadow-xs transition-transform duration-150 active:scale-[0.97] sm:self-auto"
+        >
+          {actionLabel}
+        </button>
+      )}
+    </div>
   )
 }
 

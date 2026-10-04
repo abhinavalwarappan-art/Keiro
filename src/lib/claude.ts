@@ -125,7 +125,9 @@ Some replies map to on-screen quick-reply buttons. When your message is one of
 the types below, append the matching tag as the VERY LAST characters of your
 reply, after all other text:
 - Asking the patient to rate something on a scale (e.g. pain severity 1–10): [[PICKER:SEVERITY]]
-- Asking a yes/no question: [[PICKER:YESNO]]
+- Asking a question whose only sensible answers are "yes" or "no": [[PICKER:YESNO]]
+  An either/or question ("A, or B?") is NOT a yes/no question — "Yes" would not
+  answer it. Add no tag to those.
 - Offering to prepare the report ("Shall I prepare your report?"): [[PICKER:PREPARE_REPORT]]
 Tag rules:
 - Write the tag EXACTLY as shown, in plain ASCII — never translate, romanize,
@@ -209,7 +211,7 @@ export function buildOpeningUserPrompt(
   const nameNote = firstName
     ? ` Address the patient by first name (${firstName}).`
     : ''
-  return `This is the start of a new intake session. Patient profile is already collected.${nameNote} Greet the patient warmly in ${language}, reassure them briefly that there is no rush and they can answer in their own words, and then ask ONLY the first intake question: whether they already know their condition or are unsure what is wrong today. One short paragraph. Do not ask for name, age, sex, or medical history — you already have that.${scriptNote}`
+  return `This is the start of a new intake session. Patient profile is already collected.${nameNote} Greet the patient warmly in ${language}, reassure them briefly that there is no rush and they can answer in their own words, and then ask ONLY the first intake question: whether they already know their condition or are unsure what is wrong today. One short paragraph. Do not ask for name, age, sex, or medical history — you already have that. This is an either/or question, so add no UI signal tag.${scriptNote}`
 }
 
 export function buildConsultUserPrompt(

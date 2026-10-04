@@ -64,6 +64,17 @@ export const LANGUAGES: Language[] = [
 const LANGUAGE_BY_CODE = new Map<string, Language>(LANGUAGES.map((l) => [l.code, l]))
 const LANGUAGE_BY_GOOGLE_CODE = new Map<string, Language>(LANGUAGES.map((l) => [l.googleCode, l]))
 
+/** Latin, Latin Extended A/B and Latin Extended Additional (Vietnamese), plus punctuation. */
+const LATIN_ONLY = /^[\u0000-\u024F\u1E00-\u1EFF\s]*$/
+
+/**
+ * Whether the language is written in a non-Latin script — the only case where
+ * a "show it in English letters" option means anything.
+ */
+export function usesNonLatinScript(lang: Language): boolean {
+  return !LATIN_ONLY.test(lang.native)
+}
+
 export function getLanguageByCode(code: string): Language | undefined {
   return LANGUAGE_BY_CODE.get(code)
 }

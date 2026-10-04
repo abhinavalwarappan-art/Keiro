@@ -192,7 +192,8 @@ export function TranslationStage() {
             For your provider · English
           </div>
 
-          <p className="text-[clamp(1.5rem,1.05rem+1.7vw,2.25rem)] font-medium leading-[1.3] tracking-[-0.022em] text-[var(--hm-ink)]" aria-hidden>
+          {/* The provider's copy is the written record — the one place Literata speaks. */}
+          <p className="hm-record text-[clamp(1.625rem,1.1rem+1.9vw,2.5rem)] leading-[1.25] text-[var(--hm-ink)]" aria-hidden>
             {ENGLISH_WORDS.map((word, i) => {
               const shown = i < shownWords
               return (

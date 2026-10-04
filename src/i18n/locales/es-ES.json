@@ -88,6 +88,16 @@
   "chat.audioBlocked": "Su navegador detuvo el audio. Toque Intentar de nuevo para escucharlo.",
   "chat.audioFailed": "No se pudo cargar la voz de Kai. Revise su conexión y toque Intentar de nuevo.",
   "chat.audioUnavailable": "Este dispositivo no puede reproducir la voz de Kai ahora. El mensaje está escrito arriba.",
+  "chat.statusReady": "Listo",
+  "chat.statusThinking": "Pensando…",
+  "chat.statusSpeaking": "Hablando…",
+  "chat.end": "Terminar",
+  "chat.endTitle": "¿Terminar esta conversación?",
+  "chat.endBody": "Sus respuestas se borrarán de este teléfono. Puede empezar de nuevo cuando quiera.",
+  "chat.endConfirm": "Terminar conversación",
+  "chat.endCancel": "Seguir hablando",
+  "chat.ending": "Terminando…",
+  "chat.hintSpeak": "Toque el micrófono y hable, o escriba su respuesta.",
   "picker.severityGroup": "Seleccione el nivel de gravedad",
   "picker.severityOption": "{word}, nivel de dolor {range}",
   "picker.mild": "Leve",
@@ -109,5 +119,8 @@
   "report.shareNote": "Cualquier persona con este enlace y acceso puede abrir el informe.",
   "report.copy": "Copiar",
   "report.copied": "Copiado",
-  "report.copyLink": "Copiar enlace"
+  "report.copyLink": "Copiar enlace",
+  "mic.listening": "Escuchando — toque ■ cuando termine",
+  "mic.requesting": "Permita el micrófono si su teléfono se lo pide",
+  "mic.transcribing": "Escribiendo lo que dijo…"
 }
