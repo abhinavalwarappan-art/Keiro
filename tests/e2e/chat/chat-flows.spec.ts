@@ -166,7 +166,7 @@ test.describe('multi-turn conversation', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 test.describe('end session', () => {
-  test('clicking End session signs out and redirects to /', async ({ page }) => {
+  test('End asks for confirmation, then signs out and redirects to /', async ({ page }) => {
     await installAIMocks(page)
     // Stub the Supabase logout endpoint so the button still clears the client
     // session and navigates, WITHOUT globally revoking the shared guest session
@@ -176,9 +176,17 @@ test.describe('end session', () => {
     )
     await startGuestSession(page)
 
-    // TopBar renders a button aria-label="End session and sign out"; it signs out
-    // and router.push('/').
+    // TopBar renders "End" (aria-label "End session and sign out"). Ending clears
+    // the conversation, so it asks first; Escape / "Keep talking" back out.
     await page.getByRole('button', { name: /end session and sign out/i }).click()
+    const dialog = page.getByRole('alertdialog', { name: /end this conversation/i })
+    await expect(dialog).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    expect(new URL(page.url()).pathname).toBe('/chat')
+
+    await page.getByRole('button', { name: /end session and sign out/i }).click()
+    await page.getByRole('button', { name: /^end conversation$/i }).click()
 
     await page.waitForURL((url) => url.pathname === '/', { timeout: 10_000 })
     await expect(page).toHaveURL(/\/$/)

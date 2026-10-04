@@ -3,10 +3,20 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { ANALYTICS_CONSENT_KEY, initAnalytics, shutdownAnalytics } from '@/lib/analytics'
 
+/**
+ * Screens where a patient is mid-task. A consent card there sits on top of the
+ * mic, the language list, or the emergency call button — so it never appears.
+ * Analytics simply stays off unless consent is given on a marketing page.
+ */
+const TASK_SCREENS = ['/onboarding', '/auth', '/chat', '/report', '/emergency', '/history', '/settings']
+
 export function CookieConsent() {
+  const pathname = usePathname()
   const [visible, setVisible] = useState(false)
+  const onTaskScreen = TASK_SCREENS.some((p) => pathname === p || pathname?.startsWith(`${p}/`))
 
   useEffect(() => {
     try {
@@ -43,7 +53,7 @@ export function CookieConsent() {
 
   return (
     <AnimatePresence>
-      {visible && (
+      {visible && !onTaskScreen && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -52,9 +62,9 @@ export function CookieConsent() {
           role="dialog"
           aria-modal="false"
           aria-label="Cookie consent"
-          className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-[480px] flex-col gap-3 rounded-2xl border border-border-subtle bg-surface px-4 py-3.5 shadow-lg"
+          className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-[34rem] flex-col gap-3 rounded-[1.25rem] border border-border-subtle bg-surface/95 p-4 shadow-[0_24px_60px_-24px_rgba(12,34,23,0.35)] backdrop-blur-xl sm:flex-row sm:items-center sm:gap-5 sm:py-3 sm:pl-5 sm:pr-3"
         >
-          <p className="text-sm leading-relaxed text-text-secondary">
+          <p className="text-[0.9375rem] leading-relaxed text-text-secondary sm:flex-1">
             We use anonymous usage stats to improve Keiro — never your health
             information.{' '}
             <Link
@@ -65,16 +75,16 @@ export function CookieConsent() {
             </Link>
           </p>
 
-          <div className="flex gap-2">
+          <div className="flex shrink-0 gap-2">
             <button
               onClick={handleAccept}
-              className="min-h-[44px] flex-1 rounded-xl bg-brand-ink py-2.5 text-base font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover"
+              className="min-h-11 flex-1 rounded-full bg-brand-ink px-5 text-[0.9375rem] font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-brand-ink-hover active:scale-[0.97] sm:flex-none"
             >
               Allow
             </button>
             <button
               onClick={handleDecline}
-              className="min-h-[44px] flex-1 rounded-xl border border-border-default bg-surface py-2.5 text-base font-medium text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
+              className="min-h-11 flex-1 rounded-full px-5 text-[0.9375rem] font-semibold text-text-secondary transition-[background-color,color,transform] duration-150 hover:bg-sunken hover:text-text-primary active:scale-[0.97] sm:flex-none"
             >
               No thanks
             </button>

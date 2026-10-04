@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { resolveEmergencyNumber, FALLBACK_EMERGENCY_NUMBER } from '@/lib/emergencyNumbers'
+import { resolveEmergencyNumber, resolveEmergencyForDevice, FALLBACK_EMERGENCY_NUMBER } from '@/lib/emergencyNumbers'
 import { LANGUAGES } from '@/lib/languages'
 
 describe('resolveEmergencyNumber', () => {
@@ -44,5 +44,26 @@ describe('resolveEmergencyNumber', () => {
     // Guards against adding a language whose region has no emergency number mapped.
     const missing = LANGUAGES.filter(l => resolveEmergencyNumber(l.code).isFallback).map(l => l.code)
     expect(missing).toEqual([])
+  })
+})
+
+describe('resolveEmergencyForDevice', () => {
+  it('uses where the phone is, not the language: Spanish in Texas dials 911', () => {
+    expect(resolveEmergencyForDevice('America/Chicago', 'es-ES')).toMatchObject({ number: '911', isFallback: false })
+    expect(resolveEmergencyForDevice('America/Indiana/Indianapolis', 'ta-IN').number).toBe('911')
+  })
+
+  it('maps non-US zones to their own numbers', () => {
+    expect(resolveEmergencyForDevice('Europe/London', 'en-US').number).toBe('999')
+    expect(resolveEmergencyForDevice('Asia/Kolkata', 'en-US').number).toBe('112')
+  })
+
+  it('falls back to the language region when the zone is unknown', () => {
+    expect(resolveEmergencyForDevice('Etc/UTC', 'ko-KR').number).toBe('119')
+    expect(resolveEmergencyForDevice(null, 'ko-KR').number).toBe('119')
+  })
+
+  it('falls back to 112 when neither signal resolves', () => {
+    expect(resolveEmergencyForDevice(null, null)).toMatchObject({ number: '112', isFallback: true })
   })
 })

@@ -44,7 +44,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    const { text } = (body ?? {}) as { text?: unknown }
+    const { text, langCode: rawLangCode } = (body ?? {}) as { text?: unknown; langCode?: unknown }
+    // Optional, and only ever used to look up a voice — so anything that isn't a
+    // plain BCP-47-shaped code is ignored rather than rejected.
+    const langCode =
+      typeof rawLangCode === 'string' && /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(rawLangCode)
+        ? rawLangCode
+        : undefined
 
     if (typeof text !== 'string' || text.trim().length === 0) {
       return NextResponse.json({ error: 'Missing text' }, { status: 400 })
@@ -53,14 +59,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Text too long' }, { status: 413 })
     }
 
-    if (!isFishConfigured()) {
+    if (!isFishConfigured(langCode)) {
       // Not an error state — a deploy without Fish credentials speaks in the
       // browser instead. Logged at info so it's visible without paging anyone.
       logger.info('tts_unconfigured', '/api/tts', user?.id)
       return NextResponse.json({ error: 'Voice unavailable' }, { status: 503 })
     }
 
-    const audio = await synthesizeSpeech(text)
+    const audio = await synthesizeSpeech(text, langCode)
 
     // Log the size only — never the text. It is Kai's clinical dialogue with the
     // patient, which is health information.
@@ -71,7 +77,8 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'audio/mpeg',
         'Content-Length': String(audio.byteLength),
-        // Patient-derived audio must not sit in any shared cache.
+        // Patient-derived audio must not sit in any shared cache. (The client
+        // keeps replays in tab memory only — see speech.ts.)
         'Cache-Control': 'no-store',
       },
     })

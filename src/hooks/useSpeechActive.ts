@@ -1,20 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { subscribeSpeechState } from '@/lib/speech'
+import { useSpeech } from './useSpeech'
 
-/** Tracks whether app TTS is currently playing (Kai speaking). */
+/** Whether Kai's voice is audibly playing right now. */
 export function useSpeechActive(): boolean {
-  const [active, setActive] = useState(false)
-
-  useEffect(() => {
-    const unsubscribe = subscribeSpeechState(setActive)
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe()
-      }
-    }
-  }, [])
-
-  return active
+  return useSpeech().phase === 'playing'
 }

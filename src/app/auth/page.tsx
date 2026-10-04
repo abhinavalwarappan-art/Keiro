@@ -5,7 +5,8 @@ import AuthLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react'
+import { getLanguageByCode } from '@/lib/languages'
 import Kai from '@/components/kai/Kai'
 import { createClient } from '@/lib/supabase/client'
 import { trackSignIn } from '@/lib/analytics'
@@ -59,6 +60,10 @@ function AuthContent() {
 
   const t = useTranslations(langCode)
   const supabase = useMemo(() => createClient(), [])
+  const rtl = Boolean(getLanguageByCode(langCode)?.rtl) && !roman
+  // Some translations carry a typed arrow ("Start now →"). The arrow is drawn as
+  // an icon instead, so it can point the right way in right-to-left languages.
+  const startLabel = t('auth.start').replace(/\s*[→←]\s*$/u, '').replace(/^\s*[→←]\s*/u, '')
 
   const buildChatUrl = () => {
     // When the proxy redirected here from a protected page, return the user there
@@ -96,15 +101,15 @@ function AuthContent() {
   }
 
   return (
-    <div className="flex h-dvh min-h-0 w-full flex-col bg-transparent">
+    <div className="flex h-dvh min-h-0 w-full flex-col bg-transparent" dir={rtl ? 'rtl' : 'ltr'} lang={langCode}>
       <header className="z-10 flex shrink-0 items-center gap-3 px-4 py-3">
         <button
           type="button"
           onClick={() => router.back()}
-          className="flex size-9 min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
+          className="flex size-11 items-center justify-center rounded-full text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
           aria-label={t('common.goBack')}
         >
-          <ArrowLeft size={17} aria-hidden />
+          <ArrowLeft size={18} className="rtl:-scale-x-100" aria-hidden />
         </button>
         <span className="flex-1" />
         <span className="text-base font-medium text-text-secondary">
@@ -121,7 +126,7 @@ function AuthContent() {
         <div className="mx-auto w-full max-w-sm">
           {sessionEnded && (
             <div
-              className="mb-4 rounded-lg border border-border-subtle bg-surface px-4 py-3 text-center text-sm text-text-secondary"
+              className="mb-4 rounded-[1.25rem] bg-sunken px-4 py-3 text-center text-base text-text-secondary"
               role="status"
             >
               {t('auth.sessionEnded')}
@@ -130,7 +135,7 @@ function AuthContent() {
 
           {error && (
             <div
-              className="mb-4 rounded-lg border border-error/20 bg-error-subtle px-4 py-3 text-center text-sm text-error-text"
+              className="mb-4 rounded-[1.25rem] bg-error-subtle px-4 py-3 text-center text-base text-error-text"
               role="alert"
             >
               {error}
@@ -144,9 +149,9 @@ function AuthContent() {
             </p>
           </div>
 
-          <h2 className="mb-3 text-balance text-center text-[2rem] font-semibold leading-[1.1] tracking-[-0.035em] text-text-primary">
+          <h1 className="mb-3 text-balance text-center text-[2rem] font-semibold leading-[1.1] tracking-[-0.035em] text-text-primary">
             {t('auth.title')}
-          </h2>
+          </h1>
           <p className="mb-3 text-pretty text-center text-lg leading-relaxed text-text-secondary">
             {t('auth.subtitle')}
           </p>
@@ -163,9 +168,20 @@ function AuthContent() {
             data-testid="guest-start"
             onClick={handleStart}
             disabled={loading}
-            className="min-h-[60px] w-full rounded-full bg-brand-ink px-6 py-3 text-lg font-semibold text-white transition-[background-color,transform] duration-100 hover:bg-brand-ink-hover active:scale-[0.97] disabled:opacity-50"
+            aria-busy={loading || undefined}
+            className="flex min-h-[60px] w-full items-center justify-center gap-2.5 rounded-full bg-brand-ink px-6 py-3 text-lg font-semibold text-white transition-[background-color,transform] duration-100 hover:bg-brand-ink-hover active:scale-[0.97] disabled:opacity-70"
           >
-            {loading ? t('auth.starting') : t('auth.start')}
+            {loading ? (
+              <>
+                <Loader2 size={20} className="animate-spin motion-reduce:animate-none" aria-hidden />
+                {t('auth.starting')}
+              </>
+            ) : (
+              <>
+                {startLabel}
+                <ArrowRight size={20} className="rtl:-scale-x-100" aria-hidden />
+              </>
+            )}
           </button>
 
           <p className="mt-6 text-center text-sm text-text-tertiary">

@@ -64,6 +64,12 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
     await dismissCookieBanner(page)
   })
 
+  test('Latin-script languages get no romanization toggle', async ({ page }) => {
+    await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
+    await expect(page.getByTestId('confirm-continue')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Toggle romanized script' })).toHaveCount(0)
+  })
+
   test('shows the chosen language name and a Continue button', async ({ page }) => {
     await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
     // The page has a setTimeout(0) before populating state; wait for the button.
@@ -72,8 +78,10 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
     await expect(page.getByText(LANG_EN).first()).toBeVisible()
   })
 
+  // The toggle only exists for non-Latin scripts — English letters mean nothing
+  // for a language already written in them — so these use Hindi.
   test('romanization toggle flips aria-pressed', async ({ page }) => {
-    await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
+    await page.goto(`/onboarding/confirm?lang=hi-IN`)
     // Wait for the confirm content to render (setTimeout(0) delay)
     const continueBtn = page.getByTestId('confirm-continue')
     await expect(continueBtn).toBeVisible()
@@ -112,7 +120,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
   })
 
   test('"Continue in <language>" with romanization on sets roman=1 and localStorage keiro-roman=1', async ({ page }) => {
-    await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
+    await page.goto(`/onboarding/confirm?lang=hi-IN`)
     const continueBtn = page.getByTestId('confirm-continue')
     await expect(continueBtn).toBeVisible()
 

@@ -22,6 +22,9 @@ const TOPICS = [
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 
+/** Where a message goes if the form itself can't send — the address on the Terms page. */
+const FALLBACK_EMAIL = 'keiro.contact@gmail.com'
+
 export function ContactForm() {
   const [topic, setTopic] = useState<string>(TOPICS[0])
   const [organization, setOrganization] = useState('')
@@ -30,11 +33,16 @@ export function ContactForm() {
   const [phone, setPhone] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState('')
+  // Set when the server could not deliver the message (not a validation or
+  // rate-limit problem). The visitor then gets a ready-made email with what they
+  // typed, so a delivery outage never silently loses a clinic's request.
+  const [deliveryFailed, setDeliveryFailed] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setStatus('sending')
     setError('')
+    setDeliveryFailed(false)
 
     try {
       const res = await fetch('/api/contact', {
@@ -50,18 +58,24 @@ export function ContactForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        setError(
-          res.status === 429
-            ? 'That is a few messages in a short time. Please try again in a little while.'
-            : (data.error as string) || 'Something went wrong. Please try again.'
-        )
+        if (res.status >= 500) {
+          setDeliveryFailed(true)
+          setError('Our form could not send that just now. Your message is not lost — send it by email instead:')
+        } else {
+          setError(
+            res.status === 429
+              ? 'That is a few messages in a short time. Please try again in a little while.'
+              : (data.error as string) || 'Something went wrong. Please try again.'
+          )
+        }
         setStatus('error')
         return
       }
 
       setStatus('sent')
     } catch {
-      setError('We could not reach the server. Please check your connection and try again.')
+      setDeliveryFailed(true)
+      setError('We could not reach the server. Check your connection, or send it by email instead:')
       setStatus('error')
     }
   }
@@ -167,9 +181,19 @@ export function ContactForm() {
       </div>
 
       {error && (
-        <p className="text-[var(--lx-ink)] sm:col-span-2" role="alert">
-          {error}
-        </p>
+        <div className="rounded-2xl bg-[var(--hm-warm)] p-4 sm:col-span-2" role="alert">
+          <p className="text-[var(--lx-ink)]">{error}</p>
+          {deliveryFailed && (
+            <a
+              href={`mailto:${FALLBACK_EMAIL}?subject=${encodeURIComponent(`${topic}: ${organization}`)}&body=${encodeURIComponent(
+                `Name: ${name}\nEmail: ${email}${phone ? `\nPhone: ${phone}` : ''}\nOrganization: ${organization}\nTopic: ${topic}`,
+              )}`}
+              className="lx-focus mt-3 inline-flex min-h-11 items-center rounded-full bg-[var(--lx-ink)] px-5 font-semibold text-[var(--lx-cream)]"
+            >
+              Email {FALLBACK_EMAIL}
+            </a>
+          )}
+        </div>
       )}
 
       <div className="sm:col-span-2">

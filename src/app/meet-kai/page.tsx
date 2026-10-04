@@ -144,7 +144,7 @@ export default function MeetKaiPage() {
             statement={
               <>
                 Kai is built on a large language model. What makes it different is not the model.{' '}
-                <Accent>it is the fence we build around it.</Accent>
+                <Accent>It is the fence we build around it.</Accent>
               </>
             }
             body="A narrow job (collect an intake history), a narrow set of things it may say, and an explicit list of things it must never say. It stays inside that fence for the whole conversation."

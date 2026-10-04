@@ -7,14 +7,14 @@ import ReportLoading from './loading'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { motion } from 'framer-motion'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Download, ArrowLeft, AlertTriangle, CheckCircle, ExternalLink, Printer, Stethoscope, Link2, QrCode, Copy, Volume2, VolumeX } from 'lucide-react'
+import { Download, ArrowLeft, AlertTriangle, CheckCircle, ExternalLink, Printer, Stethoscope, Link2, Copy, Volume2, VolumeX, Loader2 } from 'lucide-react'
 import Kai from '@/components/kai/Kai'
 import { LiveConsultMode } from '@/components/consult/LiveConsultMode'
 import { pageVariants } from '@/lib/motion'
 import { createClient } from '@/lib/supabase/client'
 import { Report, ReportData, PatientProfile, ConsultMessage } from '@/types'
-import { speakText, stopSpeech } from '@/lib/speech'
-import { useSpeechActive } from '@/hooks/useSpeechActive'
+import { stopSpeech, toggleSpeech } from '@/lib/speech'
+import { useSpeech } from '@/hooks/useSpeech'
 import { PATIENT_PROFILE_SESSION_KEY } from '@/lib/chatSession'
 import { formatPatientSex } from '@/lib/patientProfile'
 import { useTranslations } from '@/i18n/useTranslations'
@@ -98,6 +98,20 @@ function reportToReportData(rd: Report): ReportData {
 
 /* Sections read like a printed lab report: small uppercase label over a
    hairline rule — no colored banners competing with the content. */
+/** Stored enum → what a clinician reads. Unknown values are shown as-is, prettified. */
+function formatVisitType(value: string | null | undefined): string {
+  if (!value) return 'Not recorded'
+  if (value === 'symptom_intake') return 'New symptoms'
+  if (value === 'known_diagnosis') return 'Known condition'
+  return value.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
+}
+
+const LIFESTYLE_LABELS: Record<string, string> = {
+  smoker: 'Smoking',
+  alcohol: 'Alcohol',
+  recent_travel: 'Recent travel',
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-8">
@@ -137,6 +151,8 @@ function ReportContent() {
   // re-fire the load effect on every render. Translate at render time instead.
   const [error, setError] = useState<'notFound' | 'loadFailed' | null>(null)
   const [pdfAction, setPdfAction] = useState<'open' | 'download' | 'print' | null>(null)
+  const [pdfError, setPdfError] = useState<'open' | 'download' | 'print' | null>(null)
+  const [copyError, setCopyError] = useState(false)
   const [physicianNotes, setPhysicianNotes] = useState('')
   const [consultMode, setConsultMode] = useState(false)
   const [showQr, setShowQr] = useState(false)
@@ -321,9 +337,14 @@ function ReportContent() {
 
   const handlePdf = useCallback(
     async (action: 'open' | 'download' | 'print') => {
-      if (!report) return
+      if (!report || pdfAction) return
       setPdfAction(action)
+      setPdfError(null)
       let blobUrl: string | null = null
+      // Open the tab NOW, inside the tap. A window.open after the PDF request
+      // returns is outside the gesture, and Safari and Chrome block it silently —
+      // Open and Print used to be dead buttons for exactly this reason.
+      const tab = action === 'download' ? null : window.open('', '_blank')
       try {
         // The PDF is rendered server-side by headless Chromium (see /api/report/pdf) so
         // non-Latin patient names and free-text shape correctly for every script — jsPDF
@@ -340,7 +361,7 @@ function ReportContent() {
               dob: report.patient_dob,
               sex: report.patient_sex,
               language: report.language_used,
-              visitType: report.visit_type || 'Symptom Intake',
+              visitType: formatVisitType(report.visit_type),
             },
             physicianNotes: physicianNotes || undefined,
           }),
@@ -357,13 +378,22 @@ function ReportContent() {
           document.body.appendChild(a)
           a.click()
           a.remove()
-        } else if (action === 'print') {
-          const w = window.open(blobUrl, '_blank')
-          w?.addEventListener('load', () => w.print())
+        } else if (tab) {
+          tab.location.href = blobUrl
+          if (action === 'print') tab.addEventListener('load', () => tab.print())
         } else {
-          window.open(blobUrl, '_blank')
+          // The browser refused a new tab even inside the gesture (strict popup
+          // settings). Hand the file over as a download rather than doing nothing.
+          const a = document.createElement('a')
+          a.href = blobUrl
+          a.download = `Keiro-Report-${report.report_id}.pdf`
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
         }
       } catch (err) {
+        tab?.close()
+        setPdfError(action)
         logger.error('report_pdf_failed', 'report_page', null, {
           error: err instanceof Error ? err.message : String(err),
         })
@@ -373,17 +403,20 @@ function ReportContent() {
         setPdfAction(null)
       }
     },
-    [report, physicianNotes],
+    [report, physicianNotes, pdfAction],
   )
 
   const copyShareLink = useCallback(async () => {
     if (!reportShareUrl) return
     try {
       await navigator.clipboard.writeText(reportShareUrl)
+      setCopyError(false)
       setLinkCopied(true)
       setTimeout(() => setLinkCopied(false), 2000)
     } catch {
-      /* clipboard unavailable */
+      // Clipboard blocked (permissions, insecure context). Say so — the link is
+      // still on screen to copy by hand.
+      setCopyError(true)
     }
   }, [reportShareUrl])
 
@@ -403,15 +436,13 @@ function ReportContent() {
      room does not want their symptoms announced to the room, and this was the only
      auto-playing audio in the app — everywhere else in chat, speech is opt-in per
      message. So it is opt-in here too: the button below starts it, and stops it. */
-  const speaking = useSpeechActive()
+  const speech = useSpeech()
+  const listenPhase = speech.key === 'report-completion' ? speech.phase : 'idle'
+  const speaking = listenPhase === 'playing'
 
-  const toggleSpeech = useCallback(() => {
-    if (speaking) {
-      stopSpeech()
-      return
-    }
-    speakText(getLang(COMPLETION_MESSAGES, langCode), langCode)
-  }, [speaking, langCode])
+  const toggleCompletionSpeech = useCallback(() => {
+    toggleSpeech('report-completion', getLang(COMPLETION_MESSAGES, langCode), langCode)
+  }, [langCode])
 
   // Never leave audio playing behind us when the patient navigates away.
   useEffect(() => () => stopSpeech(), [])
@@ -479,19 +510,19 @@ function ReportContent() {
       animate="animate"
       className="flex min-h-screen flex-col bg-transparent"
     >
-      <header className="sticky top-0 z-10 flex min-h-14 items-center gap-3 border-b border-border-subtle bg-surface px-4">
+      <header className="sticky top-0 z-10 flex min-h-16 items-center gap-3 border-b border-border-subtle/70 bg-white/80 px-4 backdrop-blur-xl backdrop-saturate-150">
         <button
           onClick={() => router.back()}
-          className="flex size-9 min-h-[44px] min-w-[44px] items-center justify-center rounded-md text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
+          className="flex size-11 items-center justify-center rounded-full text-text-secondary transition-colors duration-150 hover:bg-sunken hover:text-text-primary"
           aria-label={t('common.goBack')}
         >
-          <ArrowLeft size={16} aria-hidden />
+          <ArrowLeft size={18} className="rtl:-scale-x-100" aria-hidden />
         </button>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg font-semibold leading-tight tracking-[-0.02em] text-text-primary">Medical intake report</h1>
           <div className="font-mono text-xs text-text-tertiary">{rd.report_id}</div>
-          <h1 className="text-base font-semibold text-text-primary">Medical intake report</h1>
         </div>
-        <span className="rounded-full bg-brand-subtle px-2.5 py-1 text-xs font-medium text-brand-ink">
+        <span className="shrink-0 rounded-full bg-brand-subtle px-3 py-1 text-sm font-medium text-brand-ink">
           {rd.language_used}
         </span>
       </header>
@@ -501,73 +532,124 @@ function ReportContent() {
         <div className="mb-6 flex items-start gap-3">
           <Kai size="sm" state={speaking ? 'talking' : 'happy'} interactive={false} />
           <div className="pt-1">
-            <p className="text-sm leading-relaxed text-text-secondary">
+            <p className="text-pretty text-lg leading-relaxed text-text-primary">
               {getLang(COMPLETION_MESSAGES, langCode)}
             </p>
             {/* Opt-in, not automatic. Quiet by default because the person reading
                 this is often sitting in a waiting room. */}
             <button
               type="button"
-              onClick={toggleSpeech}
-              aria-label={speaking ? t('chat.stopReading') : t('chat.listenAloud')}
-              className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-brand-ink hover:underline"
+              onClick={toggleCompletionSpeech}
+              aria-busy={listenPhase === 'loading' || undefined}
+              aria-label={
+                listenPhase === 'loading'
+                  ? t('chat.preparingAudio')
+                  : listenPhase === 'playing'
+                    ? t('chat.pauseReading')
+                    : listenPhase === 'paused'
+                      ? t('chat.resumeReading')
+                      : t('chat.listenAloud')
+              }
+              className="mt-2 inline-flex min-h-11 items-center gap-2 rounded-full bg-brand-subtle px-4 text-base font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-muted"
             >
-              {speaking ? (
+              {listenPhase === 'loading' ? (
                 <>
-                  <VolumeX size={14} aria-hidden /> {t('chat.stop')}
+                  <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden /> {t('chat.preparingAudio')}
+                </>
+              ) : listenPhase === 'playing' ? (
+                <>
+                  <VolumeX size={16} aria-hidden /> {t('chat.pause')}
+                </>
+              ) : listenPhase === 'paused' ? (
+                <>
+                  <Volume2 size={16} aria-hidden /> {t('chat.resume')}
+                </>
+              ) : listenPhase === 'error' ? (
+                <>
+                  <Volume2 size={16} aria-hidden /> {t('chat.retryAudio')}
                 </>
               ) : (
                 <>
-                  <Volume2 size={14} aria-hidden /> {t('chat.listen')}
+                  <Volume2 size={16} aria-hidden /> {t('chat.listen')}
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="mb-8 flex flex-wrap gap-2">
+        {/* Actions — every one labeled in words, and each says when it is working. */}
+        <div className="mb-3 flex flex-col gap-2">
           <motion.button
             onClick={() => handlePdf('download')}
-            disabled={busy}
-            className="flex flex-1 items-center justify-center gap-2 rounded-md bg-brand-ink px-4 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover disabled:opacity-50"
-            whileTap={{ scale: 0.98 }}
+            aria-disabled={busy || undefined}
+            aria-busy={pdfAction === 'download' || undefined}
+            className="flex min-h-14 w-full items-center justify-center gap-2.5 rounded-full bg-brand-ink px-6 text-lg font-semibold text-white transition-colors duration-150 hover:bg-brand-ink-hover aria-disabled:opacity-60"
+            whileTap={busy ? undefined : { scale: 0.97 }}
           >
-            <Download size={14} aria-hidden /> {t('report.downloadPdf')}
+            {pdfAction === 'download' ? (
+              <Loader2 size={18} className="animate-spin motion-reduce:animate-none" aria-hidden />
+            ) : (
+              <Download size={18} aria-hidden />
+            )}
+            {pdfAction === 'download' ? t('report.preparingPdf') : t('report.downloadPdf')}
           </motion.button>
-          <motion.button
-            onClick={() => handlePdf('open')}
-            disabled={busy}
-            className="flex items-center justify-center gap-2 rounded-md border border-border-subtle bg-surface px-4 py-2.5 text-sm font-medium text-text-primary transition-colors duration-150 hover:bg-sunken disabled:opacity-50"
-            whileTap={{ scale: 0.98 }}
-            aria-label={t('report.openPdf')}
-          >
-            <ExternalLink size={14} aria-hidden />
-          </motion.button>
-          <motion.button
-            onClick={() => handlePdf('print')}
-            disabled={busy}
-            className="flex items-center justify-center gap-2 rounded-md border border-border-subtle bg-surface px-4 py-2.5 text-sm font-medium text-text-primary transition-colors duration-150 hover:bg-sunken disabled:opacity-50"
-            whileTap={{ scale: 0.98 }}
-            aria-label={t('report.printReport')}
-          >
-            <Printer size={14} aria-hidden />
-          </motion.button>
-          <motion.button
-            onClick={() => setShowQr(true)}
-            className="flex items-center justify-center gap-2 rounded-md border border-border-subtle bg-surface px-4 py-2.5 text-sm font-medium text-text-primary transition-colors duration-150 hover:bg-sunken"
-            whileTap={{ scale: 0.98 }}
-            aria-label={t('report.shareLink')}
-          >
-            <Link2 size={14} aria-hidden />
-          </motion.button>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { action: 'open' as const, icon: ExternalLink, label: t('report.open') },
+              { action: 'print' as const, icon: Printer, label: t('report.print') },
+            ]).map(({ action, icon: Icon, label }) => (
+              <motion.button
+                key={action}
+                onClick={() => handlePdf(action)}
+                aria-disabled={busy || undefined}
+                aria-busy={pdfAction === action || undefined}
+                aria-label={action === 'open' ? t('report.openPdf') : t('report.printReport')}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-sunken px-3 text-base font-semibold text-text-primary transition-colors duration-150 hover:bg-border-subtle aria-disabled:opacity-60"
+                whileTap={busy ? undefined : { scale: 0.97 }}
+              >
+                {pdfAction === action ? (
+                  <Loader2 size={16} className="animate-spin motion-reduce:animate-none" aria-hidden />
+                ) : (
+                  <Icon size={16} aria-hidden />
+                )}
+                {label}
+              </motion.button>
+            ))}
+            <motion.button
+              onClick={() => setShowQr(true)}
+              aria-label={t('report.shareLink')}
+              className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-sunken px-3 text-base font-semibold text-text-primary transition-colors duration-150 hover:bg-border-subtle"
+              whileTap={{ scale: 0.97 }}
+            >
+              <Link2 size={16} aria-hidden /> {t('report.share')}
+            </motion.button>
+          </div>
         </div>
+        <p role="status" aria-live="polite" className={pdfError ? 'mb-6 rounded-[1.25rem] bg-error-subtle px-5 py-4 text-base text-error-text' : 'sr-only'}>
+          {pdfError ? (
+            <>
+              {t('report.pdfFailed')}{' '}
+              <button
+                type="button"
+                onClick={() => handlePdf(pdfError)}
+                className="font-semibold underline underline-offset-4"
+              >
+                {t('chat.retryAudio')}
+              </button>
+            </>
+          ) : pdfAction ? (
+            t('report.preparingPdf')
+          ) : (
+            ''
+          )}
+        </p>
+        {!pdfError && <div className="mb-5" />}
 
         {/* Live consult */}
         {patientProfile && (
           <motion.button
             onClick={() => setConsultMode(true)}
-            className="mb-8 flex w-full items-center justify-center gap-2 rounded-md border border-brand-border bg-brand-subtle px-4 py-2.5 text-sm font-medium text-brand-ink transition-colors duration-150 hover:bg-brand-muted"
+            className="mb-8 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-brand-subtle px-5 text-base font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-muted"
             whileTap={{ scale: 0.98 }}
           >
             <Stethoscope size={14} aria-hidden /> {t('report.startConsult')}
@@ -582,7 +664,7 @@ function ReportContent() {
             value={rd.patient_sex ? formatPatientSex(rd.patient_sex as PatientProfile['biologicalSex']) : 'Not provided'}
           />
           <Row label="Language" value={rd.language_used} />
-          <Row label="Visit Type" value={rd.visit_type} />
+          <Row label="Visit Type" value={formatVisitType(rd.visit_type)} />
           <Row
             label="Date"
             value={new Date(rd.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -633,7 +715,7 @@ function ReportContent() {
         {rd.lifestyle_json && (
           <Section title="Lifestyle Notes">
             {Object.entries(rd.lifestyle_json).map(([key, val]) => (
-              <Row key={key} label={key.replace(/_/g, ' ')} value={val ? 'Yes' : 'No'} />
+              <Row key={key} label={LIFESTYLE_LABELS[key] ?? key.replace(/_/g, ' ')} value={val ? 'Yes' : 'No'} />
             ))}
           </Section>
         )}
@@ -702,16 +784,16 @@ function ReportContent() {
             onBlur={() => void savePhysicianNotes()}
             placeholder="Add notes for the record…"
             rows={5}
-            className="w-full resize-y rounded-md border border-border-subtle bg-surface p-3 text-sm text-text-primary outline-none transition-colors duration-150 placeholder:text-text-placeholder focus:border-brand-ink"
+            className="w-full resize-y rounded-2xl border border-border-default bg-surface p-4 text-base text-text-primary outline-none transition-colors duration-150 placeholder:text-text-placeholder focus:border-brand-ink focus:ring-2 focus:ring-brand-ink/20"
           />
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-xs text-text-tertiary">
-              {savingNotes ? 'Saving…' : noteSaveError ? 'Saved locally — sync failed' : 'Saved automatically'}
+            <span role="status" aria-live="polite" className={`text-sm ${noteSaveError ? 'text-error-text' : 'text-text-tertiary'}`}>
+              {savingNotes ? 'Saving…' : noteSaveError ? 'Not saved — check the connection and tap Save notes' : 'Notes save when you leave the box'}
             </span>
             <button
               onClick={() => void savePhysicianNotes()}
               disabled={savingNotes}
-              className="rounded-md border border-border-subtle bg-surface px-3 py-1.5 text-xs font-medium text-text-primary transition-colors duration-150 hover:bg-sunken disabled:opacity-50"
+              className="min-h-11 shrink-0 rounded-full bg-sunken px-4 text-sm font-semibold text-text-primary transition-colors duration-150 hover:bg-border-subtle disabled:opacity-50"
             >
               Save notes
             </button>
@@ -719,43 +801,53 @@ function ReportContent() {
         </div>
       </main>
 
-      {/* Share link modal */}
+      {/* Share link sheet */}
       {showQr && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center"
           onClick={() => setShowQr(false)}
+          onKeyDown={(e) => e.key === 'Escape' && setShowQr(false)}
+          data-lenis-prevent
         >
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="share-title"
             initial={{ y: 24, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="w-full max-w-sm rounded-lg border border-border-subtle bg-surface p-5"
+            transition={{ type: 'spring', stiffness: 420, damping: 38 }}
+            className="w-full max-w-sm rounded-[1.75rem] bg-surface p-6 shadow-[0_30px_80px_-30px_rgba(12,34,23,0.45)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-3 flex items-center gap-2">
-              <QrCode size={16} className="text-brand-ink" aria-hidden />
-              <span className="text-sm font-semibold text-text-primary">{t('report.shareTitle')}</span>
-            </div>
-            <p className="mb-3 text-xs text-text-secondary">
-              {t('report.shareNote')}
+            <h2 id="share-title" className="text-[1.375rem] font-semibold tracking-[-0.025em] text-text-primary">
+              {t('report.shareTitle')}
+            </h2>
+            <p className="mt-1.5 text-base leading-relaxed text-text-secondary">{t('report.shareNote')}</p>
+            <p className="mt-4 select-all break-all rounded-2xl bg-sunken px-4 py-3 font-mono text-sm text-text-secondary">
+              {reportShareUrl}
             </p>
-            <div className="flex items-center gap-2 rounded-md border border-border-subtle bg-sunken px-3 py-2">
-              <span className="flex-1 truncate font-mono text-xs text-text-secondary">{reportShareUrl}</span>
+            <p role="status" aria-live="polite" className={copyError ? 'mt-2 text-sm text-error-text' : 'sr-only'}>
+              {copyError ? t('report.copyFailed') : linkCopied ? t('report.copied') : ''}
+            </p>
+            <div className="mt-5 flex flex-col gap-2">
               <button
+                autoFocus
                 onClick={() => void copyShareLink()}
-                className="flex shrink-0 items-center gap-1 rounded-md bg-brand-ink px-2.5 py-1.5 text-xs font-medium text-white transition-colors duration-150 hover:bg-brand-ink-hover"
                 aria-label={t('report.copyLink')}
+                className="inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-brand-ink px-5 text-lg font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-brand-ink-hover active:scale-[0.97]"
               >
-                <Copy size={12} aria-hidden /> {linkCopied ? t('report.copied') : t('report.copy')}
+                {linkCopied ? <CheckCircle size={18} aria-hidden /> : <Copy size={18} aria-hidden />}
+                {linkCopied ? t('report.copied') : t('report.copyLink')}
+              </button>
+              <button
+                onClick={() => setShowQr(false)}
+                className="min-h-12 rounded-full px-5 text-base font-semibold text-brand-ink transition-colors duration-150 hover:bg-brand-subtle"
+              >
+                {t('common.close')}
               </button>
             </div>
-            <button
-              onClick={() => setShowQr(false)}
-              className="mt-4 w-full rounded-md border border-border-subtle bg-surface px-4 py-2 text-sm font-medium text-text-primary transition-colors duration-150 hover:bg-sunken"
-            >
-              {t('common.close')}
-            </button>
           </motion.div>
         </motion.div>
       )}

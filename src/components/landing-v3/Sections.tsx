@@ -10,8 +10,7 @@
    Every section is wrapped in a <Band>, which remaps its own colour scheme — so
    rhythm comes from the *ground* changing, not just the layout. */
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useInView } from 'framer-motion'
+import { useState, type ReactNode } from 'react'
 import { LANGUAGES } from '@/lib/languages'
 import { Reveal } from './Reveal'
 import { IconCheck, IconPlus, IconX } from './icons'
@@ -145,37 +144,17 @@ export function Thesis({
   )
 }
 
-/* ── 2. StatRow — hairline-separated figures that count up ───────────────────
-   Boxes make numbers feel like a pitch deck; vertical hairlines don't. Numbers
-   land in sequence (Tucuvi stagger the *duration*, not the start). */
+/* ── 2. StatRow — hairline-separated figures ────────────────────────────────
+   Boxes make numbers feel like a pitch deck; vertical hairlines don't. The
+   figures used to count up from 0 on scroll; the redesign drops scroll-driven
+   motion, and a count-up also meant anyone who never scrolled it into view (a
+   link preview, print, a slow device) read "0 languages". The number is simply
+   there. */
 
 function CountUp({ value, suffix = '' }: { value: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-15%' })
-  const [shown, setShown] = useState(0)
-
-  useEffect(() => {
-    if (!inView) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setShown(value)
-      return
-    }
-    const duration = 1100
-    const start = performance.now()
-    let frame = 0
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / duration, 1)
-      // easeOutCubic — fast out of the gate, settles gently
-      setShown(Math.round(value * (1 - Math.pow(1 - p, 3))))
-      if (p < 1) frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [inView, value])
-
   return (
-    <span ref={ref}>
-      {shown}
+    <span className="tabular-nums">
+      {value}
       {suffix}
     </span>
   )

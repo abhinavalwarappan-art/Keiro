@@ -5,8 +5,8 @@ import { Loader2 } from 'lucide-react'
 
 interface CaptureStripProps {
   mode: 'requesting' | 'recording' | 'transcribing'
-  /** Already-localized stop label, shown while recording. */
-  stopLabel: string
+  /** Already-localized caption for the current mode. */
+  caption: string
 }
 
 const BAR_COUNT = 7
@@ -20,9 +20,11 @@ function formatElapsed(totalSeconds: number): string {
 }
 
 /** Sits exactly over the text field while Keiro is capturing, so starting and
- *  stopping a recording never moves anything on screen. Language-independent:
- *  a running timer + level bars say "I'm hearing you" with no words to read. */
-export default function CaptureStrip({ mode, stopLabel }: CaptureStripProps) {
+ *  stopping a recording never moves anything on screen. The timer and level
+ *  bars say "I'm hearing you" without words; the caption says what is happening
+ *  in the patient's language, because a spinner alone during the 2–5s of
+ *  transcription reads as "frozen". */
+export default function CaptureStrip({ mode, caption }: CaptureStripProps) {
   const [elapsed, setElapsed] = useState(0)
   const recording = mode === 'recording'
 
@@ -39,7 +41,7 @@ export default function CaptureStrip({ mode, stopLabel }: CaptureStripProps) {
     <div
       role="status"
       aria-live="polite"
-      className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-lg border border-brand-ink/40 bg-brand-subtle px-4"
+      className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-[1.25rem] border border-brand-ink/30 bg-brand-subtle px-4"
     >
       {recording ? (
         <>
@@ -58,25 +60,16 @@ export default function CaptureStrip({ mode, stopLabel }: CaptureStripProps) {
             </span>
           </span>
           <span dir="auto" className="max-w-full truncate text-sm font-medium text-text-secondary">
-            {stopLabel}
+            {caption}
           </span>
         </>
       ) : (
-        <span className="flex items-center gap-3">
-          <Loader2 size={22} className="animate-spin text-brand-ink" aria-hidden />
-          <span className="flex gap-1.5" aria-hidden>
-            {[0, 150, 300].map((d) => (
-              <span
-                key={d}
-                className="size-2 animate-pulse rounded-full bg-brand-ink"
-                style={{ animationDelay: `${d}ms` }}
-              />
-            ))}
+        <>
+          <Loader2 size={22} className="animate-spin text-brand-ink motion-reduce:animate-none" aria-hidden />
+          <span dir="auto" className="max-w-full truncate text-sm font-medium text-text-secondary">
+            {caption}
           </span>
-          <span className="sr-only">
-            {mode === 'requesting' ? 'Requesting microphone access' : 'Transcribing'}
-          </span>
-        </span>
+        </>
       )}
     </div>
   )

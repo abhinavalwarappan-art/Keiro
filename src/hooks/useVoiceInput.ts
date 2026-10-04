@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
-import { stopSpeech } from '@/lib/speech'
+import { setAudioSessionType, stopSpeech } from '@/lib/speech'
 import { toWav } from '@/lib/audioWav'
 import {
   classifyMicError,
@@ -58,6 +58,15 @@ const noopSubscribe = () => () => {}
 // Server render has no navigator; returning null keeps the markup identical on
 // both sides so reading the UA can't cause a hydration mismatch.
 const noInAppBrowserOnServer = () => null
+
+/**
+ * Hand iOS audio routing back once capture ends. While the mic is open Safari
+ * runs a play-and-record session that sends output to the quiet earpiece; left
+ * in place, Kai's next reply plays where nobody can hear it.
+ */
+function releaseAudioSession() {
+  setAudioSessionType('auto')
+}
 
 function pickRecordingMimeType(): string | undefined {
   if (typeof MediaRecorder === 'undefined') return undefined
@@ -197,6 +206,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   const stopTracks = () => {
     streamRef.current?.getTracks().forEach(t => t.stop())
     streamRef.current = null
+    releaseAudioSession()
   }
 
   /**
@@ -205,6 +215,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
    */
   const failMic = useCallback(
     (kind: MicErrorKind, err: unknown, source: 'getUserMedia' | 'speech-recognition') => {
+      releaseAudioSession()
       setRecording(false)
       setErrorKind(kind)
       setError(MIC_ERROR_MESSAGE[kind])
@@ -309,6 +320,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     }
     recorder.onstop = () => {
       stream.getTracks().forEach(t => t.stop())
+      releaseAudioSession()
       if (mediaRecorderRef.current !== recorder) return
       streamRef.current = null
       setRecording(false)
@@ -361,6 +373,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       }
       if (generation !== requestGenerationRef.current) {
         stream.getTracks().forEach(t => t.stop())
+        releaseAudioSession()
         return
       }
       openingRef.current = false
@@ -371,6 +384,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       // browser's recording indicator stays lit with nothing listening.
       if (discardRef.current) {
         stream.getTracks().forEach(t => t.stop())
+        releaseAudioSession()
         return
       }
 
@@ -399,6 +413,9 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     // nothing happens on the other" report. Only the promise is created here;
     // every check, reset and routing decision is sequenced after it in openMic.
     const micRequest = requestMicStream()
+    // Synchronous and after the request is already made, so the gesture token
+    // above is untouched. Declares the session before capture actually begins.
+    setAudioSessionType('play-and-record')
 
     openingRef.current = true
     setRequesting(true)

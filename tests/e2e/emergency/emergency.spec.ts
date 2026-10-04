@@ -50,10 +50,9 @@ test.describe('/emergency page', () => {
       page.getByRole('heading', { name: /emergency message in all languages/i }),
     ).toBeVisible()
 
-    // Since 1851d1f the number is locale-resolved, never hardcoded 911: a bare
-    // visit (no ?lang=, no chat session) shows the global GSM fallback 112.
-    const badge = page.locator('span', { hasText: '112' }).first()
-    await expect(badge).toBeVisible()
+    // The number badge is always present; which number depends on where the
+    // device is (see the time-zone tests below).
+    await expect(page.locator('span', { hasText: /^\d{3,4}$/ }).first()).toBeVisible()
   })
 
   test('?lang= resolves the locale-specific emergency number (en-US → 911)', async ({ page }) => {
@@ -150,5 +149,24 @@ test.describe('/emergency page', () => {
     // router.back() takes us off /emergency; accept any of the chat-flow pages.
     await page.waitForURL(chatUrlPattern, { timeout: 10_000 })
     await expect(page).not.toHaveURL(/\/emergency/)
+  })
+})
+// The number follows where the PHONE is, not the patient's language: a Spanish
+// speaker in a Texas clinic must be told 911, not Spain's 112.
+test.describe('/emergency number follows the device time zone', () => {
+  test.describe('in the US', () => {
+    test.use({ timezoneId: 'America/Chicago' })
+    test('Spanish speaker in Texas sees 911', async ({ page }) => {
+      await page.goto('/emergency?lang=es-ES')
+      await expect(page.getByRole('link', { name: /call 911/i })).toBeVisible()
+    })
+  })
+
+  test.describe('with no recognisable zone', () => {
+    test.use({ timezoneId: 'Etc/UTC' })
+    test('a bare visit falls back to the global 112', async ({ page }) => {
+      await page.goto('/emergency')
+      await expect(page.getByRole('link', { name: /call 112/i })).toBeVisible()
+    })
   })
 })

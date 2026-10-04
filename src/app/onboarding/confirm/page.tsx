@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Kai from '@/components/kai/Kai'
 import RomanizationToggle from '@/components/language/RomanizationToggle'
-import { Language, resolveLanguage, getOpeningMessage, getLanguageDisplayLines } from '@/lib/languages'
+import { Language, resolveLanguage, getOpeningMessage, getLanguageDisplayLines, usesNonLatinScript } from '@/lib/languages'
 import { pageVariants } from '@/lib/motion'
 import { trackLanguageSelected, trackOnboardingCompleted } from '@/lib/analytics'
 import { useTranslations } from '@/i18n/useTranslations'
@@ -70,7 +70,6 @@ function ConfirmContent() {
     : "Hi, I'm Kai."
 
   const displayLines = selected ? getLanguageDisplayLines(selected) : []
-  const primaryLine = displayLines.find((line) => line.role === 'english') ?? displayLines[0]
 
   const allLanguagesHref = hospitalSlug
     ? `/onboarding?fresh=1&hospital=${encodeURIComponent(hospitalSlug)}`
@@ -90,6 +89,8 @@ function ConfirmContent() {
       initial="initial"
       animate="animate"
       className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col overflow-hidden bg-canvas"
+      dir={selected.rtl ? 'rtl' : 'ltr'}
+      lang={selected.code}
     >
       <header className="shrink-0 px-5 pt-5">
         {/* data-testid: this label is localized to the SELECTED language, so for
@@ -97,9 +98,9 @@ function ConfirmContent() {
         <Link
           href={allLanguagesHref}
           data-testid="confirm-all-languages"
-          className="inline-flex min-h-11 items-center text-base font-medium text-text-secondary transition-colors hover:text-text-primary"
+          className="inline-flex min-h-11 items-center gap-1.5 text-base font-medium text-text-secondary transition-colors hover:text-text-primary"
         >
-          ← {t('confirm.allLanguages')}
+          <span aria-hidden className="inline-block rtl:-scale-x-100">←</span> {t('confirm.allLanguages')}
         </Link>
       </header>
 
@@ -130,9 +131,12 @@ function ConfirmContent() {
       </section>
 
       <footer className="shrink-0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
-        <div className="mb-3 flex justify-center">
-          <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} />
-        </div>
+        {/* Only scripts a patient might not read get the English-letters option. */}
+        {usesNonLatinScript(selected) && (
+          <div className="mb-3 flex justify-center">
+            <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} />
+          </div>
+        )}
         {/* data-testid: the label is t('confirm.continueIn', { language }) and interpolates
             the language's NATIVE name ("Continue in Español", not "Continue in Spanish"),
             so it is unmatchable by an English display-text locator. Keep this stable. */}
@@ -143,7 +147,7 @@ function ConfirmContent() {
           whileTap={{ scale: 0.97 }}
           transition={{ type: 'spring', stiffness: 700, damping: 45 }}
         >
-          {t('confirm.continueIn', { language: primaryLine?.text ?? selected.en })}
+          {t('confirm.continueIn', { language: selected.native })}
           <svg width="20" height="20" viewBox="0 0 18 18" fill="none" aria-hidden className="rtl:-scale-x-100">
             <path
               d="M3.5 9h11M10 4.5l4.5 4.5-4.5 4.5"
