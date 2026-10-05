@@ -164,5 +164,11 @@
   "report.print": "Yazdır",
   "report.share": "Paylaş",
   "report.pdfFailed": "PDF dosyası oluşturulamadı.",
-  "report.copyFailed": "Otomatik kopyalama başarısız oldu — kopyalamak için bağlantıya basılı tutun."
+  "report.copyFailed": "Otomatik kopyalama başarısız oldu — kopyalamak için bağlantıya basılı tutun.",
+  "mic.start": "Konuşmaya başla",
+  "mic.voice.failed": "Sesli giriş bu sefer çalışmadı. Bunun yerine mesajınızı yazabilirsiniz.",
+  "mic.voice.noSpeech": "Herhangi bir konuşma duyulmadı. Lütfen tekrar deneyin ya da bunun yerine mesajınızı yazın.",
+  "mic.voice.rateLimited": "Sesli girişi tekrar denemeden önce lütfen bir dakika bekleyin ya da bunun yerine mesajınızı yazın.",
+  "mic.voice.startFailed": "Sesli giriş başlatılamadı. Lütfen tekrar deneyin ya da bunun yerine mesajınızı yazın.",
+  "mic.voice.interrupted": "Sesli giriş işlemi tamamlanamadı. Lütfen tekrar deneyin ya da mesajınızı yazarak gönderin."
 }

@@ -44,12 +44,26 @@ const CTA = { href: '/onboarding?fresh=1', label: 'Start with Kai' }
 const LINK_BASE =
   'lx-focus inline-flex min-h-11 items-center rounded-lg px-3 text-[0.9375rem] font-medium tracking-[-0.01em] transition-colors duration-150'
 
-export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }) {
+export function Nav() {
   const pathname = usePathname()
   const [openMenu, setOpenMenu] = useState(false)
   const [openAbout, setOpenAbout] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const aboutRef = useRef<HTMLDivElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+
+  // While the mobile sheet is open the page underneath must not scroll — it
+  // used to slide around behind the menu. Locking <html> is what iOS Safari
+  // honours (body alone is ignored there).
+  useEffect(() => {
+    if (!openMenu) return
+    const root = document.documentElement
+    const previous = root.style.overflow
+    root.style.overflow = 'hidden'
+    return () => {
+      root.style.overflow = previous
+    }
+  }, [openMenu])
 
   // Scroll-edge effect: no hairline while the bar sits over the page top; it
   // fades in only once content actually slides underneath. State flips at a
@@ -72,7 +86,11 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         setOpenAbout(false)
-        setOpenMenu(false)
+        setOpenMenu((wasOpen) => {
+          // Give keyboard users their place back, on the control that opened it.
+          if (wasOpen) menuButtonRef.current?.focus()
+          return false
+        })
       }
     }
     function onClick(e: MouseEvent) {
@@ -95,7 +113,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
     <header
       className={`sticky z-50 border-b bg-white/75 backdrop-blur-xl backdrop-saturate-150 transition-[border-color] duration-200 [font-family:var(--hm-sans)] ${
         isScrolled ? 'border-[var(--hm-line)]' : 'border-transparent'
-      } ${hasSessionBanner ? 'top-12' : 'top-0'}`}
+      } top-0`}
     >
       <div className="mx-auto flex h-14 max-w-[68rem] items-center justify-between gap-6 px-5 sm:px-8 lg:px-16">
         <Link
@@ -182,6 +200,7 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
 
           {/* ── Mobile toggle ── */}
           <button
+            ref={menuButtonRef}
             type="button"
             aria-expanded={openMenu}
             aria-controls="mobile-menu"
@@ -196,20 +215,25 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
         </div>
       </div>
 
-      {/* ── Mobile panel — big type, one flat list ── */}
+      {/* ── Mobile sheet — big type, one flat list, the CTA within thumb reach ──
+          It covers the page below the bar (which stays put) so the menu reads as
+          its own surface rather than a dropdown over a still-scrolling page. */}
       {openMenu && (
-        <div id="mobile-menu" className="hm-sheet border-t border-[var(--hm-line)] bg-white lg:hidden">
+        <div
+          id="mobile-menu"
+          className="hm-sheet absolute inset-x-0 top-full flex h-[calc(100dvh-100%)] flex-col border-t border-[var(--hm-line)] bg-white lg:hidden"
+        >
           <nav
             aria-label="Main"
-            className="mx-auto max-h-[calc(100svh-3.5rem)] max-w-[68rem] overflow-y-auto px-5 pb-8 pt-2 sm:px-8"
-            data-lenis-prevent
+            className="mx-auto w-full max-w-[68rem] flex-1 overflow-y-auto overscroll-contain px-5 pt-2 sm:px-8"
           >
             <ul className="flex flex-col">
               {[...NAV_LINKS.filter((l) => !l.children), ...NAV_LINKS[2].children!].map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className={`lx-focus flex min-h-14 items-center border-b border-[var(--hm-line)] text-[1.5rem] font-semibold tracking-[-0.025em] ${
+                    aria-current={isActive(link.href) ? 'page' : undefined}
+                    className={`lx-focus flex min-h-14 items-center border-b border-[var(--hm-line)] text-[clamp(1.375rem,1.1rem+1.2vw,1.625rem)] font-semibold tracking-[-0.025em] transition-colors duration-150 active:text-[var(--hm-pine)] ${
                       isActive(link.href) ? 'text-[var(--hm-pine)]' : 'text-[var(--hm-ink)]'
                     }`}
                   >
@@ -219,6 +243,11 @@ export function Nav({ hasSessionBanner = false }: { hasSessionBanner?: boolean }
               ))}
             </ul>
           </nav>
+          <div className="mx-auto w-full max-w-[68rem] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 sm:px-8">
+            <Link href={CTA.href} className="lx-focus hm-btn w-full">
+              {CTA.label}
+            </Link>
+          </div>
         </div>
       )}
     </header>

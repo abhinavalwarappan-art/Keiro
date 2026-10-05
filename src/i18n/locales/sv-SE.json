@@ -164,5 +164,11 @@
   "report.print": "Skriv ut",
   "report.share": "Dela",
   "report.pdfFailed": "PDF-filen kunde inte skapas.",
-  "report.copyFailed": "Kunde inte kopiera automatiskt — tryck och håll ner länken för att kopiera den."
+  "report.copyFailed": "Kunde inte kopiera automatiskt — tryck och håll ner länken för att kopiera den.",
+  "mic.start": "Börja tala",
+  "mic.voice.failed": "Röstinmatningen fungerade inte den här gången. Du kan skriva ditt meddelande istället.",
+  "mic.voice.rateLimited": "Vänta en stund innan du försöker använda röstmeddelandet igen, eller skriv ditt meddelande istället.",
+  "mic.voice.noSpeech": "Inget tal hördes. Försök igen eller skriv ditt meddelande istället.",
+  "mic.voice.startFailed": "Röstinmatningen kunde inte starta. Försök igen eller skriv ditt meddelande istället.",
+  "mic.voice.interrupted": "Röstinmatningen kunde inte slutföras. Försök igen eller skriv ditt meddelande istället."
 }

@@ -164,5 +164,11 @@
   "report.print": "Natisni",
   "report.share": "Deli",
   "report.pdfFailed": "PDF-ja ni bilo mogoče ustvariti.",
-  "report.copyFailed": "Samodejnega kopiranja ni bilo mogoče – povezavo pridržite, da jo kopirate."
+  "report.copyFailed": "Samodejnega kopiranja ni bilo mogoče – povezavo pridržite, da jo kopirate.",
+  "mic.start": "Začnite govoriti",
+  "mic.voice.rateLimited": "Preden poskusite znova z glasovnim ukazom, počakajte trenutek ali pa vnesite sporočilo.",
+  "mic.voice.failed": "Glasovni vnos tokrat ni deloval. Sporočilo lahko namesto tega vnesete.",
+  "mic.voice.noSpeech": "Ni bilo slišati govora. Poskusite znova ali pa vnesite svoje sporočilo.",
+  "mic.voice.interrupted": "Glasovnega vnosa ni bilo mogoče dokončati. Poskusite znova ali pa vnesite sporočilo.",
+  "mic.voice.startFailed": "Glasovnega vnosa ni bilo mogoče začeti. Poskusite znova ali pa vnesite sporočilo."
 }

@@ -85,7 +85,7 @@ function HistoryInner() {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex min-h-screen flex-col bg-transparent"
+      className="flex min-h-svh flex-col bg-transparent"
     >
       <header className="sticky top-0 z-10 flex min-h-14 items-center gap-3 border-b border-border-subtle bg-surface px-4">
         <button

@@ -162,7 +162,6 @@ function MicHelpDialog({ onClose, langCode, onRecheck }: Omit<MicHelpModalProps,
         aria-labelledby="mic-help-title"
         // Lenis hijacks the wheel globally; without this the steps can't be
         // scrolled on a short screen.
-        data-lenis-prevent
         className="flex max-h-[85vh] w-full max-w-md flex-col gap-4 overflow-y-auto rounded-lg bg-surface p-6 shadow-md focus:outline-none"
         onClick={e => e.stopPropagation()}
       >

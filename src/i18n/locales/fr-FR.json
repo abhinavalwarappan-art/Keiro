@@ -164,5 +164,11 @@
   "report.print": "Imprimer",
   "report.share": "Partager",
   "report.pdfFailed": "Le fichier PDF n'a pas pu être créé.",
-  "report.copyFailed": "Impossible de copier automatiquement — maintenez le lien enfoncé pour le copier."
+  "report.copyFailed": "Impossible de copier automatiquement — maintenez le lien enfoncé pour le copier.",
+  "mic.start": "Commencer à parler",
+  "mic.voice.failed": "La saisie vocale n'a pas fonctionné cette fois-ci. Vous pouvez saisir votre message au clavier à la place.",
+  "mic.voice.rateLimited": "Veuillez patienter un instant avant de réessayer d'utiliser la fonction vocale, ou saisissez votre message à la place.",
+  "mic.voice.noSpeech": "Aucun message vocal n'a été enregistré. Veuillez réessayer ou saisir votre message à la place.",
+  "mic.voice.interrupted": "La saisie vocale n'a pas pu être menée à bien. Veuillez réessayer ou saisir votre message au clavier.",
+  "mic.voice.startFailed": "La saisie vocale n'a pas pu démarrer. Veuillez réessayer ou saisir votre message à la place."
 }

@@ -19,25 +19,23 @@ import { geistSans, literata, sourceSans, splineMono } from '@/components/landin
 import { Nav } from '@/components/landing-v3/Nav'
 import { HomeHero, Steps, LanguageWall, Trust, FinalCta } from '@/components/home/HomeSections'
 import { Footer } from '@/components/landing-v3/Footer'
-import { LandingScrollReset } from '@/components/landing-v3/LandingScrollReset'
 
-function LandingChrome() {
+/* Only this banner reads the URL. It sits in its own Suspense boundary so the
+   nav and hero stay in the prerendered HTML — when the whole chrome waited on
+   useSearchParams, the nav didn't exist until JavaScript arrived and then
+   pushed the page down (a visible jump on slow connections). The banner scrolls
+   away with the page; the nav is the only sticky bar. */
+function SessionEndedBanner() {
   const searchParams = useSearchParams()
-  const hasSessionEnded = searchParams.get('ended') === '1'
-
+  if (searchParams.get('ended') !== '1') return null
   return (
-    <>
-      {hasSessionEnded && (
-        <div
-          className="sticky top-0 z-[70] bg-[var(--lx-ink)] px-4 py-3 text-center text-sm font-medium text-white"
-          role="status"
-          aria-live="polite"
-        >
-          Your session has ended.
-        </div>
-      )}
-      <Nav hasSessionBanner={hasSessionEnded} />
-    </>
+    <div
+      className="relative z-[70] bg-[var(--lx-ink)] px-4 py-3 text-center text-sm font-medium text-white"
+      role="status"
+      aria-live="polite"
+    >
+      Your session has ended.
+    </div>
   )
 }
 
@@ -48,13 +46,12 @@ export default function LandingPage() {
         <div
           id="main-content"
           data-flow="home"
-          className={`lx hm ${geistSans.variable} ${literata.variable} ${sourceSans.variable} ${splineMono.variable} relative min-h-screen overflow-x-clip`}
+          className={`lx hm ${geistSans.variable} ${literata.variable} ${sourceSans.variable} ${splineMono.variable} relative min-h-svh overflow-x-clip`}
         >
-          <Suspense>
-            <LandingChrome />
+          <Suspense fallback={null}>
+            <SessionEndedBanner />
           </Suspense>
-
-          <LandingScrollReset />
+          <Nav />
 
           <main className="relative z-[1]">
             <HomeHero />

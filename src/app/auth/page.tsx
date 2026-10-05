@@ -120,7 +120,6 @@ function AuthContent() {
       {/* main#main-content on every page: skip-link target + landmark navigation */}
       <main
         id="main-content"
-        data-lenis-prevent
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-8 pb-10"
       >
         <div className="mx-auto w-full max-w-sm">
@@ -142,7 +141,7 @@ function AuthContent() {
             </div>
           )}
 
-          <div className="mb-6 flex flex-col items-center gap-2">
+          <div className="mb-6 flex flex-col items-center gap-2 [@media(max-height:480px)]:hidden">
             <Kai size="sm" state="idle" interactive={false} />
             <p className="text-sm font-medium text-text-tertiary">
               {t('auth.kaiIntro')}

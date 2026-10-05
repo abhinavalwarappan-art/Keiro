@@ -164,5 +164,11 @@
   "report.print": "Cetak",
   "report.share": "Bagikan",
   "report.pdfFailed": "PDF tersebut tidak dapat dibuat.",
-  "report.copyFailed": "Tidak dapat disalin secara otomatis — tekan dan tahan tautan tersebut untuk menyalinnya."
+  "report.copyFailed": "Tidak dapat disalin secara otomatis — tekan dan tahan tautan tersebut untuk menyalinnya.",
+  "mic.start": "Mulai bicara",
+  "mic.voice.failed": "Masukan suara tidak berfungsi kali ini. Anda bisa mengetik pesan Anda sebagai gantinya.",
+  "mic.voice.noSpeech": "Tidak terdengar suara apa pun. Silakan coba lagi, atau ketik pesan Anda.",
+  "mic.voice.interrupted": "Masukan suara tidak dapat diselesaikan. Silakan coba lagi, atau ketik pesan Anda saja.",
+  "mic.voice.rateLimited": "Mohon tunggu sebentar sebelum mencoba kembali menggunakan fitur suara, atau ketik pesan Anda saja.",
+  "mic.voice.startFailed": "Masukan suara tidak dapat dimulai. Silakan coba lagi, atau ketik pesan Anda saja."
 }

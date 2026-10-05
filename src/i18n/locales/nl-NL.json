@@ -164,5 +164,11 @@
   "report.print": "Afdrukken",
   "report.share": "Delen",
   "report.pdfFailed": "Het PDF-bestand kon niet worden aangemaakt.",
-  "report.copyFailed": "Automatisch kopiëren is niet gelukt — houd de link ingedrukt om deze te kopiëren."
+  "report.copyFailed": "Automatisch kopiëren is niet gelukt — houd de link ingedrukt om deze te kopiëren.",
+  "mic.start": "Begin met praten",
+  "mic.voice.failed": "De spraakinvoer werkte deze keer niet. Je kunt je bericht ook typen.",
+  "mic.voice.noSpeech": "Er was geen spraak te horen. Probeer het nog eens, of typ in plaats daarvan je bericht.",
+  "mic.voice.interrupted": "De spraakinvoer kon niet worden voltooid. Probeer het nog eens, of typ je bericht in plaats daarvan.",
+  "mic.voice.startFailed": "De spraakinvoer kon niet worden gestart. Probeer het nog eens, of typ je bericht in plaats daarvan.",
+  "mic.voice.rateLimited": "Wacht even voordat u het opnieuw probeert via spraak, of typ in plaats daarvan uw bericht."
 }

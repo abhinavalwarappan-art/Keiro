@@ -164,5 +164,11 @@
   "report.print": "Stampa",
   "report.share": "Condividi",
   "report.pdfFailed": "Impossibile creare il PDF.",
-  "report.copyFailed": "Impossibile copiare automaticamente: tieni premuto il link per copiarlo."
+  "report.copyFailed": "Impossibile copiare automaticamente: tieni premuto il link per copiarlo.",
+  "mic.start": "Inizia a parlare",
+  "mic.voice.rateLimited": "Attendi qualche istante prima di riprovare a utilizzare la funzione vocale, oppure digita il tuo messaggio.",
+  "mic.voice.failed": "L'input vocale non ha funzionato questa volta. Puoi digitare il tuo messaggio.",
+  "mic.voice.interrupted": "L'inserimento vocale non è stato completato. Riprova oppure digita il messaggio.",
+  "mic.voice.startFailed": "Impossibile avviare l'input vocale. Riprova oppure digita il messaggio.",
+  "mic.voice.noSpeech": "Non è stato rilevato alcun discorso. Prova di nuovo oppure digita il tuo messaggio."
 }

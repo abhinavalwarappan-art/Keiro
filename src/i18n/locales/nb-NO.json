@@ -164,5 +164,11 @@
   "report.print": "Skriv ut",
   "report.share": "Del",
   "report.pdfFailed": "PDF-filen kunne ikke opprettes.",
-  "report.copyFailed": "Kunne ikke kopiere automatisk – trykk og hold inne lenken for å kopiere den."
+  "report.copyFailed": "Kunne ikke kopiere automatisk – trykk og hold inne lenken for å kopiere den.",
+  "mic.start": "Begynn å snakke",
+  "mic.voice.failed": "Taleinndata fungerte ikke denne gangen. Du kan skrive meldingen din i stedet.",
+  "mic.voice.noSpeech": "Ingen tale ble hørt. Prøv igjen, eller skriv meldingen din i stedet.",
+  "mic.voice.startFailed": "Taleinndata kunne ikke starte. Prøv på nytt, eller skriv meldingen din i stedet.",
+  "mic.voice.interrupted": "Taleinndata kunne ikke fullføres. Prøv på nytt, eller skriv meldingen din i stedet.",
+  "mic.voice.rateLimited": "Vent et øyeblikk før du prøver å bruke talekommandoer igjen, eller skriv meldingen din i stedet."
 }

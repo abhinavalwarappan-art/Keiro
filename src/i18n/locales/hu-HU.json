@@ -164,5 +164,11 @@
   "report.print": "Nyomtatás",
   "report.share": "Megosztás",
   "report.pdfFailed": "A PDF-fájl létrehozása sikertelen volt.",
-  "report.copyFailed": "Nem sikerült automatikusan másolni – nyomd meg és tartsd lenyomva a linket a másoláshoz."
+  "report.copyFailed": "Nem sikerült automatikusan másolni – nyomd meg és tartsd lenyomva a linket a másoláshoz.",
+  "mic.start": "Beszéd indítása",
+  "mic.voice.failed": "A hangbevitel ezúttal nem működött. Ehelyett begépelheti az üzenetet.",
+  "mic.voice.rateLimited": "Kérjük, várjon egy pillanatot, mielőtt újra megpróbálja a hangutasításokat, vagy írja be az üzenetét.",
+  "mic.voice.noSpeech": "Nem hallható beszéd. Próbáld újra, vagy írd be az üzenetedet.",
+  "mic.voice.interrupted": "A hangbevitel nem fejezhető be. Próbáld újra, vagy írd be az üzenetedet.",
+  "mic.voice.startFailed": "A hangbevitel nem indult el. Próbáld újra, vagy írd be az üzenetedet."
 }

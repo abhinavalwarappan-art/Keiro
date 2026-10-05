@@ -164,5 +164,11 @@
   "report.print": "Drucken",
   "report.share": "Teilen",
   "report.pdfFailed": "Die PDF-Datei konnte nicht erstellt werden.",
-  "report.copyFailed": "Automatisches Kopieren nicht möglich – zum Kopieren den Link gedrückt halten."
+  "report.copyFailed": "Automatisches Kopieren nicht möglich – zum Kopieren den Link gedrückt halten.",
+  "mic.start": "Sprechen starten",
+  "mic.voice.failed": "Die Spracheingabe hat diesmal nicht funktioniert. Sie können Ihre Nachricht stattdessen eintippen.",
+  "mic.voice.rateLimited": "Bitte warten Sie einen Moment, bevor Sie es erneut per Spracheingabe versuchen, oder geben Sie Ihre Nachricht stattdessen ein.",
+  "mic.voice.noSpeech": "Es wurde nichts gehört. Bitte versuchen Sie es erneut oder tippen Sie Ihre Nachricht.",
+  "mic.voice.interrupted": "Die Spracheingabe konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut oder geben Sie Ihre Nachricht stattdessen ein.",
+  "mic.voice.startFailed": "Die Spracheingabe konnte nicht gestartet werden. Bitte versuchen Sie es erneut oder geben Sie Ihre Nachricht stattdessen ein."
 }

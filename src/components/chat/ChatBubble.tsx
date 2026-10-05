@@ -302,7 +302,7 @@ function ListenControl({ phase, canPause, error, t, reduceMotion, onPress }: Lis
         aria-label={accessibleName}
         whileTap={loading || reduceMotion ? undefined : { scale: 0.96 }}
         transition={{ type: 'spring', stiffness: 700, damping: 45 }}
-        className={`inline-flex min-h-12 items-center gap-2.5 rounded-full px-5 text-base font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-ink/25 ${
+        className={`inline-flex min-h-12 max-w-full items-center gap-2.5 rounded-full px-5 py-2 text-start text-base font-semibold leading-snug transition-colors duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-ink/25 ${
           active
             ? 'bg-brand-ink text-white hover:bg-brand-ink-hover'
             : loading
@@ -312,7 +312,7 @@ function ListenControl({ phase, canPause, error, t, reduceMotion, onPress }: Lis
                 : 'bg-brand-subtle text-brand-ink hover:bg-brand-muted'
         }`}
       >
-        {icon}
+        <span className="shrink-0">{icon}</span>
         <span>{label}</span>
       </motion.button>
 

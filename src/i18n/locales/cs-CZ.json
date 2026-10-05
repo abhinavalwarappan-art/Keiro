@@ -164,5 +164,11 @@
   "report.print": "Tisk",
   "report.share": "Sdílet",
   "report.pdfFailed": "PDF soubor se nepodařilo vytvořit.",
-  "report.copyFailed": "Nepodařilo se automaticky zkopírovat – odkaz zkopírujete stisknutím a podržením."
+  "report.copyFailed": "Nepodařilo se automaticky zkopírovat – odkaz zkopírujete stisknutím a podržením.",
+  "mic.start": "Začít mluvit",
+  "mic.voice.noSpeech": "Nebyla zaznamenána žádná řeč. Zkuste to prosím znovu, nebo místo toho zadejte textovou zprávu.",
+  "mic.voice.rateLimited": "Počkejte prosím chvilku, než to zkusíte znovu hlasem, nebo místo toho zadejte zprávu písemně.",
+  "mic.voice.interrupted": "Hlasový zadávání se nepodařilo dokončit. Zkuste to prosím znovu, nebo místo toho zadejte zprávu pomocí klávesnice.",
+  "mic.voice.failed": "Hlasový vstup tentokrát nefungoval. Místo toho můžete zprávu napsat.",
+  "mic.voice.startFailed": "Hlasový vstup se nepodařilo spustit. Zkuste to prosím znovu, nebo místo toho zadejte zprávu textem."
 }

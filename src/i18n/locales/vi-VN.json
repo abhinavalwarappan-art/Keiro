@@ -164,5 +164,11 @@
   "report.print": "In",
   "report.share": "Chia sẻ",
   "report.pdfFailed": "Không thể tạo tệp PDF.",
-  "report.copyFailed": "Không thể sao chép tự động — hãy nhấn giữ liên kết để sao chép."
+  "report.copyFailed": "Không thể sao chép tự động — hãy nhấn giữ liên kết để sao chép.",
+  "mic.start": "Bắt đầu nói",
+  "mic.voice.failed": "Chức năng nhập liệu bằng giọng nói lần này không hoạt động. Bạn có thể nhập tin nhắn thay thế.",
+  "mic.voice.rateLimited": "Vui lòng đợi một lát trước khi thử lại bằng giọng nói, hoặc nhập tin nhắn của bạn.",
+  "mic.voice.noSpeech": "Không nghe thấy tiếng nói nào. Vui lòng thử lại hoặc nhập tin nhắn của bạn.",
+  "mic.voice.interrupted": "Không thể hoàn tất nhập liệu bằng giọng nói. Vui lòng thử lại hoặc nhập tin nhắn của bạn.",
+  "mic.voice.startFailed": "Không thể bắt đầu nhập liệu bằng giọng nói. Vui lòng thử lại hoặc nhập tin nhắn của bạn."
 }

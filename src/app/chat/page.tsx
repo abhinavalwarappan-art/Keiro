@@ -695,7 +695,7 @@ function ChatContent() {
     return (
       <div className="flex h-dvh flex-col bg-transparent">
         <TopBar kaiState="idle" language={langName} langNative={langNative} statusLabel={t('chat.statusReady')} />
-        <main id="main-content" data-lenis-prevent className="flex-1 overflow-y-auto">
+        <main id="main-content" className="flex-1 overflow-y-auto">
           <PatientProfileIntake
             langCode={langCode}
             langName={langName}
@@ -740,7 +740,7 @@ function ChatContent() {
       />
 
       {/* main#main-content on every page: skip-link target + landmark navigation */}
-      <main id="main-content" ref={scrollRef} data-lenis-prevent className="flex-1 overflow-y-auto">
+      <main id="main-content" ref={scrollRef} className="flex-1 overflow-y-auto">
         {/* sr-only h1: the chat screen's visible chrome is the TopBar, which has
             no heading — screen-reader users still deserve a page title. */}
         <h1 className="sr-only left-0">{t('chat.log')}</h1>
@@ -881,7 +881,7 @@ function ChatContent() {
 
         <div className="mx-auto w-full max-w-2xl pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1">
           {!hasAnswered && !inputDisabled && !quickReply && (
-            <p className="px-5 pt-2 text-center text-base font-medium text-text-secondary">
+            <p className="px-5 pt-2 text-center text-base font-medium text-text-secondary [@media(max-height:480px)]:hidden">
               {t('chat.hintSpeak')}
             </p>
           )}

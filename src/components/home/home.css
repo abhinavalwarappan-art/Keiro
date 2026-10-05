@@ -33,7 +33,9 @@
 /* ─── Type scale: weight and tracking move WITH size ─── */
 .hm-h1 {
   font-weight: 600;
-  font-size: clamp(2.375rem, 1.2rem + 4.3vw, 4.5rem);
+  /* 32px on a 320px phone → 72px from ~1280px, continuously. A fixed 38px floor
+     made the headline the whole first screen on small phones. */
+  font-size: clamp(2rem, 1.05rem + 4.6vw, 4.5rem);
   line-height: 1.04;
   letter-spacing: -0.045em;
   text-wrap: balance;
@@ -69,7 +71,14 @@
 }
 /* Tonal emphasis: the second sentence of a headline, same face and weight,
    quieter ink. Only on display sizes (it is a large-text contrast). */
-.hm-quiet { color: var(--hm-quiet); }
+.hm-quiet {
+  color: var(--hm-quiet);
+  /* The second sentence moves to the next line as a whole rather than being
+     split mid-thought ("Yours / is one of them."); it still wraps internally
+     when it alone is wider than the line. */
+  display: inline-block;
+  text-wrap: balance;
+}
 
 /* The written record — what the provider reads. Literata, upright. */
 .hm-record {
@@ -115,7 +124,9 @@
 .hm-lang {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 2.75rem;
+  min-width: 2.75rem; /* short names (اردو, 中文) still get a full 44px target */
   padding: 0 0.15rem;
   font-size: clamp(1.25rem, 0.95rem + 1.1vw, 1.875rem);
   line-height: 1.2;

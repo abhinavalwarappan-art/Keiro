@@ -385,7 +385,7 @@ export function IndexGrid({ items }: { items: { n: string; label: string }[] }) 
           as="li"
           key={item.n}
           delay={Math.min(i, 8) * 0.04}
-          className="flex h-full items-baseline gap-4 rounded-[12px] border border-[var(--band-line)] bg-[var(--band-card)] p-4"
+          className={`flex h-full items-baseline gap-4 rounded-[12px] border border-[var(--band-line)] bg-[var(--band-card)] p-4 ${spanOrphan(i, items.length) ?? ''}`}
         >
             <span
               className="lx-mono shrink-0 text-sm text-[var(--band-ink)]"
@@ -479,11 +479,16 @@ export function CheckList({ items }: { items: string[] }) {
    The deep field plus blur *is* the depth treatment, which is how we get a
    photographic-feeling band with no photograph. */
 
+/** In a 2-up → 3-up grid, an odd last card spans the 2-up row instead of sitting alone beside a hole. */
+function spanOrphan(index: number, count: number): string | undefined {
+  return count % 2 === 1 && index === count - 1 ? 'sm:col-span-2 lg:col-span-1' : undefined
+}
+
 export function GlassCards({ items }: { items: { label: string; body: string }[] }) {
   return (
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item, i) => (
-        <Reveal key={item.label} delay={i * 0.07}>
+        <Reveal key={item.label} delay={i * 0.07} className={spanOrphan(i, items.length)}>
           <div className="lx-glass h-full rounded-[16px] p-6">
             <div className="mb-4 h-px w-12 bg-[var(--lx-sage)]" aria-hidden="true" />
             <h3 className="lx-title text-lg text-[var(--band-ink)]">
@@ -825,7 +830,9 @@ export function Split({
 
 export function Prose({ children }: { children: ReactNode }) {
   return (
-    <div className="max-w-2xl">
+    // Space from whatever precedes it (usually a heading's lede) — without it the
+    // lede and the first paragraph ran together as one block.
+    <div className="mt-8 max-w-2xl">
       {children}
     </div>
   )

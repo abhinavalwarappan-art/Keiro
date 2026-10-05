@@ -164,5 +164,11 @@
   "report.print": "Tulosta",
   "report.share": "Jaa",
   "report.pdfFailed": "PDF-tiedostoa ei voitu luoda.",
-  "report.copyFailed": "Automaattinen kopiointi ei onnistunut – kopioi linkki painamalla sitä pitkään."
+  "report.copyFailed": "Automaattinen kopiointi ei onnistunut – kopioi linkki painamalla sitä pitkään.",
+  "mic.start": "Aloita puhuminen",
+  "mic.voice.failed": "Äänisyöttö ei toiminut tällä kertaa. Voit sen sijaan kirjoittaa viestisi.",
+  "mic.voice.noSpeech": "Puhetta ei kuulunut. Yritä uudelleen tai kirjoita viestisi.",
+  "mic.voice.rateLimited": "Odota hetki ennen kuin yrität äänikomentoja uudelleen, tai kirjoita viestisi.",
+  "mic.voice.interrupted": "Äänisyötettä ei voitu suorittaa loppuun. Yritä uudelleen tai kirjoita viestisi.",
+  "mic.voice.startFailed": "Äänisyöttöä ei voitu aloittaa. Yritä uudelleen tai kirjoita viestisi."
 }

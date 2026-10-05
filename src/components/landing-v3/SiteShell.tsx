@@ -35,7 +35,7 @@ export function SiteShell({ children, flow }: { children: ReactNode; flow: FlowT
           Tailwind font utility sits later in the cascade and would win. */}
       <div
         data-flow={flow}
-        className={`lx hm ${geistSans.variable} ${literata.variable} ${sourceSans.variable} ${splineMono.variable} relative min-h-screen overflow-x-clip`}
+        className={`lx hm ${geistSans.variable} ${literata.variable} ${sourceSans.variable} ${splineMono.variable} relative min-h-svh overflow-x-clip`}
       >
         <div className="lx-grain" aria-hidden="true" />
         <Nav />

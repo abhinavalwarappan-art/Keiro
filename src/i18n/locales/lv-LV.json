@@ -164,5 +164,11 @@
   "report.print": "Drukāt",
   "report.share": "Kopīgot",
   "report.pdfFailed": "PDF failu nevarēja izveidot.",
-  "report.copyFailed": "Nevarēja automātiski kopēt — nospiediet un turiet saiti, lai to kopētu."
+  "report.copyFailed": "Nevarēja automātiski kopēt — nospiediet un turiet saiti, lai to kopētu.",
+  "mic.start": "Sākt runāt",
+  "mic.voice.rateLimited": "Lūdzu, uzgaidiet brīdi, pirms vēlreiz mēģināt izmantot balsi, vai arī ierakstiet savu ziņojumu.",
+  "mic.voice.failed": "Balss ievade šoreiz nedarbojās. Varat ierakstīt savu ziņojumu.",
+  "mic.voice.noSpeech": "Runa netika dzirdēta. Lūdzu, mēģiniet vēlreiz vai ierakstiet savu ziņojumu.",
+  "mic.voice.startFailed": "Nevarēja sākt balss ievadi. Lūdzu, mēģiniet vēlreiz vai ierakstiet savu ziņojumu.",
+  "mic.voice.interrupted": "Balss ievadi nevarēja pabeigt. Lūdzu, mēģiniet vēlreiz vai ierakstiet savu ziņojumu."
 }

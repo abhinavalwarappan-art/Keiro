@@ -164,5 +164,11 @@
   "report.print": "Chapisha",
   "report.share": "Shiriki",
   "report.pdfFailed": "PDF haikuweza kuundwa.",
-  "report.copyFailed": "Haikuweza kunakili kiotomatiki — bonyeza na ushikilie kiungo ili kukinakili."
+  "report.copyFailed": "Haikuweza kunakili kiotomatiki — bonyeza na ushikilie kiungo ili kukinakili.",
+  "mic.start": "Anza kuzungumza",
+  "mic.voice.failed": "Uingizaji wa sauti haukufanya kazi wakati huu. Unaweza kuandika ujumbe wako badala yake.",
+  "mic.voice.rateLimited": "Tafadhali subiri kidogo kabla ya kujaribu sauti tena, au andika ujumbe wako badala yake.",
+  "mic.voice.noSpeech": "Hakuna hotuba iliyosikika. Tafadhali jaribu tena, au andika ujumbe wako badala yake.",
+  "mic.voice.startFailed": "Ingizo la sauti halikuweza kuanza. Tafadhali jaribu tena, au andika ujumbe wako badala yake.",
+  "mic.voice.interrupted": "Ingizo la sauti halikuweza kukamilika. Tafadhali jaribu tena, au andika ujumbe wako badala yake."
 }

@@ -164,5 +164,11 @@
   "report.print": "Drukuj",
   "report.share": "Udostępnij",
   "report.pdfFailed": "Nie udało się utworzyć pliku PDF.",
-  "report.copyFailed": "Nie udało się skopiować automatycznie — naciśnij i przytrzymaj link, aby go skopiować."
+  "report.copyFailed": "Nie udało się skopiować automatycznie — naciśnij i przytrzymaj link, aby go skopiować.",
+  "mic.start": "Zacznij mówić",
+  "mic.voice.failed": "Tym razem wprowadzanie głosowe nie zadziałało. Zamiast tego możesz wpisać wiadomość.",
+  "mic.voice.interrupted": "Nie udało się zakończyć wprowadzania głosowego. Spróbuj ponownie lub wpisz wiadomość.",
+  "mic.voice.noSpeech": "Nie słychać żadnej wypowiedzi. Spróbuj ponownie lub wpisz wiadomość.",
+  "mic.voice.startFailed": "Nie udało się uruchomić funkcji wprowadzania głosowego. Spróbuj ponownie lub wpisz wiadomość.",
+  "mic.voice.rateLimited": "Proszę chwilę poczekać, zanim spróbujesz ponownie skorzystać z funkcji głosowej, lub wpisz wiadomość."
 }

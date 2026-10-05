@@ -13,7 +13,8 @@
    never animates: the finished state is simply shown. */
 
 import { useEffect, useRef, useState } from 'react'
-import { LayoutGroup, motion, useInView, useReducedMotion } from 'framer-motion'
+import { LayoutGroup, motion, useInView } from 'framer-motion'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { ArrowRight } from 'lucide-react'
 
 type Sample = { code: string; name: string; native: string; said: string; rtl?: boolean }
@@ -45,7 +46,7 @@ function graphemes(text: string): string[] {
 }
 
 export function TranslationStage() {
-  const reduceMotion = useReducedMotion()
+  const reduceMotion = usePrefersReducedMotion()
   const rootRef = useRef<HTMLDivElement>(null)
   const inView = useInView(rootRef, { amount: 0.35 })
 
@@ -125,10 +126,10 @@ export function TranslationStage() {
         initial={reduceMotion ? false : { opacity: 0, scale: 0.985 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 160, damping: 26, delay: 0.1 }}
-        className="mx-auto grid max-w-[68rem] overflow-hidden rounded-[2rem] bg-[var(--hm-warm)] p-2.5 md:grid-cols-[1fr_auto_1fr] md:gap-3 md:p-3"
+        className="mx-auto grid max-w-[68rem] overflow-hidden rounded-[2rem] bg-[var(--hm-warm)] p-2.5 lg:grid-cols-[1fr_auto_1fr] lg:gap-3 lg:p-3"
       >
         {/* You say it */}
-        <div className="flex min-h-[11.5rem] flex-col justify-between gap-8 p-6 md:min-h-[21rem] md:p-10">
+        <div className="flex min-h-[11.5rem] flex-col justify-between gap-8 p-6 sm:p-8 lg:min-h-[21rem] lg:p-10">
           <div className="flex items-center gap-3 text-[0.9375rem] font-medium text-[var(--hm-faint)]">
             <span
               className={`relative grid size-8 place-items-center rounded-full transition-colors duration-300 ${
@@ -166,7 +167,7 @@ export function TranslationStage() {
         </div>
 
         {/* Understanding — a single node carries the idea of "translated" */}
-        <div className="flex items-center justify-center py-1 md:px-1 md:py-0" aria-hidden>
+        <div className="flex items-center justify-center py-1 lg:px-1 lg:py-0" aria-hidden>
           <motion.span
             animate={{
               scale: understood ? 1 : 0.86,
@@ -176,12 +177,12 @@ export function TranslationStage() {
             transition={SPRING}
             className="grid size-11 place-items-center rounded-full"
           >
-            <ArrowRight size={18} className="rotate-90 rtl:-rotate-90 md:rotate-0 md:rtl:rotate-180" />
+            <ArrowRight size={18} className="rotate-90 rtl:-rotate-90 lg:rotate-0 lg:rtl:rotate-180" />
           </motion.span>
         </div>
 
         {/* Your provider reads it */}
-        <div className="flex min-h-[11.5rem] flex-col justify-between gap-8 rounded-[1.5rem] bg-white p-6 shadow-[0_1px_0_rgba(12,34,23,0.04),0_18px_44px_-20px_rgba(12,34,23,0.22)] md:min-h-[21rem] md:p-10">
+        <div className="flex min-h-[11.5rem] flex-col justify-between gap-8 rounded-[1.5rem] bg-white p-6 shadow-[0_1px_0_rgba(12,34,23,0.04),0_18px_44px_-20px_rgba(12,34,23,0.22)] sm:p-8 lg:min-h-[21rem] lg:p-10">
           <div className="flex items-center gap-2.5 text-[0.9375rem] font-medium text-[var(--hm-faint)]">
             <span
               className={`size-2 rounded-full transition-colors duration-300 ${

@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from 'next'
-import { GeistSans } from 'geist/font/sans'
+import { geistSans } from '@/lib/geistFont'
 import './globals.css'
 import '@/lib/env' // fail fast on misconfigured deploys
 
-import { SmoothScroll } from '@/components/ui/SmoothScroll'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { ToastProvider } from '@/components/ui/Toast'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -40,11 +39,15 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   // No maximumScale: pinch-zoom must stay available (WCAG 1.4.4)
+  // The on-screen keyboard shrinks the layout (Android Chrome) instead of
+  // sliding over it, so the chat composer stays above the keyboard with the
+  // conversation still visible. iOS ignores this and pans to the field itself.
+  interactiveWidget: 'resizes-content',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={GeistSans.variable}>
+    <html lang="en" data-scroll-behavior="smooth" className={geistSans.variable}>
       <body className="bg-canvas">
         <div className="relative">
         {/* Skip-to-content link — first focusable element on every page (WCAG 2.4.1) */}
@@ -60,7 +63,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <LanguageProvider>
               <LangUpdater />
               <ToastProvider>
-                <SmoothScroll />
                 {children}
                 <CookieConsent />
               </ToastProvider>

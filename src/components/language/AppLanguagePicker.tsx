@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo, useState, useSyncExternalStore } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { Search } from 'lucide-react'
 import Kai from '@/components/kai/Kai'
 import { getLanguageDisplayLines, LANGUAGES, resolveLanguage, type Language } from '@/lib/languages'
@@ -15,8 +16,7 @@ interface AppLanguagePickerProps {
  *  re-targeted mid-flight, so a fast tap never waits on an animation. */
 const PRESS_SPRING = { type: 'spring', stiffness: 700, damping: 45 } as const
 
-/** Code of the first browser language Keiro supports, or '' (also the server
- *  snapshot, so hydration matches and the suggestion appears after mount). */
+/** Code of the first browser language Keiro supports, or ''. */
 function getDeviceLanguageCode(): string {
   for (const tag of navigator.languages ?? [navigator.language]) {
     const match = resolveLanguage(tag) ?? resolveLanguage(tag.split('-')[0])
@@ -25,10 +25,13 @@ function getDeviceLanguageCode(): string {
   return ''
 }
 const subscribeNever = () => () => {}
-const getServerDeviceLanguageCode = () => ''
+/* The server can't know the device language, but it reserves the suggestion
+   slot with the most common one. The browser then swaps the row's CONTENT
+   (same height), so the list below never jumps when the real language arrives. */
+const getServerDeviceLanguageCode = () => 'en-US'
 
 function LanguageRow({ lang, onPick }: { lang: Language; onPick: (lang: Language) => void }) {
-  const reduceMotion = useReducedMotion()
+  const reduceMotion = usePrefersReducedMotion()
   const lines = getLanguageDisplayLines(lang)
   // A patient reads their own script first; English is the helper line.
   const primary = lines.find((l) => l.role === 'native') ?? lines[0]
@@ -100,7 +103,9 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
   }, [query])
 
   const showSuggestion = deviceLang && !query.trim()
-  const listed = showSuggestion ? filtered.filter((l) => l.code !== deviceLang.code) : filtered
+  // The full list stays put — the suggested language also appears in its usual
+  // place, so the list never re-flows when the suggestion changes after mount.
+  const listed = filtered
 
   return (
     <div className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col">
@@ -133,7 +138,6 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
       </header>
 
       <div
-        data-lenis-prevent
         className="lang-scroll lang-scroll--light min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-[max(1.5rem,env(safe-area-inset-bottom))]"
         role="listbox"
         aria-label="Available languages"

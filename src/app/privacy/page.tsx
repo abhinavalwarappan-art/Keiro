@@ -11,7 +11,7 @@ export default function PrivacyPage() {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col min-h-screen"
+      className="flex flex-col min-h-svh"
       style={{ maxWidth: 640, margin: '0 auto', background: 'white' }}
     >
       <header

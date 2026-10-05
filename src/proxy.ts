@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { getClientIp, UNKNOWN_IP } from '@/lib/clientIp'
+import { resolveLanguage } from '@/lib/languages'
 
 // API routes that require a valid Supabase session
 const PROTECTED_API_ROUTES = ['/api/chat', '/api/report', '/api/translate']
@@ -43,6 +44,20 @@ function isIpOverLimit(ip: string, route: string): boolean {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Deep links into onboarding with a language (homepage language wall, clinic
+  // QR codes) skip the list. Done here, as a real redirect, so the onboarding
+  // page itself never reads the URL and can be prerendered with its list.
+  if (pathname === '/onboarding') {
+    const lang = request.nextUrl.searchParams.get('lang')
+    const language = lang ? resolveLanguage(lang) : undefined
+    if (!language) return NextResponse.next()
+    const target = new URL('/onboarding/confirm', request.url)
+    target.searchParams.set('lang', language.code)
+    const hospital = request.nextUrl.searchParams.get('hospital')
+    if (hospital) target.searchParams.set('hospital', hospital)
+    return NextResponse.redirect(target)
+  }
   const isProtectedApi = PROTECTED_API_ROUTES.includes(pathname)
   const isProtectedPage = PROTECTED_PAGES.some(p => pathname.startsWith(p))
 
@@ -91,5 +106,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/chat', '/api/report', '/api/translate', '/history/:path*', '/settings/:path*'],
+  matcher: ['/onboarding', '/api/chat', '/api/report', '/api/translate', '/history/:path*', '/settings/:path*'],
 }

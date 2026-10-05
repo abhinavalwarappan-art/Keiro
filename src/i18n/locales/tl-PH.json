@@ -164,5 +164,11 @@
   "report.print": "I-print",
   "report.share": "Ibahagi",
   "report.pdfFailed": "Hindi malikha ang PDF.",
-  "report.copyFailed": "Hindi awtomatikong makopya — pindutin nang matagal ang link para kopyahin ito."
+  "report.copyFailed": "Hindi awtomatikong makopya — pindutin nang matagal ang link para kopyahin ito.",
+  "mic.start": "Magsimulang magsalita",
+  "mic.voice.failed": "Hindi gumana ang voice input sa pagkakataong ito. Maaari mo na lang i-type ang iyong mensahe.",
+  "mic.voice.noSpeech": "Walang narinig na salita. Pakisubukang muli, o i-type na lang ang iyong mensahe.",
+  "mic.voice.rateLimited": "Mangyaring maghintay sandali bago subukang muli ang paggamit ng boses, o i-type na lang ang iyong mensahe.",
+  "mic.voice.startFailed": "Hindi makapagsimula ang input gamit ang boses. Pakisubukang muli, o i-type na lang ang iyong mensahe.",
+  "mic.voice.interrupted": "Hindi natapos ang pag-input gamit ang boses. Pakisubukang muli, o i-type na lang ang iyong mensahe."
 }

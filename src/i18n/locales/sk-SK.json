@@ -164,5 +164,11 @@
   "report.print": "Tlačiť",
   "report.share": "Zdieľať",
   "report.pdfFailed": "PDF súbor sa nepodarilo vytvoriť.",
-  "report.copyFailed": "Nepodarilo sa automaticky skopírovať – skopírujte odkaz stlačením a podržaním prsta."
+  "report.copyFailed": "Nepodarilo sa automaticky skopírovať – skopírujte odkaz stlačením a podržaním prsta.",
+  "mic.start": "Začať hovoriť",
+  "mic.voice.failed": "Hlasový vstup tentoraz nefungoval. Správu môžete namiesto toho napísať.",
+  "mic.voice.noSpeech": "Nebolo počuť žiadny prejav. Skúste to znova alebo napíšte svoju správu.",
+  "mic.voice.rateLimited": "Pred opätovným hlasovým ovládaním chvíľu počkajte alebo napíšte správu.",
+  "mic.voice.interrupted": "Hlasový vstup sa nepodarilo dokončiť. Skúste to znova alebo napíšte správu.",
+  "mic.voice.startFailed": "Hlasový vstup sa nepodarilo spustiť. Skúste to znova alebo napíšte správu."
 }

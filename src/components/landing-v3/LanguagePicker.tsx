@@ -57,7 +57,6 @@ export function LanguagePicker({
       <div
         role="radiogroup"
         aria-label="Choose the language Kai speaks to you in"
-        data-lenis-prevent
         className={[
           'mt-3 flex flex-wrap gap-1 overflow-y-auto pr-1',
           // Only fade when the list is actually clipped — a mask over a short,

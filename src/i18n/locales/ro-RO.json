@@ -164,5 +164,11 @@
   "report.print": "Tipărește",
   "report.share": "Distribuie",
   "report.pdfFailed": "PDF-ul nu a putut fi creat.",
-  "report.copyFailed": "Nu s-a putut copia automat — apăsați și mențineți apăsat linkul pentru a-l copia."
+  "report.copyFailed": "Nu s-a putut copia automat — apăsați și mențineți apăsat linkul pentru a-l copia.",
+  "mic.start": "Începeți să vorbiți",
+  "mic.voice.failed": "Intrarea vocală nu a funcționat de data aceasta. Poți să-ți scrii mesajul.",
+  "mic.voice.noSpeech": "Nu s-a auzit nicio voce. Vă rugăm să încercați din nou sau să introduceți mesajul.",
+  "mic.voice.rateLimited": "Vă rugăm să așteptați un moment înainte de a încerca din nou vocea sau să tastați mesajul în schimb.",
+  "mic.voice.interrupted": "Introducerea vocală nu s-a putut finaliza. Vă rugăm să încercați din nou sau să introduceți mesajul.",
+  "mic.voice.startFailed": "Introducerea vocală nu a putut fi pornită. Vă rugăm să încercați din nou sau să introduceți mesajul."
 }

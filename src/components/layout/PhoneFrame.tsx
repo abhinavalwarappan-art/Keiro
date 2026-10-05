@@ -8,7 +8,7 @@ interface PhoneFrameProps {
 
 export default function PhoneFrame({ children }: PhoneFrameProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas py-6">
+    <div className="flex min-h-svh items-center justify-center bg-canvas py-6">
       <motion.div
         className="relative overflow-hidden bg-surface shadow-lg"
         style={{

@@ -164,5 +164,11 @@
   "report.print": "Prindi",
   "report.share": "Jaga",
   "report.pdfFailed": "PDF-faili loomine ebaõnnestus.",
-  "report.copyFailed": "Automaatne kopeerimine ei õnnestunud – lingi kopeerimiseks vajutage ja hoidke seda all."
+  "report.copyFailed": "Automaatne kopeerimine ei õnnestunud – lingi kopeerimiseks vajutage ja hoidke seda all.",
+  "mic.start": "Alusta rääkimist",
+  "mic.voice.failed": "Häälsisend seekord ei töötanud. Saate selle asemel oma sõnumi tippida.",
+  "mic.voice.rateLimited": "Palun oota hetk, enne kui uuesti häälkäsklust proovid, või kirjuta hoopis oma sõnum.",
+  "mic.voice.interrupted": "Häälsisendit ei õnnestunud lõpetada. Proovige uuesti või tippige hoopis oma sõnum.",
+  "mic.voice.noSpeech": "Kõnet ei kuulda. Palun proovige uuesti või tippige hoopis oma sõnum.",
+  "mic.voice.startFailed": "Häälsisendit ei saanud alustada. Proovige uuesti või tippige hoopis oma sõnum."
 }

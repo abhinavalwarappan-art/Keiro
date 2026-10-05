@@ -164,5 +164,11 @@
   "report.print": "Udskriv",
   "report.share": "Del",
   "report.pdfFailed": "PDF-filen kunne ikke oprettes.",
-  "report.copyFailed": "Kunne ikke kopiere automatisk – tryk og hold linket nede for at kopiere det."
+  "report.copyFailed": "Kunne ikke kopiere automatisk – tryk og hold linket nede for at kopiere det.",
+  "mic.start": "Begynd at tale",
+  "mic.voice.failed": "Stemmeinput virkede ikke denne gang. Du kan skrive din besked i stedet.",
+  "mic.voice.noSpeech": "Der blev ikke hørt nogen tale. Prøv igen, eller skriv din besked i stedet.",
+  "mic.voice.interrupted": "Stemmeinputtet kunne ikke afsluttes. Prøv igen, eller skriv din besked i stedet.",
+  "mic.voice.rateLimited": "Vent et øjeblik, før du prøver at bruge stemmen igen, eller skriv din besked i stedet.",
+  "mic.voice.startFailed": "Stemmeinput kunne ikke starte. Prøv igen, eller skriv din besked i stedet."
 }

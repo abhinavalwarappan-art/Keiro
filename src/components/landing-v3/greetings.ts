@@ -105,3 +105,15 @@ export const KAI_GREETINGS: Record<string, string> = {
   'lt-LT':
     'Sveiki, aš esu Kai. Savais žodžiais papasakokite, kas skauda. Aš tai paaiškinsiu jūsų gydytojui.',
 }
+
+/** Sentence enders across Keiro's scripts: Latin, CJK, Devanagari, Urdu, Ethiopic, Arabic. */
+const FIRST_SENTENCE = /^(.*?)[.。।۔።!！؟](?:\s|$)/u
+
+/**
+ * Kai's one-line hello in a language ("Hallo, ich bin Kai") — the first sentence
+ * of its greeting, without the full stop. English when the language is unknown.
+ */
+export function kaiShortGreeting(code: string): string {
+  const text = KAI_GREETINGS[code] ?? KAI_GREETINGS['en-US']
+  return (FIRST_SENTENCE.exec(text)?.[1] ?? text).trim()
+}

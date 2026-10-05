@@ -341,7 +341,6 @@ export function PatientProfileIntake({ langCode, langName, onComplete }: Patient
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        data-lenis-prevent
         className="fixed inset-0 z-[60] flex items-end justify-center overflow-y-auto bg-black/40 p-4 backdrop-blur-sm sm:items-center"
         role="dialog"
         aria-modal="true"

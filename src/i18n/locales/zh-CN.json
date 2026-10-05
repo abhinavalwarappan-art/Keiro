@@ -164,5 +164,11 @@
   "report.print": "打印",
   "report.share": "分享",
   "report.pdfFailed": "PDF文件创建失败。",
-  "report.copyFailed": "无法自动复制——按住链接进行复制。"
+  "report.copyFailed": "无法自动复制——按住链接进行复制。",
+  "mic.start": "开始说话",
+  "mic.voice.failed": "这次语音输入无法使用。您可以改用输入文字来发送消息。",
+  "mic.voice.interrupted": "语音输入未能完成。请重试，或者直接输入文字。",
+  "mic.voice.rateLimited": "请稍等片刻，然后再尝试语音输入，或者直接输入文字消息。",
+  "mic.voice.noSpeech": "没有听到声音。请再试一次，或改为输入消息。",
+  "mic.voice.startFailed": "无法启动语音输入。请重试，或者直接输入文字。"
 }

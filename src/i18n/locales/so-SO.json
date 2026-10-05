@@ -164,5 +164,11 @@
   "report.print": "Daabac",
   "report.share": "La wadaag",
   "report.pdfFailed": "PDF-ka lama abuuri karin.",
-  "report.copyFailed": "Si toos ah uma nuqulin karin — riix oo hay xiriirinta si aad u nuquliso."
+  "report.copyFailed": "Si toos ah uma nuqulin karin — riix oo hay xiriirinta si aad u nuquliso.",
+  "mic.start": "Bilow hadalka",
+  "mic.voice.failed": "Codka gelintu ma shaqeynin markan. Waxaad ku qori kartaa fariintaada.",
+  "mic.voice.rateLimited": "Fadlan sug daqiiqad ka hor intaadan isku dayin codka mar kale, ama ku qor fariintaada beddelkeeda.",
+  "mic.voice.noSpeech": "Ma jirin wax hadal ah oo la maqlay. Fadlan isku day mar kale, ama ku qor fariintaada beddelkeeda.",
+  "mic.voice.startFailed": "Cod-gelinta ma bilaaban karto. Fadlan isku day mar kale, ama ku qor farriintaada beddelkeeda.",
+  "mic.voice.interrupted": "Codka la gelinayo ma dhammaan karo. Fadlan isku day mar kale, ama ku qor farriintaada beddelkeeda."
 }

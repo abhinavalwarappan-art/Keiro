@@ -164,5 +164,11 @@
   "report.print": "Imprimir",
   "report.share": "Compartilhar",
   "report.pdfFailed": "Não foi possível criar o arquivo PDF.",
-  "report.copyFailed": "Não foi possível copiar automaticamente — pressione e segure o link para copiá-lo."
+  "report.copyFailed": "Não foi possível copiar automaticamente — pressione e segure o link para copiá-lo.",
+  "mic.start": "Começar a falar",
+  "mic.voice.failed": "A entrada por voz não funcionou desta vez. Você pode digitar sua mensagem.",
+  "mic.voice.startFailed": "Não foi possível iniciar a entrada por voz. Tente novamente ou digite sua mensagem.",
+  "mic.voice.rateLimited": "Aguarde um momento antes de tentar falar novamente ou, se preferir, digite sua mensagem.",
+  "mic.voice.interrupted": "Não foi possível concluir a entrada por voz. Tente novamente ou digite sua mensagem.",
+  "mic.voice.noSpeech": "Não foi ouvida nenhuma fala. Por favor, tente novamente ou digite sua mensagem."
 }

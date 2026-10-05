@@ -18,7 +18,7 @@ export function Footer() {
        size and case, not from dimming text below legibility. */
     <footer className="relative bg-[var(--lx-ink)] px-5 py-14 text-white/75 sm:px-8 md:py-16 lg:px-16">
       <div className="mx-auto max-w-6xl">
-        <div className="grid gap-10 md:grid-cols-4">
+        <div className="grid gap-10 md:grid-cols-2 md:gap-x-12 lg:grid-cols-4 lg:gap-x-10">
           <div>
             <div className="lx-display text-xl font-semibold text-white">Keiro</div>
             <p className="mt-4 max-w-sm leading-[1.8]">
@@ -29,7 +29,7 @@ export function Footer() {
 
           {/* Footer IA is flatter than the nav on purpose — every page, in one
               place, without the About grouping. */}
-          <nav aria-label="Footer" className="grid gap-8 sm:grid-cols-2 md:col-span-2 md:grid-cols-2">
+          <nav aria-label="Footer" className="grid grid-cols-2 gap-8 md:order-last md:col-span-2 lg:order-none">
             <div>
               <h3 className="lx-label text-xs text-white/75">
                 Keiro
@@ -102,7 +102,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/75 md:flex-row md:items-center md:justify-between">
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 pb-[env(safe-area-inset-bottom)] text-sm text-white/75 md:flex-row md:items-center md:justify-between">
           <div>© {new Date().getFullYear()} Keiro</div>
           <div>Built for patients who need to be understood.</div>
         </div>

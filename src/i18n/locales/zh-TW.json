@@ -164,5 +164,11 @@
   "report.print": "列印",
   "report.share": "分享",
   "report.pdfFailed": "PDF文件建立失敗。",
-  "report.copyFailed": "無法自動複製－按住連結進行複製。"
+  "report.copyFailed": "無法自動複製－按住連結進行複製。",
+  "mic.start": "開始說話",
+  "mic.voice.failed": "這次語音輸入功能無法使用。您可以改為輸入文字留言。",
+  "mic.voice.rateLimited": "請稍等片刻再嘗試語音輸入，或改為打字留言。",
+  "mic.voice.noSpeech": "沒有聽到聲音。請再試一次，或改為輸入訊息。",
+  "mic.voice.interrupted": "語音輸入失敗。請重試，或改為輸入文字留言。",
+  "mic.voice.startFailed": "語音輸入無法啟動。請再試一次，或改為輸入訊息。"
 }

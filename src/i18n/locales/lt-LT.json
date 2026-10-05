@@ -164,5 +164,11 @@
   "report.print": "Spausdinti",
   "report.share": "Bendrinti",
   "report.pdfFailed": "Nepavyko sukurti PDF failo.",
-  "report.copyFailed": "Nepavyko automatiškai nukopijuoti – paspauskite ir palaikykite nuorodą, kad ją nukopijuotumėte."
+  "report.copyFailed": "Nepavyko automatiškai nukopijuoti – paspauskite ir palaikykite nuorodą, kad ją nukopijuotumėte.",
+  "mic.start": "Pradėti kalbėti",
+  "mic.voice.startFailed": "Nepavyko pradėti balso įvesties. Bandykite dar kartą arba įveskite savo pranešimą.",
+  "mic.voice.rateLimited": "Prieš bandydami dar kartą balsu, palaukite akimirką arba įveskite savo pranešimą.",
+  "mic.voice.interrupted": "Nepavyko užbaigti balso įvesties. Bandykite dar kartą arba įveskite savo pranešimą.",
+  "mic.voice.noSpeech": "Nebuvo girdima jokia kalba. Bandykite dar kartą arba įveskite savo pranešimą.",
+  "mic.voice.failed": "Šį kartą balso įvestis neveikė. Galite įvesti savo pranešimą."
 }

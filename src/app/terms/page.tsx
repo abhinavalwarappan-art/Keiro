@@ -11,7 +11,7 @@ export default function TermsPage() {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col min-h-screen"
+      className="flex flex-col min-h-svh"
       style={{ maxWidth: 640, margin: '0 auto', background: 'white' }}
     >
       <header className="flex items-center gap-3 px-6 py-4 sticky top-0 z-10" style={{ background: 'white', borderBottom: '1px solid var(--border-subtle)' }}>

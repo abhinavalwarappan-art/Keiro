@@ -164,5 +164,11 @@
   "report.print": "Print",
   "report.share": "Share",
   "report.pdfFailed": "The PDF couldn't be created.",
-  "report.copyFailed": "Couldn't copy automatically — press and hold the link to copy it."
+  "report.copyFailed": "Couldn't copy automatically — press and hold the link to copy it.",
+  "mic.start": "Start speaking",
+  "mic.voice.failed": "Voice input didn't work this time. You can type your message instead.",
+  "mic.voice.rateLimited": "Please wait a moment before trying voice again, or type your message instead.",
+  "mic.voice.noSpeech": "No speech was heard. Please try again, or type your message instead.",
+  "mic.voice.interrupted": "Voice input could not finish. Please try again, or type your message instead.",
+  "mic.voice.startFailed": "Voice input could not start. Please try again, or type your message instead."
 }
