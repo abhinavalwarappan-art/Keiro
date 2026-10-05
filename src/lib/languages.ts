@@ -12,7 +12,13 @@ export interface Language {
   inputPlaceholder?: string
 }
 
-export const LANGUAGES: Language[] = [
+/**
+ * The ONE list of languages Keiro supports. The selector, the UI translations,
+ * the emergency screen and Kai's voice routing all derive from it — add a
+ * language here and the type system points at every place that must follow
+ * (e.g. the Fish voice map in kaiVoices.ts will not compile without it).
+ */
+const LANGUAGE_DATA = [
   { code: 'en-US', en: 'English', native: 'English', roman: 'English', flag: '🇺🇸', deeplCode: 'EN-US', googleCode: 'en', voiceLang: 'en-US' },
   { code: 'es-ES', en: 'Spanish', native: 'Español', roman: 'Espanyol', flag: '🇪🇸', deeplCode: 'ES', googleCode: 'es', voiceLang: 'es-ES' },
   { code: 'zh-CN', en: 'Mandarin', native: '中文', roman: 'Zhōngwén', flag: '🇨🇳', deeplCode: 'ZH', googleCode: 'zh', voiceLang: 'zh-CN' },
@@ -58,7 +64,50 @@ export const LANGUAGES: Language[] = [
   { code: 'et-EE', en: 'Estonian', native: 'Eesti', roman: 'Eesti', flag: '🇪🇪', googleCode: 'et', voiceLang: 'et-EE' },
   { code: 'lv-LV', en: 'Latvian', native: 'Latviešu', roman: 'Latviesu', flag: '🇱🇻', googleCode: 'lv', voiceLang: 'lv-LV' },
   { code: 'lt-LT', en: 'Lithuanian', native: 'Lietuvių', roman: 'Lietuviu', flag: '🇱🇹', googleCode: 'lt', voiceLang: 'lt-LT' },
-]
+] as const satisfies readonly Language[]
+
+export const LANGUAGES: Language[] = [...LANGUAGE_DATA]
+
+/** A language code Keiro actually supports, e.g. `ta-IN`. Derived, never hand-listed. */
+export type SupportedLocale = (typeof LANGUAGE_DATA)[number]['code']
+
+export const SUPPORTED_LOCALES: readonly SupportedLocale[] = LANGUAGE_DATA.map((l) => l.code)
+
+const SUPPORTED_LOCALE_BY_LOWER = new Map<string, SupportedLocale>(
+  SUPPORTED_LOCALES.map((code) => [code.toLowerCase(), code]),
+)
+
+/**
+ * Short or script-tagged forms that legitimately mean one supported locale.
+ * Deliberately explicit: Chinese is the one language with two supported
+ * locales, so `zh-Hant`/`zh-TW` and `zh-Hans`/`zh-CN` must never collapse into
+ * each other, and a bare primary subtag is only accepted where it is listed here.
+ */
+const LOCALE_ALIASES: Readonly<Record<string, SupportedLocale>> = {
+  en: 'en-US',
+  es: 'es-ES',
+  zh: 'zh-CN',
+  'zh-hans': 'zh-CN',
+  'zh-hans-cn': 'zh-CN',
+  'zh-hant': 'zh-TW',
+  'zh-hant-tw': 'zh-TW',
+  no: 'nb-NO',
+  nb: 'nb-NO',
+  'no-no': 'nb-NO',
+  pt: 'pt-BR',
+}
+
+/**
+ * Map any locale string the app might hold onto a supported locale, or null.
+ * Case-insensitive; accepts `_` for `-`. Unknown or malformed input returns
+ * null — callers decide the fallback, so a wrong guess is never silent.
+ */
+export function normalizeLocale(input: string | null | undefined): SupportedLocale | null {
+  if (typeof input !== 'string') return null
+  const key = input.trim().replace(/_/g, '-').toLowerCase()
+  if (!key || key.length > 20) return null
+  return SUPPORTED_LOCALE_BY_LOWER.get(key) ?? LOCALE_ALIASES[key] ?? null
+}
 
 // Build lookup maps once at module load to avoid repeated linear scans
 const LANGUAGE_BY_CODE = new Map<string, Language>(LANGUAGES.map((l) => [l.code, l]))
@@ -130,13 +179,53 @@ const OPENING_BY_CODE: Record<string, string> = {
   'vi-VN': 'Xin chào! Tôi là Kai. Hôm nay tôi ở đây để giúp bạn trao đổi với bác sĩ. Bạn đã biết mình bị bệnh gì chưa, hay hôm nay bạn không chắc mình bị làm sao?',
 }
 
-const PLACEHOLDER_BY_CODE: Record<string, string> = {
+/** The composer's placeholder, per language. Typed so a new language can't ship without one. */
+const PLACEHOLDER_BY_CODE: Record<SupportedLocale, string> = {
   'en-US': 'Type your message…',
-  'es-ES': 'Escribe tu mensaje…',
+  'es-ES': 'Escriba su mensaje…',
   'zh-CN': '输入你的消息…',
   'hi-IN': 'अपना संदेश लिखें…',
   'ar-SA': 'اكتب رسالتك…',
   'vi-VN': 'Nhập tin nhắn của bạn…',
+  'ko-KR': '메시지를 입력하세요…',
+  'tl-PH': 'I-type ang iyong mensahe…',
+  'ur-PK': 'اپنا پیغام لکھیں…',
+  'ta-IN': 'உங்கள் செய்தியை எழுதுங்கள்…',
+  'te-IN': 'మీ సందేశాన్ని టైప్ చేయండి…',
+  'gu-IN': 'તમારો સંદેશ લખો…',
+  'pa-IN': 'ਆਪਣਾ ਸੁਨੇਹਾ ਲਿਖੋ…',
+  'fr-FR': 'Écrivez votre message…',
+  'de-DE': 'Schreiben Sie Ihre Nachricht…',
+  'pt-BR': 'Digite sua mensagem…',
+  'ja-JP': 'メッセージを入力してください…',
+  'ru-RU': 'Напишите сообщение…',
+  'tr-TR': 'Mesajınızı yazın…',
+  'fa-IR': 'پیام خود را بنویسید…',
+  'am-ET': 'መልእክትዎን ይጻፉ…',
+  'sw-KE': 'Andika ujumbe wako…',
+  'so-SO': 'Qor fariintaada…',
+  'id-ID': 'Ketik pesan Anda…',
+  'pl-PL': 'Wpisz swoją wiadomość…',
+  'uk-UA': 'Напишіть повідомлення…',
+  'bn-BD': 'আপনার বার্তা লিখুন…',
+  'ml-IN': 'നിങ്ങളുടെ സന്ദേശം എഴുതുക…',
+  'it-IT': 'Scriva il suo messaggio…',
+  'nl-NL': 'Typ uw bericht…',
+  'el-GR': 'Γράψτε το μήνυμά σας…',
+  'cs-CZ': 'Napište svou zprávu…',
+  'ro-RO': 'Scrieți mesajul dvs.…',
+  'sv-SE': 'Skriv ditt meddelande…',
+  'da-DK': 'Skriv din besked…',
+  'fi-FI': 'Kirjoita viestisi…',
+  'nb-NO': 'Skriv meldingen din…',
+  'hu-HU': 'Írja be az üzenetét…',
+  'bg-BG': 'Напишете съобщението си…',
+  'zh-TW': '輸入你的訊息…',
+  'sk-SK': 'Napíšte svoju správu…',
+  'sl-SI': 'Napišite svoje sporočilo…',
+  'et-EE': 'Kirjutage oma sõnum…',
+  'lv-LV': 'Ierakstiet savu ziņu…',
+  'lt-LT': 'Parašykite savo žinutę…',
 }
 
 /**
@@ -151,7 +240,7 @@ export function getOpeningMessage(code: string, romanization?: boolean): string 
 
 /** Localized chat input placeholder, falling back to English. */
 export function getInputPlaceholder(code: string): string {
-  return PLACEHOLDER_BY_CODE[code] ?? PLACEHOLDER_BY_CODE['en-US']
+  return PLACEHOLDER_BY_CODE[normalizeLocale(code) ?? 'en-US']
 }
 
 /**

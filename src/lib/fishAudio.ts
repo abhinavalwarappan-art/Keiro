@@ -1,15 +1,14 @@
 import 'server-only'
 import { env } from './env'
 import { fetchUpstream, UpstreamError } from './upstream'
-import { resolveKaiVoice } from './kaiVoices'
 
 /**
  * Both directions of Keiro's voice pipeline, on one Fish Audio account.
  *
  *  • TTS  (/v1/tts) — Kai's spoken voice. One custom voice model does all 45
- *    languages: the backbone model is multilingual. Per-language voices, if
- *    they are ever recorded, are mapped in ONE place — `kaiVoices.ts`. Nobody
- *    picks a voice, here or in Settings.
+ *    languages, each with its own Fish voice chosen by the patient's language
+ *    (mapped in ONE place — `kaiVoices.ts`; English is `FISH_AUDIO_VOICE`).
+ *    Nobody picks a voice, here or in Settings.
  *  • ASR  (/v1/asr) — the patient's speech, transcribed. Everything the mic
  *    captures lands here.
  *
@@ -42,24 +41,25 @@ const FISH_TIMEOUT_MS = 30_000
 export const MAX_TTS_CHARS = 2000
 
 /**
- * Whether Kai's voice can actually be synthesized. False when the key or the
- * model id is unset — the route then tells the client to fall back to browser
- * speech instead of failing the request.
+ * Whether Kai's voice can actually be synthesized with `voiceId`. False when the
+ * key or the resolved voice is missing — the route then tells the client to fall
+ * back to browser speech instead of failing the request.
  */
-export function isFishConfigured(langCode?: string): boolean {
-  return Boolean(env.FISH_AUDIO_API_KEY?.trim() && resolveKaiVoice(langCode))
+export function isFishConfigured(voiceId: string | undefined): boolean {
+  return Boolean(env.FISH_AUDIO_API_KEY?.trim() && voiceId)
 }
 
 /**
- * Synthesize `text` in Kai's voice, returning MP3 bytes.
+ * Synthesize `text` with the Fish voice `voiceId`, returning MP3 bytes. The id
+ * must come from `resolveFishVoiceId` on the server — never from a request.
  *
  * Throws UpstreamError on any Fish-side failure so the route can log the
  * provider fault without ever echoing the request body — the text is patient
  * health information.
  */
-export async function synthesizeSpeech(text: string, langCode?: string): Promise<ArrayBuffer> {
+export async function synthesizeSpeech(text: string, voiceId: string): Promise<ArrayBuffer> {
   const apiKey = env.FISH_AUDIO_API_KEY?.trim()
-  const reference = resolveKaiVoice(langCode)
+  const reference = voiceId.trim()
 
   if (!apiKey || !reference) {
     throw new UpstreamError('fish', 'unavailable', 'Fish Audio is not configured')

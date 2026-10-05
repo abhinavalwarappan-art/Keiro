@@ -253,7 +253,7 @@ interface ListenControlProps {
  * doing in words as well as shape, and explains a failure next to it.
  */
 function ListenControl({ phase, canPause, error, t, reduceMotion, onPress }: ListenControlProps) {
-  const loading = phase === 'loading'
+  const loading = phase === 'loading' || phase === 'ready'
   const active = phase === 'playing' || phase === 'paused'
 
   let icon: React.ReactNode
