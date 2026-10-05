@@ -7,9 +7,9 @@
  *
  * Playback is an explicit state machine, shared by the whole page:
  *
- *   idle ──tap──▶ loading ──audio starts──▶ playing ──tap──▶ paused
- *                    │                        │  ▲              │
- *                    │                     ended └──── tap ──────┘
+ *   idle ──tap──▶ loading ──audio fetched──▶ ready ──audio starts──▶ playing ──tap──▶ paused
+ *                    │                                               │  ▲              │
+ *                    │                                            ended └──── tap ──────┘
  *                    ▼                        ▼
  *                  error ◀── fails ──      idle
  *
@@ -36,6 +36,7 @@
  */
 
 import { stripMarkdownAndEmoji } from './text'
+import { normalizeLocale } from './languages'
 
 /* ------------------------------------------------------------------ *
  * Device-voice selection (fallback engine)
@@ -106,7 +107,12 @@ function splitForSpeech(text: string): string[] {
  * The shared state machine
  * ------------------------------------------------------------------ */
 
-export type SpeechPhase = 'idle' | 'loading' | 'playing' | 'paused' | 'error'
+/**
+ * `ready` is the short gap between the audio arriving and the browser actually
+ * starting it — still "preparing" to the patient, but distinct so tests and the
+ * UI can tell a slow network from a slow decoder.
+ */
+export type SpeechPhase = 'idle' | 'loading' | 'ready' | 'playing' | 'paused' | 'error'
 
 /**
  * Why playback failed, phrased by what the patient can do about it:
@@ -390,7 +396,7 @@ function playBlob(
 
   audio.onplaying = () => {
     if (!current()) return
-    const firstStart = snapshot.phase === 'loading'
+    const firstStart = snapshot.phase === 'loading' || snapshot.phase === 'ready'
     setSnapshot({ key, phase: 'playing', error: null, canPause: true })
     if (firstStart) options?.onStart?.()
   }
@@ -410,6 +416,7 @@ function playBlob(
     speakViaBrowser(spoken, langCode, gen, key, 'unavailable', options)
   }
 
+  if (snapshot.phase === 'loading') setSnapshot({ key, phase: 'ready', error: null, canPause: false })
   audio.play().catch((err: unknown) => {
     if (!current()) return
     if (err instanceof DOMException && err.name === 'NotAllowedError') {
@@ -420,7 +427,7 @@ function playBlob(
     }
     // AbortError from a src swap is handled by `current()`; anything else —
     // let the device voice try rather than leave the patient in silence.
-    if (snapshot.phase === 'loading') {
+    if (snapshot.phase === 'loading' || snapshot.phase === 'ready') {
       detachAudioHandlers(audio)
       speakViaBrowser(spoken, langCode, gen, key, 'unavailable', options)
     }
@@ -557,7 +564,11 @@ export function speakText(text: string, langCode: string, options?: SpeakOptions
   setAudioSessionType('playback')
   setSnapshot({ key, phase: 'loading', error: null, canPause: false })
 
-  const cacheId = `${langCode}\u0000${spoken}`
+  // Keyed by the NORMALIZED locale: the server picks the voice from it, so one
+  // locale is one voice, and audio can never be replayed in another language's
+  // voice (`es` and `es-ES` share; `zh-CN` and `zh-TW` never do).
+  const locale = normalizeLocale(langCode) ?? langCode
+  const cacheId = `${locale}\u0000${spoken}`
   const cached = cacheGet(cacheId)
   if (cached) {
     playBlob(cached, gen, key, spoken, langCode, options)
@@ -568,7 +579,7 @@ export function speakText(text: string, langCode: string, options?: SpeakOptions
   const controller = new AbortController()
   fetchAbort = controller
 
-  void fetchKaiAudio(spoken, langCode, controller.signal).then((result) => {
+  void fetchKaiAudio(spoken, locale, controller.signal).then((result) => {
     if (gen !== generation) return
     if (fetchAbort === controller) fetchAbort = null
     if ('blob' in result) {
@@ -613,7 +624,7 @@ export function resumeSpeech() {
  */
 export function toggleSpeech(key: string, text: string, langCode: string, options?: Omit<SpeakOptions, 'key'>) {
   if (snapshot.key === key) {
-    if (snapshot.phase === 'loading') return
+    if (snapshot.phase === 'loading' || snapshot.phase === 'ready') return
     if (snapshot.phase === 'playing') {
       pauseSpeech()
       return

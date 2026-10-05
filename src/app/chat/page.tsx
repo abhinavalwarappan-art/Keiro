@@ -257,6 +257,9 @@ function ChatContent() {
   const kaiReplyInFlightRef = useRef(false)
   const chatAbortRef = useRef<AbortController | null>(null)
   const openingRequestedRef = useRef(restoredHasMessages)
+  // Whether the request in flight is the on-load opening message. If an unmount
+  // cancels it, the opening must be asked for again on the next mount.
+  const openingInFlightRef = useRef(false)
 
   const supabase = createClient()
 
@@ -338,6 +341,7 @@ function ChatContent() {
     async (history: ChatMessage[], isOpening: boolean) => {
       if (kaiReplyInFlightRef.current) return
       kaiReplyInFlightRef.current = true
+      openingInFlightRef.current = isOpening
       setIsStreaming(true)
 
       chatAbortRef.current?.abort()
@@ -473,11 +477,16 @@ function ChatContent() {
         setIsTyping(false)
         setChatError(true)
       } finally {
-        kaiReplyInFlightRef.current = false
         // Released here rather than after the read loop so it also covers the error
         // and abort paths — otherwise a failed reply would leave the UI locked.
-        setIsStreaming(false)
-        if (chatAbortRef.current === controller) chatAbortRef.current = null
+        // Only the CURRENT request may release: one cancelled by an unmount must
+        // not unlock (or end) the reply that replaced it after a remount.
+        if (chatAbortRef.current === controller) {
+          chatAbortRef.current = null
+          kaiReplyInFlightRef.current = false
+          openingInFlightRef.current = false
+          setIsStreaming(false)
+        }
       }
     },
     [langCode, langName, roman, patientProfile, router, scrollToBottom],
@@ -660,10 +669,24 @@ function ChatContent() {
     }
   }, [router])
 
-  // Abort any in-flight stream, and silence Kai, on unmount.
+  // A new language means a new voice: stop (and drop any in-flight synthesis
+  // for) whatever the previous language was saying.
+  useEffect(() => () => stopSpeech(), [langCode])
+
+  // Abort any in-flight stream, and silence Kai, on unmount. Cancelling must
+  // also undo the bookkeeping, or a remount (React StrictMode does one on every
+  // mount in development; a language switch does one for real) finds the opening
+  // "already requested", never asks again, and Kai sits on "typing…" forever.
   useEffect(() => {
     return () => {
-      chatAbortRef.current?.abort()
+      const inFlight = chatAbortRef.current
+      if (inFlight) {
+        chatAbortRef.current = null
+        inFlight.abort()
+        kaiReplyInFlightRef.current = false
+        if (openingInFlightRef.current) openingRequestedRef.current = false
+        openingInFlightRef.current = false
+      }
       stopSpeech()
     }
   }, [])

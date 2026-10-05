@@ -199,4 +199,70 @@ describe('speech state machine', () => {
     speech.stopSpeech()
     expect(speech.getSpeechSnapshot()).toEqual({ key: null, phase: 'idle', error: null, canPause: false })
   })
+
+  it('passes through ready (audio arrived) before playing', async () => {
+    const speech = await loadSpeech()
+    FakeAudio.nextPlay = 'pending'
+    speech.toggleSpeech('m1', 'Hello there.', 'en-US')
+    await flush()
+    await flush()
+    expect(speech.getSpeechSnapshot().phase).toBe('ready')
+    // Still a "preparing" phase: repeat taps are ignored here too.
+    speech.toggleSpeech('m1', 'Hello there.', 'en-US')
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('never replays one language’s audio for another: a locale change fetches again', async () => {
+    const speech = await loadSpeech()
+    speech.toggleSpeech('m1', 'Kai', 'ta-IN')
+    await flush()
+    await flush()
+    speech.stopSpeech()
+    speech.toggleSpeech('m1', 'Kai', 'da-DK')
+    await flush()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    const sent = fetchMock.mock.calls.map((c) => JSON.parse((c as [string, RequestInit])[1].body as string).langCode)
+    expect(sent).toEqual(['ta-IN', 'da-DK'])
+  })
+
+  it('normalizes the locale it sends and caches under (es → es-ES)', async () => {
+    const speech = await loadSpeech()
+    speech.toggleSpeech('m1', 'Hola.', 'es')
+    await flush()
+    await flush()
+    speech.stopSpeech()
+    speech.toggleSpeech('m1', 'Hola.', 'es-ES')
+    await flush()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(JSON.parse((fetchMock.mock.calls[0] as [string, RequestInit])[1].body as string).langCode).toBe('es-ES')
+  })
+
+  it('ignores a stale response that lands after the patient moved on', async () => {
+    const speech = await loadSpeech()
+    const first = deferredResponse()
+    fetchMock.mockReturnValueOnce(first.promise)
+    speech.toggleSpeech('m1', 'First.', 'ta-IN')
+    speech.stopSpeech() // e.g. the language changed
+    first.resolve(audioResponse())
+    await flush()
+    await flush()
+    expect(speech.getSpeechSnapshot().phase).toBe('idle')
+    expect(FakeAudio.instances[0].src).not.toMatch(/^blob:fake/)
+  })
+
+  it('retry after a failed Fish request starts a fresh request and plays', async () => {
+    const speech = await loadSpeech()
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    speech.toggleSpeech('m1', 'Hello there.', 'en-US')
+    await flush()
+    await flush()
+    expect(speech.getSpeechSnapshot()).toMatchObject({ phase: 'error', error: 'network' })
+
+    speech.toggleSpeech('m1', 'Hello there.', 'en-US')
+    expect(speech.getSpeechSnapshot().phase).toBe('loading')
+    await flush()
+    await flush()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(speech.getSpeechSnapshot().phase).toBe('playing')
+  })
 })

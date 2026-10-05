@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isFishConfigured, synthesizeSpeech, MAX_TTS_CHARS } from '@/lib/fishAudio'
+import { resolveFishVoiceId } from '@/lib/kaiVoices'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, checkIpRateLimit } from '@/lib/rateLimit'
 import { getClientIp, hashIp } from '@/lib/clientIp'
@@ -17,6 +18,9 @@ export const maxDuration = 45
  * any non-200, so an unset key, a rate limit, or a Fish outage costs voice
  * quality rather than voice itself.
  */
+/** Body fields that would let a client pick the Fish voice. Always rejected. */
+const CLIENT_VOICE_FIELDS = ['voiceId', 'voice_id', 'voice', 'referenceId', 'reference_id', 'model'] as const
+
 export async function POST(request: NextRequest) {
   try {
     const origin = request.headers.get('origin')
@@ -44,14 +48,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    const { text, langCode: rawLangCode } = (body ?? {}) as { text?: unknown; langCode?: unknown }
-    // Optional, and only ever used to look up a voice — so anything that isn't a
-    // plain BCP-47-shaped code is ignored rather than rejected.
-    const langCode =
-      typeof rawLangCode === 'string' && /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})?$/.test(rawLangCode)
-        ? rawLangCode
-        : undefined
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+    }
+    const fields = body as Record<string, unknown>
 
+    // The voice is the server's decision, derived from the locale. A request
+    // that tries to name one is refused outright rather than quietly ignored,
+    // so no client can make Kai speak with an arbitrary Fish voice.
+    if (CLIENT_VOICE_FIELDS.some((field) => field in fields)) {
+      return NextResponse.json({ error: 'Voice is chosen by language' }, { status: 400 })
+    }
+
+    const { text, langCode } = fields
     if (typeof text !== 'string' || text.trim().length === 0) {
       return NextResponse.json({ error: 'Missing text' }, { status: 400 })
     }
@@ -59,18 +68,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Text too long' }, { status: 413 })
     }
 
-    if (!isFishConfigured(langCode)) {
+    const voice = resolveFishVoiceId(typeof langCode === 'string' ? langCode : undefined)
+
+    if (!voice.voiceId || !isFishConfigured(voice.voiceId)) {
       // Not an error state — a deploy without Fish credentials speaks in the
       // browser instead. Logged at info so it's visible without paging anyone.
       logger.info('tts_unconfigured', '/api/tts', user?.id)
       return NextResponse.json({ error: 'Voice unavailable' }, { status: 503 })
     }
 
-    const audio = await synthesizeSpeech(text, langCode)
+    const audio = await synthesizeSpeech(text, voice.voiceId)
 
-    // Log the size only — never the text. It is Kai's clinical dialogue with the
-    // patient, which is health information.
-    logger.info('tts_requested', '/api/tts', user?.id, { bytes: audio.byteLength })
+    // Log size and locale only — never the text. It is Kai's clinical dialogue
+    // with the patient, which is health information.
+    logger.info('tts_requested', '/api/tts', user?.id, {
+      bytes: audio.byteLength,
+      locale: voice.locale ?? 'fallback',
+    })
 
     return new NextResponse(audio, {
       status: 200,
@@ -80,6 +94,9 @@ export async function POST(request: NextRequest) {
         // Patient-derived audio must not sit in any shared cache. (The client
         // keeps replays in tab memory only — see speech.ts.)
         'Cache-Control': 'no-store',
+        // Which language's voice spoke — lets the client and tests confirm the
+        // routing without exposing voice ids. "fallback" = unknown locale.
+        'X-Keiro-Voice-Locale': voice.locale ?? 'fallback',
       },
     })
   } catch (err) {

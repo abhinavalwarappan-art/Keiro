@@ -437,15 +437,18 @@ function ReportContent() {
      auto-playing audio in the app — everywhere else in chat, speech is opt-in per
      message. So it is opt-in here too: the button below starts it, and stops it. */
   const speech = useSpeech()
-  const listenPhase = speech.key === 'report-completion' ? speech.phase : 'idle'
+  const rawListenPhase = speech.key === 'report-completion' ? speech.phase : 'idle'
+  // "ready" (audio arrived, about to start) still reads as preparing to a patient.
+  const listenPhase = rawListenPhase === 'ready' ? 'loading' : rawListenPhase
   const speaking = listenPhase === 'playing'
 
   const toggleCompletionSpeech = useCallback(() => {
     toggleSpeech('report-completion', getLang(COMPLETION_MESSAGES, langCode), langCode)
   }, [langCode])
 
-  // Never leave audio playing behind us when the patient navigates away.
-  useEffect(() => () => stopSpeech(), [])
+  // Never leave audio playing behind us when the patient navigates away — or
+  // when the language changes, since the next Listen must use the new voice.
+  useEffect(() => () => stopSpeech(), [langCode])
 
   if (loading) {
     return (
