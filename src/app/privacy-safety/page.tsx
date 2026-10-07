@@ -34,10 +34,9 @@ export default function PrivacySafetyPage() {
     <SiteShell flow="privacy">
       <PageHero
         flow
-        variant="document"
         eyebrow="Privacy & safety"
-        title="You are about to tell a computer something private. Here is exactly what happens to it."
-        lede="This is the plain-language version, written to be read rather than agreed to. The formal document is the privacy policy, and nothing here contradicts it."
+        title="Your privacy and safety matter."
+        lede="Before you use Kai, here is what happens to what you share, what Keiro stores, and what Kai can and cannot do."
       />
 
       <Band palette="cream">

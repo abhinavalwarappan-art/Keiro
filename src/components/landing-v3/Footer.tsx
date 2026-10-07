@@ -39,7 +39,6 @@ export function Footer() {
               </h3>
               <ul className="mt-5 space-y-1">
                 {[
-                  { href: '/how-it-works', label: t('site.howLink') },
                   { href: '/languages', label: t('site.nav.languages') },
                   { href: '/meet-kai', label: t('site.nav.meet') },
                   { href: '/about', label: t('site.nav.mission') },

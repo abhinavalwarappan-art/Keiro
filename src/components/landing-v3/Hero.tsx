@@ -73,7 +73,7 @@ export function Hero() {
           className="flex flex-col gap-3 sm:flex-row sm:items-center lg:col-start-1 lg:row-start-2"
         >
           <MotionLink href="/onboarding?fresh=1">Start talking to Kai</MotionLink>
-          <MotionLink href="/how-it-works" variant="ghost">
+          <MotionLink href="/#how-it-works" variant="ghost">
             See what happens first
           </MotionLink>
         </motion.div>

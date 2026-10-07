@@ -45,14 +45,9 @@ export default function AccessibilityPage() {
     <SiteShell flow="access">
       <PageHero
         flow
-        variant="editorial"
         eyebrow="Accessibility"
-        title={
-          <>
-            Built for the person <GradWord>least likely</GradWord> to be comfortable using it.
-          </>
-        }
-        lede="Meeting the legal standard is the floor, not the achievement. We build to WCAG 2.2 AA as a baseline and then keep going — because she does not care what standard we met. She cares whether she can read it."
+        title="Keiro should be easy for anyone to use."
+        lede="We design for older adults, people who use assistive technology, and anyone who may feel unsure using a new website. WCAG 2.2 AA is our baseline, not our finish line."
       />
 
       {/* A spec sheet that proves itself. Every row contains a live instance of the

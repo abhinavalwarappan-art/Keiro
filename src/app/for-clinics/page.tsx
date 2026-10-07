@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
-import { PageHero, A } from '@/components/landing-v3/PageBits'
+import { PageHero } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
@@ -191,12 +191,6 @@ export default function ForClinicsPage() {
             ]}
           />
         </div>
-
-        <Prose>
-          <Para>
-            More on the technology in <A href="/how-it-works">how it works</A>.
-          </Para>
-        </Prose>
       </Band>
 
     </SiteShell>

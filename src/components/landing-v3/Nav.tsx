@@ -21,10 +21,9 @@ import type { TranslateFn } from '@/i18n/useTranslations'
 
 type NavLink = { href: string; label: string; children?: { href: string; label: string }[] }
 
-/* Informational nav. Kept to five items — a nav slot creates an expectation of
+/* Informational nav. Kept compact — a nav slot creates an expectation of
    depth, so nothing goes here that can't carry a page of its own. */
 const getNavLinks = (t: TranslateFn): NavLink[] => [
-  { href: '/how-it-works', label: t('site.howLink') },
   { href: '/languages', label: t('site.nav.languages') },
   {
     href: '/about',
@@ -109,7 +108,8 @@ export function Nav() {
   }, [])
 
   const isActive = (href: string) => pathname === href
-  const isAboutActive = NAV_LINKS[2].children!.some((c) => pathname === c.href)
+  const aboutLinks = NAV_LINKS.find((link) => link.children)?.children ?? []
+  const isAboutActive = aboutLinks.some((link) => pathname === link.href)
 
   return (
     <header
@@ -230,7 +230,7 @@ export function Nav() {
             className="mx-auto w-full max-w-[68rem] flex-1 overflow-y-auto overscroll-contain px-5 pt-2 sm:px-8"
           >
             <ul className="flex flex-col">
-              {[...NAV_LINKS.filter((l) => !l.children), ...NAV_LINKS[2].children!].map((link) => (
+              {NAV_LINKS.flatMap((link) => link.children ?? [link]).map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

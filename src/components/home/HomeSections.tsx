@@ -20,7 +20,7 @@ export function HomeHero() {
         <HeroLanguagePicker />
         <div className="mt-10 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-8">
           <HomeButton href={`/onboarding/confirm?lang=${locale}`}>{t('site.start')}</HomeButton>
-          <Link href="/how-it-works" className="lx-focus hm-link">
+          <Link href="#how-it-works" className="lx-focus hm-link">
             {t('site.howLink')}
           </Link>
         </div>
@@ -36,7 +36,7 @@ export function HomeHero() {
 export function Steps() {
   const { t } = useSiteTranslations()
   return (
-    <section className={`${SECTION} border-t border-[var(--hm-line)] py-24 md:py-32`}>
+    <section id="how-it-works" className={`${SECTION} scroll-mt-16 border-t border-[var(--hm-line)] py-24 md:py-32`}>
       <div className={INNER}>
         <h2 className="hm-h2 max-w-[44rem]">
           {t('site.steps.title')}

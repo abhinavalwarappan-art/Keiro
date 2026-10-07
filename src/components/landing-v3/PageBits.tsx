@@ -2,17 +2,10 @@
 
 /* Page chrome.
 
-   PageHero has variants because the previous single treatment (eyebrow -> serif
-   H1 -> lede, left-aligned, same size, same measure) meant every page opened
-   identically no matter how different its body was. The opening is the first
-   thing you see, so if it never changes, the site reads as one page with the
-   words swapped.
-
-   Each variant changes alignment, type scale AND typeface, not just spacing:
-     editorial — left, big serif. The default voice.
-     centered  — centred, biggest serif, with a rule. For a page that is a display.
-     split     — serif left, a visual right. For a page introducing a thing.
-     document  — narrow, SANS, smaller, ruled. For a page you read like a policy.
+   Most informational pages use the same clear, left-aligned product hero as the
+   homepage. Only pages with a real visual reason depart from it: Languages uses
+   a centered directory introduction, while Meet Kai and For clinics pair copy
+   with a product visual.
 */
 
 import Link from 'next/link'
@@ -21,13 +14,13 @@ import { Kai } from '@/components/kai/Kai'
 import { Reveal } from './Reveal'
 import { MotionLink } from './MotionLink'
 
-type HeroVariant = 'editorial' | 'centered' | 'split' | 'document'
+type HeroVariant = 'standard' | 'centered' | 'split'
 
 export function PageHero({
   eyebrow,
   title,
   lede,
-  variant = 'editorial',
+  variant = 'standard',
   media,
   /* Drops the page's gradient light-field behind the opening, ending on Stripe's
      diagonal so the colour reads as passing *behind* the page rather than
@@ -47,38 +40,6 @@ export function PageHero({
   const field = flow ? (
     <div className="lx-flow lx-flow-hero lx-flow-drift" aria-hidden="true" />
   ) : null
-
-  if (variant === 'document') {
-    /* The one SANS hero on the site. Every narrative page opens in the serif
-       voice; the trust pages (privacy, accessibility, terms) open like the
-       policies they are — symmetric, ruled top and bottom, tighter measure,
-       set in the workhorse sans at a steady 500. A promise should read like
-       something you can rely on, not like a magazine feature.
-
-       (It is also fully centred. It used to be a left-aligned column that was
-       itself centred on the page — the worst of both, with the text hanging off
-       to one side and a large dead margin beside it.) */
-    return (
-      <header className={`${shell} overflow-hidden pb-10 text-center`}>
-        {field}
-        <Reveal className="lx-above mx-auto max-w-3xl">
-          <div className="mx-auto flex max-w-md items-center gap-3">
-            <span className="h-px flex-1 bg-[var(--lx-line)]" aria-hidden="true" />
-            <p className="lx-label text-xs text-[var(--lx-muted)]">{eyebrow}</p>
-            <span className="h-px flex-1 bg-[var(--lx-line)]" aria-hidden="true" />
-          </div>
-          <h1 className="mx-auto mt-8 max-w-3xl text-balance text-[clamp(1.75rem,3.8vw,2.6rem)] font-medium leading-[1.25] tracking-[-0.01em] text-[var(--lx-ink)]">
-            {title}
-          </h1>
-          <p className="mx-auto mt-6 max-w-xl text-pretty leading-[1.9] text-[var(--lx-muted)]">
-            {lede}
-          </p>
-          <span className="mx-auto mt-9 block h-px w-full max-w-md bg-[var(--lx-line)]" aria-hidden="true" />
-          {footer && <div className="mt-9">{footer}</div>}
-        </Reveal>
-      </header>
-    )
-  }
 
   if (variant === 'centered') {
     return (
@@ -126,18 +87,18 @@ export function PageHero({
     )
   }
 
-  /* editorial */
+  /* Standard inner-page hero: the homepage's clarity, at a slightly smaller scale. */
   return (
-    <header className={`${shell} overflow-hidden pb-6`}>
+    <header className={`${shell} overflow-hidden pb-16 sm:pb-20 md:pb-24`}>
       {field}
-      <Reveal className="lx-above mx-auto max-w-4xl">
-        <p className="lx-label text-xs text-[var(--lx-ink)]">
+      <Reveal className="lx-above mx-auto max-w-[68rem]">
+        <p className="lx-label text-sm text-[var(--lx-green-ink)]">
           {eyebrow}
         </p>
-        <h1 className="lx-display mt-4 text-balance text-[clamp(2rem,5vw,3.3rem)] text-[var(--lx-ink)]">
+        <h1 className="mt-5 max-w-[58rem] text-balance text-[clamp(2.125rem,1.4rem+3.6vw,4.25rem)] font-semibold leading-[1.05] tracking-[-0.045em] text-[var(--lx-ink)]">
           {title}
         </h1>
-        <p className="mt-6 max-w-2xl text-pretty text-lg leading-[1.8] text-[var(--lx-muted)] sm:text-xl">
+        <p className="mt-7 max-w-[42rem] text-pretty text-lg leading-[1.65] text-[var(--lx-muted)] sm:text-xl">
           {lede}
         </p>
         {footer && <div className="mt-8">{footer}</div>}

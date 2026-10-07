@@ -10,7 +10,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // Informational pages. These are how press, clinics, investors and judges
     // find their way in, so they rank above the legal pages.
-    { url: `${BASE_URL}/how-it-works`, lastModified, changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE_URL}/languages`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/meet-kai`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/about`, lastModified, changeFrequency: 'monthly', priority: 0.7 },

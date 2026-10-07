@@ -623,7 +623,7 @@ export function PromiseLedger({
 
 /* ── 6c. LandscapeRows — the alternatives, and where each one runs out ───────
 
-   /how-it-works listed the six things a patient has today (an interpreter, the
+   The homepage lists the six things a patient has today (an interpreter, the
    phone line, a family member, a translation app, a form, hope) as six frosted
    cards — the same component /languages, /meet-kai, /for-clinics, /accessibility
    and the homepage were all also using on a dark band.

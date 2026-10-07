@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import { LANGUAGES } from '@/lib/languages'
 import { SiteShell } from '@/components/landing-v3/SiteShell'
 
+import { PageHero } from '@/components/landing-v3/PageBits'
 import {
   Band,
   BandHeading,
   Accent,
-  Thesis,
   StatRow,
   IndexGrid,
   Split,
@@ -27,8 +27,7 @@ export const metadata: Metadata = {
   },
 }
 
-/* Spine: opens on a THESIS with no page hero at all — deliberately the only page
-   that does — then stats -> quote(deep, glowing) -> split -> index grid.
+/* Spine: clear mission hero -> stats -> quote(deep, glowing) -> split -> index grid.
 
    Register: this page uses <Accent> (italic serif, green) and never <GradWord>.
    /accessibility does the opposite. Holding one emphasis register per page is
@@ -36,26 +35,12 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <SiteShell flow="mission">
-      <Band palette="cream" flow="hero" className="!border-t-0 pt-16 md:pt-24">
-        {/* Same measure as the Thesis below, so eyebrow and headline share a left edge. */}
-        <p className="lx-label mx-auto max-w-4xl text-xs text-[var(--lx-ink)]">
-          Our mission
-        </p>
-        <div className="mt-6">
-          <Thesis
-            serif
-            as="h1"
-            statement={
-              <>
-                Medicine asks you to describe a feeling you do not have words for in your first
-                language. Then it asks you to do it again, precisely, under fluorescent light,{' '}
-                <Accent>while you are frightened.</Accent>
-              </>
-            }
-            body="Keiro exists so that being understood does not depend on which language you happen to speak."
-          />
-        </div>
-      </Band>
+      <PageHero
+        flow
+        eyebrow="Our mission"
+        title="Healthcare is easier when you can explain how you feel."
+        lede="Keiro helps patients speak in their own language and gives their healthcare provider a clear English summary."
+      />
 
       <Band palette="mint" rails>
         <BandHeading lede="These are not marketing numbers. They are the reason the project exists.">
