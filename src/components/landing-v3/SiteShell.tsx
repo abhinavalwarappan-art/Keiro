@@ -1,4 +1,4 @@
-/* Shared chrome for every informational page (/about, /how-it-works, …).
+/* Shared chrome for every informational page (/about, /languages, …).
 
    Server component on purpose: these pages are content, so only the leaves that
    genuinely need interactivity (Nav's dropdown, Reveal's whileInView, the

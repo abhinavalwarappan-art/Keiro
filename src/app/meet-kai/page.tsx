@@ -150,7 +150,7 @@ export default function MeetKaiPage() {
             body="A narrow job (collect an intake history), a narrow set of things it may say, and an explicit list of things it must never say. It stays inside that fence for the whole conversation."
           />
           <div className="mt-6">
-            <ArrowLink href="/how-it-works">See the whole pipeline, without jargon</ArrowLink>
+            <ArrowLink href="/#how-it-works">See the four patient steps</ArrowLink>
           </div>
         </Split>
       </Band>

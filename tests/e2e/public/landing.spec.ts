@@ -64,6 +64,17 @@ test.describe('navigation bar', () => {
     await cta.click()
     await expect(page).toHaveURL(/\/onboarding/)
   })
+
+  test('keeps the patient steps on the homepage instead of a separate route', async ({ page }) => {
+    await expect(page.locator('header a[href="/how-it-works"]')).toHaveCount(0)
+    await expect(page.locator('a[href="#how-it-works"]')).toBeVisible()
+    await expect(page.locator('#how-it-works')).toBeAttached()
+  })
+})
+
+test('the removed /how-it-works route returns not found', async ({ page }) => {
+  const response = await page.goto('/how-it-works')
+  expect(response?.status()).toBe(404)
 })
 
 // ---------------------------------------------------------------------------

@@ -28,10 +28,9 @@ export default function ContactPage() {
     <SiteShell flow="contact">
       <PageHero
         flow
-        variant="centered"
         eyebrow="Contact"
-        title="Tell us who you are, and we will write back."
-        lede="A real person reads these. There is no ticketing system and no autoresponder. Find yourself below first; it will usually save you an email."
+        title="How can we help?"
+        lede="Choose the option that fits you below, or send us a message. A real person will read it and reply."
       />
 
       {/* The audience router is this page's signature — it is the only page that
@@ -123,12 +122,12 @@ export default function ContactPage() {
                   <div className="max-w-2xl">
                     <p className="leading-[1.85] text-[var(--band-muted)]">
                       Open Keiro, choose a language you do not speak, and talk to Kai. That is the
-                      whole product, and it needs no account. How it works explains the technology in
-                      plain words; privacy &amp; safety is where we are candid about the limits,
-                      including the ones that are not flattering.
+                      whole product, and it needs no account. The homepage explains the patient flow;
+                      privacy &amp; safety is where we are candid about the limits, including the ones
+                      that are not flattering.
                     </p>
                     <div className="mt-4">
-                      <ArrowLink href="/how-it-works">Read: how it works</ArrowLink>
+                      <ArrowLink href="/#how-it-works">See the patient flow</ArrowLink>
                     </div>
                   </div>
                 ),

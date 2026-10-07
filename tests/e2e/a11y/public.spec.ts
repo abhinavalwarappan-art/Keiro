@@ -18,7 +18,6 @@ const PUBLIC_ROUTES = [
   '/contact',
   '/emergency',
   '/for-clinics',
-  '/how-it-works',
   '/languages',
   '/meet-kai',
   '/onboarding',
