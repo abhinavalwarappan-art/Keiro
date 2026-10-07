@@ -13,8 +13,9 @@ export function LangUpdater() {
   useEffect(() => {
     if (language?.code) {
       document.documentElement.lang = language.code
+      document.documentElement.dir = language.rtl ? 'rtl' : 'ltr'
     }
-  }, [language?.code])
+  }, [language?.code, language?.rtl])
 
   return null
 }

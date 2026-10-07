@@ -10,9 +10,10 @@
 
 import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { LANGUAGES, type Language } from '@/lib/languages'
+import { getLanguageByCode, LANGUAGES, type Language } from '@/lib/languages'
 import { KAI_GREETINGS } from './greetings'
 import { KaiDot } from './ChatMock'
+import { useSiteTranslations } from '@/i18n/useSiteTranslations'
 
 function matches(language: Language, query: string) {
   const q = query.trim().toLowerCase()
@@ -30,7 +31,8 @@ export function LanguagePicker({
 }: {
   compact?: boolean
 }) {
-  const [active, setActive] = useState<Language>(LANGUAGES[0])
+  const { locale, t } = useSiteTranslations()
+  const [active, setActive] = useState<Language>(() => getLanguageByCode(locale) ?? LANGUAGES[0])
   const [query, setQuery] = useState('')
 
   const shown = useMemo(() => LANGUAGES.filter((l) => matches(l, query)), [query])
@@ -40,9 +42,9 @@ export function LanguagePicker({
     <div className="rounded-[2rem] bg-[var(--hm-warm)] p-5 sm:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <label htmlFor="lang-search" className="font-semibold text-[var(--lx-ink)]">
-          Which language do you speak?
+          {t('site.hero.choose')}
         </label>
-        <span className="text-sm text-[var(--lx-muted)]">{LANGUAGES.length} languages</span>
+        <span className="text-sm text-[var(--lx-muted)]">{t('site.hero.all')}</span>
       </div>
 
       <input
@@ -50,13 +52,13 @@ export function LanguagePicker({
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search: Tagalog, தமிழ், Polski"
+        placeholder={t('site.hero.search')}
         className="lx-focus mt-4 block min-h-12 w-full rounded-xl border border-[var(--lx-line)] bg-white px-4 text-base text-[var(--lx-body)] placeholder:text-[var(--lx-muted)]/70"
       />
 
       <div
         role="radiogroup"
-        aria-label="Choose the language Kai speaks to you in"
+        aria-label={t('site.hero.choose')}
         className={[
           'mt-3 flex flex-wrap gap-1 overflow-y-auto pr-1',
           // Only fade when the list is actually clipped — a mask over a short,
@@ -87,7 +89,7 @@ export function LanguagePicker({
 
         {shown.length === 0 && (
           <p className="py-3 text-[var(--lx-muted)]">
-            No match. Kai may still be able to help. Tell us which language to add.
+            {t('site.hero.noMatch')}
           </p>
         )}
       </div>
@@ -132,6 +134,9 @@ export function LanguagePicker({
           </AnimatePresence>
         </div>
       </div>
+      <a href={`/onboarding/confirm?lang=${encodeURIComponent(active.code)}`} lang={active.code} className="lx-focus mt-6 inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--lx-ink)] px-7 py-3 text-base font-semibold text-white hover:bg-[var(--lx-ink-deep)]">
+        {t('site.languages.select')} · <span className="lx-native ms-1">{active.native}</span>
+      </a>
     </div>
   )
 }

@@ -5,8 +5,9 @@ import { motion } from 'framer-motion'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { Search } from 'lucide-react'
 import Kai from '@/components/kai/Kai'
-import { getLanguageDisplayLines, LANGUAGES, resolveLanguage, type Language } from '@/lib/languages'
+import { getLanguageDisplayLines, getLanguageByCode, LANGUAGES, resolveLanguage, type Language } from '@/lib/languages'
 import { trackLanguageSelected } from '@/lib/analytics'
+import { useSiteTranslations } from '@/i18n/useSiteTranslations'
 
 interface AppLanguagePickerProps {
   onSelect: (lang: Language) => void
@@ -73,13 +74,14 @@ function LanguageRow({ lang, onPick }: { lang: Language; onPick: (lang: Language
  *  heading: every row is in its own script, the device language leads, and each
  *  target is a full-width 72px row. */
 export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) {
+  const { locale, t } = useSiteTranslations()
   const [query, setQuery] = useState('')
   const deviceCode = useSyncExternalStore(
     subscribeNever,
     getDeviceLanguageCode,
     getServerDeviceLanguageCode,
   )
-  const deviceLang = deviceCode ? resolveLanguage(deviceCode) : undefined
+  const deviceLang = locale !== 'en-US' ? getLanguageByCode(locale) : deviceCode ? resolveLanguage(deviceCode) : undefined
 
   const handleSelect = (lang: Language) => {
     trackLanguageSelected(lang.code)
@@ -114,10 +116,10 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
           <Kai size="xs" state="waving" interactive={false} />
           <div className="min-w-0">
             <h1 className="font-display text-2xl font-semibold leading-tight tracking-tight text-text-primary">
-              Choose your language
+              {t('site.hero.choose')}
             </h1>
             <p className="mt-1 text-base leading-snug text-text-secondary">
-              Tap once. You&apos;ll confirm next.
+              {t('site.onboarding.tap')}
             </p>
           </div>
         </div>
@@ -128,9 +130,9 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search languages"
+            placeholder={t('site.hero.search')}
             className="min-h-[52px] flex-1 bg-transparent text-lg text-text-primary placeholder:text-text-placeholder focus:outline-none"
-            aria-label="Search languages"
+            aria-label={t('site.hero.search')}
             autoComplete="off"
             enterKeyHint="search"
           />
@@ -140,7 +142,7 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
       <div
         className="lang-scroll lang-scroll--light min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-[max(1.5rem,env(safe-area-inset-bottom))]"
         role="listbox"
-        aria-label="Available languages"
+        aria-label={t('site.onboarding.available')}
       >
         {showSuggestion && (
           <div
@@ -149,7 +151,7 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
             className="border-y border-brand-border bg-brand-subtle/60"
           >
             <div id="device-language-label" aria-hidden className="px-5 pt-3 text-sm font-medium text-brand-ink">
-              Your device language
+              {t(locale !== 'en-US' ? 'site.onboarding.current' : 'site.onboarding.device')}
             </div>
             <LanguageRow lang={deviceLang} onPick={handleSelect} />
           </div>
@@ -157,7 +159,7 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
 
         {listed.length === 0 ? (
           <p className="px-5 py-10 text-center text-base text-text-secondary">
-            No languages match your search.
+            {t('site.onboarding.noMatch')}
           </p>
         ) : (
           <div

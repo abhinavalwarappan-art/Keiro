@@ -1,3 +1,5 @@
+'use client'
+
 /* Footer — the page's one dark surface, and purely functional.
 
    It used to carry its own "Whenever you're ready / Start talking to Kai" block,
@@ -9,8 +11,10 @@
    would flash-bang straight into it on click-through. */
 
 import Link from 'next/link'
+import { useSiteTranslations } from '@/i18n/useSiteTranslations'
 
 export function Footer() {
+  const { t } = useSiteTranslations()
   return (
     /* Text opacities are measured on --lx-ink, not eyeballed: /75 composites to
        7.5:1 (AAA). The old /50 labels (4.3:1) and /45 bottom row (3.7:1) were
@@ -22,8 +26,7 @@ export function Footer() {
           <div>
             <div className="lx-display text-xl font-semibold text-white">Keiro</div>
             <p className="mt-4 max-w-sm leading-[1.8]">
-              Keiro helps you explain what&apos;s wrong in the language you think in, then turns
-              that conversation into a summary your doctor can read.
+              {t('site.footer.description')}
             </p>
           </div>
 
@@ -36,10 +39,10 @@ export function Footer() {
               </h3>
               <ul className="mt-5 space-y-1">
                 {[
-                  { href: '/how-it-works', label: 'How it works' },
-                  { href: '/languages', label: 'Languages' },
-                  { href: '/meet-kai', label: 'Meet Kai' },
-                  { href: '/about', label: 'Our mission' },
+                  { href: '/how-it-works', label: t('site.howLink') },
+                  { href: '/languages', label: t('site.nav.languages') },
+                  { href: '/meet-kai', label: t('site.nav.meet') },
+                  { href: '/about', label: t('site.nav.mission') },
                 ].map((item) => (
                   <li key={item.href}>
                     {/* Keyed on href, not label: "Privacy policy" and "Privacy & safety" both
@@ -58,16 +61,16 @@ export function Footer() {
 
             <div>
               <h3 className="lx-label text-xs text-white/75">
-                Trust &amp; contact
+                {t('site.footer.trust')}
               </h3>
               <ul className="mt-5 space-y-1">
                 {[
-                  { href: '/privacy-safety', label: 'Privacy & safety' },
-                  { href: '/accessibility', label: 'Accessibility' },
-                  { href: '/for-clinics', label: 'For clinics' },
-                  { href: '/contact', label: 'Contact' },
-                  { href: '/privacy', label: 'Privacy policy' },
-                  { href: '/terms', label: 'Terms' },
+                  { href: '/privacy-safety', label: t('site.nav.privacy') },
+                  { href: '/accessibility', label: t('site.nav.accessibility') },
+                  { href: '/for-clinics', label: t('site.nav.clinics') },
+                  { href: '/contact', label: t('site.nav.contact') },
+                  { href: '/privacy', label: t('site.footer.privacyPolicy') },
+                  { href: '/terms', label: t('site.footer.terms') },
                 ].map((item) => (
                   <li key={item.href}>
                     {/* Keyed on href, not label: "Privacy policy" and "Privacy & safety" both
@@ -87,24 +90,23 @@ export function Footer() {
 
           <div>
             <h3 className="lx-label text-xs text-white/75">
-              Please read this
+              {t('site.footer.notice')}
             </h3>
             <p className="mt-5 leading-[1.8]">
-              Kai is not a doctor and does not diagnose. If this is an emergency, or you may be
-              in danger, call your local emergency number now.
+              {t('site.footer.safety')}
             </p>
             <Link
               href="/emergency"
               className="lx-focus mt-4 inline-flex min-h-11 items-center font-semibold text-[var(--lx-sage)] underline underline-offset-4 hover:text-white"
             >
-              Get emergency help
+              {t('site.trust.emergencyLink')}
             </Link>
           </div>
         </div>
 
         <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 pb-[env(safe-area-inset-bottom)] text-sm text-white/75 md:flex-row md:items-center md:justify-between">
           <div>© {new Date().getFullYear()} Keiro</div>
-          <div>Built for patients who need to be understood.</div>
+          <div>{t('site.footer.built')}</div>
         </div>
       </div>
     </footer>

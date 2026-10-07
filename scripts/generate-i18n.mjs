@@ -1,12 +1,14 @@
 /**
  * Generate localized UI dictionaries for every supported language.
  *
- * Reads the English source at src/i18n/en.json, machine-translates each string
- * into all languages listed in src/lib/languages.ts via Google Translate, and
- * writes one file per language to src/i18n/locales/<code>.json.
+ * Reads the English source at src/i18n/en.json, machine-translates missing
+ * strings into languages listed in src/lib/languages.ts via Google Translate,
+ * and merges into src/i18n/locales/<code>.json. Existing translations are
+ * preserved so reviewed corrections survive subsequent runs.
  *
  * Usage:  GOOGLE_TRANSLATE_KEY=... node scripts/generate-i18n.mjs
  * (or:    npm run i18n:generate   — after loading env vars)
+ * To refresh selected keys: I18N_REFRESH_KEYS=key.one,key.two npm run i18n:generate
  *
  * Placeholders like {age} / {terms} are preserved: any string whose
  * placeholders are lost in translation falls back to the English source so
@@ -44,7 +46,7 @@ if (!GOOGLE_KEY) {
 }
 
 const source = JSON.parse(readFileSync(enPath, 'utf8'))
-const keys = Object.keys(source)
+const refreshKeys = new Set((process.env.I18N_REFRESH_KEYS ?? '').split(',').filter(Boolean))
 
 // Extract { code, googleCode } from each LANGUAGES entry. Entries are one per
 // line and are the only lines carrying both `code:` and `googleCode:`.
@@ -105,9 +107,15 @@ for (const lang of languages) {
   if (lang.google === 'en') continue
 
   try {
+    const outputPath = join(outDir, `${lang.code}.json`)
+    const dict = existsSync(outputPath) ? JSON.parse(readFileSync(outputPath, 'utf8')) : {}
+    const keys = Object.keys(source).filter(key => !(key in dict) || refreshKeys.has(key))
+    if (keys.length === 0) {
+      console.log(`✓ ${lang.code} (already complete)`)
+      continue
+    }
     const shielded = keys.map(k => protectPlaceholders(source[k]))
     const translated = await translateBatch(shielded.map(s => s.protectedStr), lang.google)
-    const dict = {}
     let repaired = 0
 
     keys.forEach((key, i) => {
@@ -124,7 +132,7 @@ for (const lang of languages) {
       }
     })
 
-    writeFileSync(join(outDir, `${lang.code}.json`), JSON.stringify(dict, null, 2) + '\n')
+    writeFileSync(outputPath, JSON.stringify(dict, null, 2) + '\n')
     generated++
     const note = repaired ? ` (${repaired} kept as English — placeholder mismatch)` : ''
     console.log(`✓ ${lang.code}${note}`)

@@ -26,8 +26,7 @@ test.describe('landing page — initial paint', () => {
     const h1 = page.getByTestId('hero-headline')
     await expect(h1).toBeAttached()
     const text = await h1.textContent()
-    // Hero states the whole product: speak your language, provider reads English.
-    expect(text).toMatch(/Tell it in your language.*Your doctor reads it in English/i)
+    expect(text).toMatch(/Speak in your language and help your doctor understand/i)
   })
 
   test('hero section is present in the DOM', async ({ page }) => {
@@ -96,7 +95,7 @@ test.describe('footer', () => {
 
   test('footer contains the Keiro tagline', async ({ page }) => {
     await expect(
-      page.locator('footer').getByText(/Built for patients who need to be understood/i),
+      page.locator('footer').getByText(/Made for patients who need to be understood/i),
     ).toBeAttached()
   })
 

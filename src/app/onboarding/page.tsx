@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import AppLanguagePicker from '@/components/language/AppLanguagePicker'
 
@@ -22,7 +21,6 @@ function queryParam(name: string): string | null {
  * redirected to the confirm step by the proxy before this page ever renders.
  */
 function OnboardingContent() {
-  const router = useRouter()
 
   useEffect(() => {
     if (queryParam('fresh') !== '1') return
@@ -40,7 +38,7 @@ function OnboardingContent() {
         params.set('lang', lang.code)
         const hospitalSlug = queryParam('hospital')
         if (hospitalSlug) params.set('hospital', hospitalSlug)
-        router.push(`/onboarding/confirm?${params.toString()}`)
+        window.location.href = new URL(`/onboarding/confirm?${params.toString()}`, window.location.origin).href
       }}
     />
   )

@@ -23,6 +23,7 @@ import { trackAIQuerySent, trackConversationStarted, trackReportGenerated } from
 import { ACTIVE_CHAT_SESSION_KEY, EMERGENCY_CHAT_SOURCE_KEY, PATIENT_PROFILE_SESSION_KEY, SESSION_ID_KEY } from '@/lib/chatSession'
 import { isPatientProfileComplete } from '@/lib/patientProfile'
 import { useTranslations } from '@/i18n/useTranslations'
+import { useLanguage } from '@/context/LanguageContext'
 
 type QuickReplyType = 'severity' | 'yesno' | null
 
@@ -209,11 +210,13 @@ function stripPickerMarkers(text: string): string {
 }
 
 function ChatContent() {
+  const { locale } = useLanguage()
   const router = useRouter()
   const searchParams = useSearchParams()
-  const langCode = searchParams.get('lang') || 'en-US'
-  const langName = searchParams.get('langName') || 'English'
-  const langNative = searchParams.get('langNative') || 'English'
+  const langCode = searchParams.get('lang') || locale
+  const selectedLanguage = getLanguageByCode(langCode)
+  const langName = searchParams.get('langName') || selectedLanguage?.en || 'English'
+  const langNative = searchParams.get('langNative') || selectedLanguage?.native || 'English'
   const roman = searchParams.get('roman') === '1'
   const direction = getLanguageByCode(langCode)?.rtl && !roman ? 'rtl' : 'ltr'
   useEffect(() => {

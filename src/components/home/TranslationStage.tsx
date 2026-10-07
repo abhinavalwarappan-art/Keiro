@@ -16,6 +16,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LayoutGroup, motion, useInView } from 'framer-motion'
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { ArrowRight } from 'lucide-react'
+import { useSiteTranslations } from '@/i18n/useSiteTranslations'
 
 type Sample = { code: string; name: string; native: string; said: string; rtl?: boolean }
 
@@ -46,11 +47,15 @@ function graphemes(text: string): string[] {
 }
 
 export function TranslationStage() {
+  const { locale, t } = useSiteTranslations()
   const reduceMotion = usePrefersReducedMotion()
   const rootRef = useRef<HTMLDivElement>(null)
   const inView = useInView(rootRef, { amount: 0.35 })
 
-  const [index, setIndex] = useState(0)
+  const [index, setIndex] = useState(() => {
+    const selected = SAMPLES.findIndex(sample => locale.startsWith(`${sample.code}-`))
+    return selected < 0 ? 0 : selected
+  })
   const [run, setRun] = useState(0)
   const [phase, setPhase] = useState<Phase>('written')
   const [shownUnits, setShownUnits] = useState(Infinity)
@@ -147,7 +152,7 @@ export function TranslationStage() {
                 ))}
               </span>
             </span>
-            <span>{phase === 'listening' ? `Listening · ${sample.name}` : `Understood · ${sample.name}`}</span>
+            <span>{phase === 'listening' ? t('site.demo.listening') : t('site.demo.understood')} · {sample.native}</span>
           </div>
 
           <p
@@ -190,7 +195,7 @@ export function TranslationStage() {
               }`}
               aria-hidden
             />
-            For your provider · English
+            {t('site.demo.provider')}
           </div>
 
           {/* The provider's copy is the written record — the one place Literata speaks. */}
@@ -214,7 +219,8 @@ export function TranslationStage() {
         </div>
 
         <p className="sr-only">
-          Example in {sample.name}: {sample.said} Keiro writes for the provider: {ENGLISH}
+          {t('site.demo.example', { language: sample.native, message: sample.said })}{' '}
+          {t('site.demo.summary', { summary: ENGLISH })}
         </p>
       </motion.div>
 
@@ -222,7 +228,7 @@ export function TranslationStage() {
       <LayoutGroup id="stage-lang">
         <div
           role="group"
-          aria-label="Preview Keiro in another language"
+          aria-label={t('site.demo.preview')}
           className="hm-scroll-x mx-auto mt-7 flex max-w-[68rem] justify-start gap-1 overflow-x-auto px-5 md:justify-center md:gap-3"
         >
           {SAMPLES.map((s, i) => {

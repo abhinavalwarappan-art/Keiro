@@ -16,35 +16,37 @@ import { usePathname } from 'next/navigation'
 import '@/components/home/home.css'
 import { Kai } from '@/components/kai/Kai'
 import { IconChevronDown, IconMenu, IconX } from './icons'
+import { useSiteTranslations } from '@/i18n/useSiteTranslations'
+import type { TranslateFn } from '@/i18n/useTranslations'
 
 type NavLink = { href: string; label: string; children?: { href: string; label: string }[] }
 
 /* Informational nav. Kept to five items — a nav slot creates an expectation of
    depth, so nothing goes here that can't carry a page of its own. */
-const NAV_LINKS: NavLink[] = [
-  { href: '/how-it-works', label: 'How it works' },
-  { href: '/languages', label: 'Languages' },
+const getNavLinks = (t: TranslateFn): NavLink[] => [
+  { href: '/how-it-works', label: t('site.howLink') },
+  { href: '/languages', label: t('site.nav.languages') },
   {
     href: '/about',
-    label: 'About',
+    label: t('site.nav.about'),
     children: [
-      { href: '/about', label: 'Our mission' },
-      { href: '/meet-kai', label: 'Meet Kai' },
-      { href: '/privacy-safety', label: 'Privacy & safety' },
-      { href: '/accessibility', label: 'Accessibility' },
+      { href: '/about', label: t('site.nav.mission') },
+      { href: '/meet-kai', label: t('site.nav.meet') },
+      { href: '/privacy-safety', label: t('site.nav.privacy') },
+      { href: '/accessibility', label: t('site.nav.accessibility') },
     ],
   },
-  { href: '/for-clinics', label: 'For clinics' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/for-clinics', label: t('site.nav.clinics') },
+  { href: '/contact', label: t('site.nav.contact') },
 ]
-
-/* The one CTA. Structurally separate from NAV_LINKS on purpose. */
-const CTA = { href: '/onboarding?fresh=1', label: 'Start with Kai' }
 
 const LINK_BASE =
   'lx-focus inline-flex min-h-11 items-center rounded-lg px-3 text-[0.9375rem] font-medium tracking-[-0.01em] transition-colors duration-150'
 
 export function Nav() {
+  const { locale, t } = useSiteTranslations()
+  const NAV_LINKS = getNavLinks(t)
+  const CTA = { href: `/onboarding/confirm?lang=${locale}`, label: t('site.start') }
   const pathname = usePathname()
   const [openMenu, setOpenMenu] = useState(false)
   const [openAbout, setOpenAbout] = useState(false)
@@ -194,7 +196,7 @@ export function Nav() {
           >
             <span className="inline-flex h-9 items-center rounded-full bg-[var(--hm-pine)] px-4 text-[0.9375rem] font-semibold tracking-[-0.01em] text-white transition-colors duration-150 group-hover:bg-[var(--hm-pine-hover)] group-active:scale-[0.96]">
               <span className="hidden sm:inline">{CTA.label}</span>
-              <span className="sm:hidden">Start</span>
+              <span className="sm:hidden">{t('auth.start').replace(/\s*[→←]\s*$/u, '')}</span>
             </span>
           </Link>
 
@@ -204,7 +206,7 @@ export function Nav() {
             type="button"
             aria-expanded={openMenu}
             aria-controls="mobile-menu"
-            aria-label={openMenu ? 'Close menu' : 'Open menu'}
+            aria-label={openMenu ? t('site.nav.close') : t('site.nav.open')}
             onClick={() => setOpenMenu((v) => !v)}
             className="lx-focus inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--hm-ink)] transition-colors duration-150 hover:bg-[var(--hm-warm)] lg:hidden"
           >

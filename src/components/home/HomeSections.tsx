@@ -2,29 +2,26 @@
 
 import Link from 'next/link'
 import { LANGUAGES } from '@/lib/languages'
+import { useSiteTranslations } from '@/i18n/useSiteTranslations'
 import { HomeButton } from './HomeButton'
+import { HeroLanguagePicker } from './HeroLanguagePicker'
 import { TranslationStage } from './TranslationStage'
 
 const SECTION = 'px-5 sm:px-8 lg:px-16'
 const INNER = 'mx-auto max-w-[68rem]'
 
 export function HomeHero() {
+  const { locale, t } = useSiteTranslations()
   return (
     <section id="hero" className={`${SECTION} pb-20 pt-14 sm:pt-20 md:pb-28`}>
       <div className="mx-auto max-w-[70rem] text-center">
-        <h1 data-testid="hero-headline" className="hm-h1">
-          Tell it in your language.
-          <br className="hidden md:block" /> <span className="hm-quiet">Your doctor reads it in English.</span>
-        </h1>
-        <p className="hm-lede mx-auto mt-7 max-w-[36rem]">
-          Keiro is a free assistant that listens in {LANGUAGES.length}{' '}
-          languages and writes what you say
-          as a clear summary for your healthcare provider. It doesn&apos;t diagnose or give medical advice.
-        </p>
+        <h1 data-testid="hero-headline" className="hm-h1 mx-auto max-w-[62rem]">{t('site.hero.title')}</h1>
+        <p className="hm-lede mx-auto mt-7 max-w-[42rem]">{t('site.hero.body')}</p>
+        <HeroLanguagePicker />
         <div className="mt-10 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-8">
-          <HomeButton href="/onboarding?fresh=1">Start talking to Kai</HomeButton>
+          <HomeButton href={`/onboarding/confirm?lang=${locale}`}>{t('site.start')}</HomeButton>
           <Link href="/how-it-works" className="lx-focus hm-link">
-            How it works
+            {t('site.howLink')}
           </Link>
         </div>
       </div>
@@ -36,26 +33,20 @@ export function HomeHero() {
   )
 }
 
-const STEPS = [
-  { word: 'Tap', text: 'Choose your language, then tap the microphone.' },
-  { word: 'Speak', text: 'Say what’s wrong in your own words. You can type instead.' },
-  { word: 'Wait', text: 'Kai asks a few simple follow-up questions, in your language.' },
-  { word: 'Show', text: 'Hand your provider a clear English summary.' },
-]
-
 export function Steps() {
+  const { t } = useSiteTranslations()
   return (
     <section className={`${SECTION} border-t border-[var(--hm-line)] py-24 md:py-32`}>
       <div className={INNER}>
         <h2 className="hm-h2 max-w-[44rem]">
-          Four steps. <span className="hm-quiet">Nothing to learn.</span>
+          {t('site.steps.title')}
         </h2>
         <ol className="mt-14 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4">
-          {STEPS.map((step, i) => (
-            <li key={step.word} className="border-t border-[var(--hm-ink)] pt-5">
-              <span className="text-[0.9375rem] font-medium tabular-nums text-[var(--hm-faint)]">0{i + 1}</span>
-              <h3 className="hm-h3 mt-3">{step.word}</h3>
-              <p className="hm-body mt-2">{step.text}</p>
+          {([1, 2, 3, 4] as const).map((n) => (
+            <li key={n} className="border-t border-[var(--hm-ink)] pt-5">
+              <span className="text-[0.9375rem] font-medium tabular-nums text-[var(--hm-faint)]">0{n}</span>
+              <h3 className="hm-h3 mt-3">{t(`site.steps.${n}.title`)}</h3>
+              <p className="hm-body mt-2">{t(`site.steps.${n}.body`)}</p>
             </li>
           ))}
         </ol>
@@ -65,24 +56,26 @@ export function Steps() {
 }
 
 export function LanguageWall() {
+  const { t } = useSiteTranslations()
   return (
     <section className={`${SECTION} bg-[var(--hm-warm)] py-24 md:py-32`}>
       <div className={INNER}>
         <h2 className="hm-h2 max-w-[44rem]">
-          {LANGUAGES.length} languages. <span className="hm-quiet">Yours is one of them.</span>
+          {t('site.languages.title')}
         </h2>
-        <p className="hm-lede mt-5 max-w-[34rem]">Tap a name to start in that language.</p>
+        <p className="hm-lede mt-5 max-w-[34rem]">{t('site.languages.body')}</p>
+        <Link href="/languages" className="lx-focus hm-link mt-6">{t('site.languages.link')}</Link>
         <ul className="mt-12 flex flex-wrap gap-x-5 gap-y-1 md:gap-x-7">
-          {LANGUAGES.map((lang) => (
+          {LANGUAGES.slice(0, 12).map((lang) => (
             <li key={lang.code}>
-              <Link
-                href={`/onboarding?lang=${encodeURIComponent(lang.code)}`}
+              <a
+                href={`/?lang=${encodeURIComponent(lang.code)}`}
                 lang={lang.googleCode}
                 dir={lang.rtl ? 'rtl' : 'ltr'}
                 className="lx-focus lx-native hm-lang"
               >
                 {lang.native}
-              </Link>
+              </a>
             </li>
           ))}
         </ul>
@@ -91,42 +84,33 @@ export function LanguageWall() {
   )
 }
 
-const PROMISES = [
-  {
-    title: 'Not a doctor.',
-    text: 'Kai never diagnoses or suggests treatment. It carries your words to the person who can help.',
-  },
-  { title: 'Free, with no account.', text: 'Start right away. There is nothing to sign up for.' },
-  { title: 'Yours to stop.', text: 'End a conversation whenever you want.' },
-]
-
 export function Trust() {
+  const { t } = useSiteTranslations()
   return (
     <section className={`${SECTION} py-24 md:py-32`}>
       <div className={`${INNER} grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-20`}>
         <div>
           <h2 className="hm-h2">
-            Built to help you be understood. <span className="hm-quiet">Not to diagnose.</span>
+            {t('site.trust.title')}
           </h2>
         </div>
         <div>
           <ul className="divide-y divide-[var(--hm-line)] border-y border-[var(--hm-line)]">
-            {PROMISES.map((p) => (
-              <li key={p.title} className="py-6">
-                <h3 className="hm-h3">{p.title}</h3>
-                <p className="hm-body mt-1.5">{p.text}</p>
+            {([1, 2, 3] as const).map((n) => (
+              <li key={n} className="py-6">
+                <h3 className="hm-h3">{t(`site.trust.${n}.title`)}</h3>
+                <p className="hm-body mt-1.5">{t(`site.trust.${n}.body`)}</p>
               </li>
             ))}
           </ul>
           <p className="hm-body mt-8">
-            In an emergency, call your local emergency number.{' '}
+            {t('site.trust.emergency')}{' '}
             <Link href="/emergency" className="lx-focus font-medium text-[var(--hm-pine)] underline underline-offset-4">
-              Get emergency help
+              {t('site.trust.emergencyLink')}
             </Link>
-            .
           </p>
           <Link href="/privacy-safety" className="lx-focus hm-link mt-2">
-            How we handle your information
+            {t('site.trust.privacyLink')}
           </Link>
         </div>
       </div>
@@ -135,13 +119,14 @@ export function Trust() {
 }
 
 export function FinalCta() {
+  const { locale, t } = useSiteTranslations()
   return (
     <section className={`${SECTION} border-t border-[var(--hm-line)] py-28 text-center md:py-36`}>
-      <h2 className="hm-h2 mx-auto max-w-[40rem]">Ready when you are.</h2>
+      <h2 className="hm-h2 mx-auto max-w-[40rem]">{t('site.final.title')}</h2>
       <div className="mt-10 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-8">
-        <HomeButton href="/onboarding?fresh=1">Start talking to Kai</HomeButton>
+        <HomeButton href={`/onboarding/confirm?lang=${locale}`}>{t('site.start')}</HomeButton>
         <Link href="/for-clinics" className="lx-focus hm-link">
-          Running a clinic?
+          {t('site.final.clinics')}
         </Link>
       </div>
     </section>

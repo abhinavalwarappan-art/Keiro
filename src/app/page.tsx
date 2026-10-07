@@ -19,6 +19,7 @@ import { geistSans, literata, sourceSans, splineMono } from '@/components/landin
 import { Nav } from '@/components/landing-v3/Nav'
 import { HomeHero, Steps, LanguageWall, Trust, FinalCta } from '@/components/home/HomeSections'
 import { Footer } from '@/components/landing-v3/Footer'
+import { useSiteTranslations } from '@/i18n/useSiteTranslations'
 
 /* Only this banner reads the URL. It sits in its own Suspense boundary so the
    nav and hero stay in the prerendered HTML — when the whole chrome waited on
@@ -26,6 +27,7 @@ import { Footer } from '@/components/landing-v3/Footer'
    pushed the page down (a visible jump on slow connections). The banner scrolls
    away with the page; the nav is the only sticky bar. */
 function SessionEndedBanner() {
+  const { t } = useSiteTranslations()
   const searchParams = useSearchParams()
   if (searchParams.get('ended') !== '1') return null
   return (
@@ -34,7 +36,7 @@ function SessionEndedBanner() {
       role="status"
       aria-live="polite"
     >
-      Your session has ended.
+      {t('site.sessionEnded')}
     </div>
   )
 }

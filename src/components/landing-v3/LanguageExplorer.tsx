@@ -21,8 +21,10 @@ export function LanguageDirectory() {
       <ul className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {LANGUAGES.map((language) => (
           <li key={language.code}>
-            <div
-              className="flex h-full min-h-20 flex-col justify-center rounded-[16px] border border-[var(--band-line)] bg-[var(--band-card)] px-4 py-3.5"
+            <a
+              href={`/onboarding/confirm?lang=${encodeURIComponent(language.code)}`}
+              hrefLang={language.code}
+              className="lx-focus flex h-full min-h-20 flex-col justify-center rounded-[16px] border border-[var(--band-line)] bg-[var(--band-card)] px-4 py-3.5 transition-colors hover:border-[var(--lx-green-ink)]"
               dir={language.rtl ? 'rtl' : 'ltr'}
             >
               <div className="flex items-baseline justify-between gap-3">
@@ -47,7 +49,7 @@ export function LanguageDirectory() {
                   {language.code}
                 </p>
               </div>
-            </div>
+            </a>
           </li>
         ))}
       </ul>

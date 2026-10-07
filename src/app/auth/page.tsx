@@ -11,6 +11,7 @@ import Kai from '@/components/kai/Kai'
 import { createClient } from '@/lib/supabase/client'
 import { trackSignIn } from '@/lib/analytics'
 import { useTranslations, type TranslateFn } from '@/i18n/useTranslations'
+import { useLanguage } from '@/context/LanguageContext'
 
 const supabaseConfigured =
   typeof process.env.NEXT_PUBLIC_SUPABASE_URL === 'string' &&
@@ -46,14 +47,16 @@ function LegalLine({ t }: { t: TranslateFn }) {
 }
 
 function AuthContent() {
+  const { locale } = useLanguage()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const langCode = searchParams.get('lang') || 'en-US'
-  const langName = searchParams.get('langName') || 'English'
-  const langNative = searchParams.get('langNative') || 'English'
+  const langCode = searchParams.get('lang') || locale
+  const selectedLanguage = getLanguageByCode(langCode)
+  const langName = searchParams.get('langName') || selectedLanguage?.en || 'English'
+  const langNative = searchParams.get('langNative') || selectedLanguage?.native || 'English'
   const roman = searchParams.get('roman') === '1'
   const hospital = searchParams.get('hospital') || ''
   const sessionEnded = searchParams.get('ended') === '1'
