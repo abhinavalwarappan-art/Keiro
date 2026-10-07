@@ -37,7 +37,8 @@ export default function AboutPage() {
   return (
     <SiteShell flow="mission">
       <Band palette="cream" flow="hero" className="!border-t-0 pt-16 md:pt-24">
-        <p className="lx-label text-xs text-[var(--lx-ink)]">
+        {/* Same measure as the Thesis below, so eyebrow and headline share a left edge. */}
+        <p className="lx-label mx-auto max-w-4xl text-xs text-[var(--lx-ink)]">
           Our mission
         </p>
         <div className="mt-6">

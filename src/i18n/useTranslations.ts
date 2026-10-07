@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import en from './en.json'
+import { useLanguage } from '@/context/LanguageContext'
 
 /** Every UI string key that exists in the English source dictionary. */
 export type MessageKey = keyof typeof en
@@ -32,20 +33,22 @@ export type TranslateFn = (key: MessageKey, params?: Params) => string
  * @param langCode Full app language code, e.g. `es-ES` (from the URL/profile).
  */
 export function useTranslations(langCode: string): TranslateFn {
-  const [dict, setDict] = useState<Dictionary>(en)
+  const { locale, dictionary } = useLanguage()
+  const [loaded, setLoaded] = useState<{ code: string; dict: Dictionary } | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    // Route English through the same async loader so the effect never calls
-    // setState synchronously; `en` is already the initial state and fallback.
+    // English is the source dictionary; en-US.json is a legacy snapshot and
+    // must not override copy changes made in en.json.
     const code = !langCode || langCode.split('-')[0] === 'en' ? 'en-US' : langCode
-    import(`./locales/${code}.json`)
+    const messages = code === 'en-US' ? Promise.resolve({ default: en }) : import(`./locales/${code}.json`)
+    messages
       .then(mod => {
-        if (!cancelled) setDict(mod.default as Dictionary)
+        if (!cancelled) setLoaded({ code, dict: mod.default as Dictionary })
       })
       .catch(() => {
         // Missing/failed locale file — stay on the English fallback.
-        if (!cancelled) setDict(en)
+        if (!cancelled) setLoaded({ code, dict: en })
       })
 
     return () => {
@@ -53,5 +56,6 @@ export function useTranslations(langCode: string): TranslateFn {
     }
   }, [langCode])
 
+  const dict = loaded?.code === langCode ? loaded.dict : locale === langCode ? dictionary : en
   return (key, params) => interpolate(dict[key] ?? en[key] ?? key, params)
 }

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Choose your language',
-  description: 'Pick from 25+ languages to start your intake.',
+  description: 'Choose from 45 languages, then learn how Kai can help you prepare an English summary for your healthcare provider.',
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {

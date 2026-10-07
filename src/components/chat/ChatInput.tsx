@@ -5,7 +5,7 @@ import { ArrowUp, Loader2, Info } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 import MicButton, { type MicState } from '@/components/chat/MicButton'
 import CaptureStrip from '@/components/chat/CaptureStrip'
-import { useVoiceInput } from '@/hooks/useVoiceInput'
+import { useVoiceInput, type VoiceErrorCode } from '@/hooks/useVoiceInput'
 import MicHelpModal from '@/components/chat/MicHelpModal'
 import { useTranslations, type MessageKey } from '@/i18n/useTranslations'
 import type { MicErrorKind } from '@/lib/micDiagnostics'
@@ -72,6 +72,14 @@ function getStopRecordingLabel(langCode: string): string {
 }
 
 /** Each mic failure gets its own copy — only `denied` offers the recovery steps. */
+const VOICE_ERROR_KEY: Record<VoiceErrorCode, MessageKey> = {
+  failed: 'mic.voice.failed',
+  rateLimited: 'mic.voice.rateLimited',
+  noSpeech: 'mic.voice.noSpeech',
+  interrupted: 'mic.voice.interrupted',
+  startFailed: 'mic.voice.startFailed',
+}
+
 const MIC_ERROR_KEY: Record<MicErrorKind, MessageKey> = {
   denied: 'mic.error.denied',
   'no-hardware': 'mic.error.noHardware',
@@ -110,11 +118,13 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
     transcribing,
     error: voiceError,
     errorKind,
+    errorCode,
     permission,
     inAppBrowser,
     toggle,
     stop,
     cancel,
+    clearError,
     recheckPermission,
   } = useVoiceInput({
     langCode,
@@ -207,7 +217,11 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
   // no-hardware fault has no fix in the browser's permission settings, and
   // pointing there is what made the old messaging useless.
   const isBlocked = permission === 'denied' || errorKind === 'denied'
-  const voiceMessage = errorKind ? t(MIC_ERROR_KEY[errorKind]) : voiceError
+  const voiceMessage = errorKind
+    ? t(MIC_ERROR_KEY[errorKind])
+    : errorCode
+      ? t(VOICE_ERROR_KEY[errorCode])
+      : voiceError
 
   const handleMicClick = () => {
     // Short-circuit a known denial: getUserMedia would reject instantly without
@@ -268,6 +282,8 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
             value={text}
             onChange={e => {
               if (capturing) cancel()
+              // Typing is the recovery a voice error suggests — so the error goes.
+              if (voiceMessage) clearError()
               setText(e.target.value)
               setSendError(false)
             }}
@@ -297,6 +313,7 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
           disabled={(disabled && !speaking) || sending || requesting || transcribing}
           onClick={handleMicClick}
           stopLabel={stopRecordingLabel}
+          labels={{ idle: t('mic.start'), requesting: t('mic.requesting'), transcribing: t('mic.transcribing') }}
         />
 
         {/* Send button */}
@@ -304,6 +321,10 @@ export default function ChatInput({ onSend, disabled, speaking = false, placehol
           onClick={handleSend}
           disabled={!canSend}
           className={`flex size-12 min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-full transition-colors duration-150 ${
+            // On the narrowest phones an empty, disabled send button only steals
+            // width from the text box; it appears as soon as there is text.
+            !text.trim() && !sending ? 'max-[399px]:hidden' : ''
+          } ${
             canSend
               ? 'bg-brand-ink text-white hover:bg-brand-ink-hover'
               : 'cursor-not-allowed bg-sunken text-text-placeholder'

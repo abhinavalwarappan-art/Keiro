@@ -180,8 +180,12 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* No CSS scroll-behavior: Lenis (SmoothScroll) owns smoothing. A native
-     smooth here double-smooths and fights Lenis on anchor/programmatic jumps. */
+  /* Native scrolling everywhere — no JS scroll library. In-page anchor jumps
+     glide; route changes stay instant because <html data-scroll-behavior=
+     "smooth"> tells Next.js to suspend smoothing while it navigates. */
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
 
   body {
     font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
@@ -599,4 +603,13 @@
 @media (prefers-reduced-motion: reduce) {
   .mic-bar  { animation: none; transform: scaleY(0.7); }
   .mic-ring { animation: none; opacity: 0.25; transform: scale(1.25); }
+}
+
+/* ─── Reduce Transparency (iOS / macOS setting): frosted bars go solid ─── */
+@media (prefers-reduced-transparency: reduce) {
+  [class*='backdrop-blur'] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: rgb(255 255 255 / 0.98) !important;
+  }
 }

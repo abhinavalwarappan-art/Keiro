@@ -1,6 +1,21 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { getClientIp, UNKNOWN_IP } from '@/lib/clientIp'
+import { normalizeLocale, resolveLanguage } from '@/lib/languages'
+
+const LOCALE_COOKIE = 'keiro-locale'
+
+function withLocale(request: NextRequest, locale: string) {
+  const headers = new Headers(request.headers)
+  headers.set('x-keiro-locale', locale)
+  const response = NextResponse.next({ request: { headers } })
+  if (request.cookies.get(LOCALE_COOKIE)?.value !== locale) {
+    response.cookies.set(LOCALE_COOKIE, locale, {
+      path: '/', sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', maxAge: 60 * 60 * 24 * 365,
+    })
+  }
+  return response
+}
 
 // API routes that require a valid Supabase session
 const PROTECTED_API_ROUTES = ['/api/chat', '/api/report', '/api/translate']
@@ -43,10 +58,29 @@ function isIpOverLimit(ip: string, route: string): boolean {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const locale = normalizeLocale(request.nextUrl.searchParams.get('lang'))
+    ?? normalizeLocale(request.cookies.get(LOCALE_COOKIE)?.value)
+    ?? 'en-US'
+
+  // Deep links into onboarding with a language (homepage language wall, clinic
+  // QR codes) skip the list. Done here, as a real redirect, so the onboarding
+  // page itself never reads the URL and can be prerendered with its list.
+  if (pathname === '/onboarding') {
+    const lang = request.nextUrl.searchParams.get('lang')
+    const language = lang ? resolveLanguage(lang) : undefined
+    if (!language) return withLocale(request, locale)
+    const target = new URL('/onboarding/confirm', request.url)
+    target.searchParams.set('lang', language.code)
+    const hospital = request.nextUrl.searchParams.get('hospital')
+    if (hospital) target.searchParams.set('hospital', hospital)
+    const response = NextResponse.redirect(target)
+    response.cookies.set(LOCALE_COOKIE, language.code, { path: '/', sameSite: 'lax', secure: request.nextUrl.protocol === 'https:', maxAge: 60 * 60 * 24 * 365 })
+    return response
+  }
   const isProtectedApi = PROTECTED_API_ROUTES.includes(pathname)
   const isProtectedPage = PROTECTED_PAGES.some(p => pathname.startsWith(p))
 
-  if (!isProtectedApi && !isProtectedPage) return NextResponse.next()
+  if (!isProtectedApi && !isProtectedPage) return withLocale(request, locale)
 
   if (isProtectedApi) {
     // CSRF: Origin must match the app's own origin for state-changing requests.
@@ -91,5 +125,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/chat', '/api/report', '/api/translate', '/history/:path*', '/settings/:path*'],
+  matcher: ['/((?!_next/|api/|.*\\..*).*)', '/api/chat', '/api/report', '/api/translate'],
 }

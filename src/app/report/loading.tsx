@@ -3,7 +3,7 @@ import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
 /* Mirrors the report page: header bar, two action buttons, ruled sections */
 export default function ReportLoading() {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col bg-transparent">
+    <div className="mx-auto flex min-h-svh w-full max-w-2xl flex-col bg-transparent">
       <div className="flex min-h-14 items-center gap-3 border-b border-border-subtle bg-surface px-4">
         <Skeleton className="size-9 rounded-md" />
         <div className="flex-1 space-y-1.5">

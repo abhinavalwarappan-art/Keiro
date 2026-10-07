@@ -8,9 +8,10 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Kai from '@/components/kai/Kai'
 import RomanizationToggle from '@/components/language/RomanizationToggle'
-import { Language, resolveLanguage, getOpeningMessage, getLanguageDisplayLines, usesNonLatinScript } from '@/lib/languages'
+import { Language, resolveLanguage, usesNonLatinScript } from '@/lib/languages'
+import { kaiShortGreeting } from '@/components/landing-v3/greetings'
 import { pageVariants } from '@/lib/motion'
-import { trackLanguageSelected, trackOnboardingCompleted } from '@/lib/analytics'
+import { trackLanguageSelected, trackLanguageOnboardingReached, trackOnboardingCompleted } from '@/lib/analytics'
 import { useTranslations } from '@/i18n/useTranslations'
 
 const LANG_DRAFT_KEY = 'keiro_onboarding_lang'
@@ -38,6 +39,7 @@ function ConfirmContent() {
 
     setSelected(lang)
     trackLanguageSelected(lang.code)
+    trackLanguageOnboardingReached(lang.code)
     try {
       localStorage.setItem(LANG_DRAFT_KEY, JSON.stringify(lang))
     } catch {
@@ -65,11 +67,9 @@ function ConfirmContent() {
     router.push(`/auth?${params.toString()}`)
   }
 
-  const greeting = selected
-    ? getOpeningMessage(selected.code, romanization)?.split('.')[0] ?? `Hi, I'm Kai.`
-    : "Hi, I'm Kai."
+  // Kai's hello in the chosen language — all 45 have one (the old source covered six).
+  const greeting = kaiShortGreeting(selected?.code ?? 'en-US')
 
-  const displayLines = selected ? getLanguageDisplayLines(selected) : []
 
   const allLanguagesHref = hospitalSlug
     ? `/onboarding?fresh=1&hospital=${encodeURIComponent(hospitalSlug)}`
@@ -88,7 +88,7 @@ function ConfirmContent() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col overflow-hidden bg-canvas"
+      className="mx-auto flex min-h-dvh w-full max-w-lg flex-col bg-canvas"
       dir={selected.rtl ? 'rtl' : 'ltr'}
       lang={selected.code}
     >
@@ -104,37 +104,38 @@ function ConfirmContent() {
         </Link>
       </header>
 
-      <section className="flex min-h-0 flex-1 flex-col items-center justify-center px-7 text-center">
+      <section className="flex flex-1 flex-col items-center justify-center px-7 py-6 text-center">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 220, damping: 28 }}
           className="flex flex-col items-center"
         >
-          <Kai size="md" state="waving" interactive={false} />
-          <h1 className="mt-6 text-balance text-[2.5rem] font-semibold leading-[1.05] tracking-[-0.04em] text-text-primary">
+          {/* On a short landscape screen the mascot would push the choice off-screen. */}
+          <div className="[@media(max-height:480px)]:hidden">
+            <Kai size="md" state="waving" interactive={false} />
+          </div>
+          <h1 className="mt-6 text-balance text-[clamp(2rem,1.4rem+3vw,2.5rem)] font-semibold leading-[1.05] tracking-[-0.04em] text-text-primary [@media(max-height:480px)]:mt-0">
             {greeting}
           </h1>
           <p
             className="mt-4 text-xl font-medium text-brand-ink"
             style={{ direction: selected.rtl ? 'rtl' : 'ltr' }}
           >
-            {displayLines
-              .filter((line) => romanization || line.role !== 'roman')
-              .map((line) => line.text)
-              .join(' · ')}
+            {selected.native}
           </p>
           <p className="mt-6 max-w-xs text-pretty text-lg leading-relaxed text-text-secondary">
             {t('confirm.pitch')}
           </p>
+          <p className="mt-4 text-base font-medium text-brand-ink">{t('confirm.timeFree')}</p>
         </motion.div>
       </section>
 
-      <footer className="shrink-0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
+      <footer className="sticky bottom-0 shrink-0 bg-canvas px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
         {/* Only scripts a patient might not read get the English-letters option. */}
         {usesNonLatinScript(selected) && (
           <div className="mb-3 flex justify-center">
-            <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} />
+            <RomanizationToggle enabled={romanization} onToggle={() => setRomanization((p) => !p)} label={t('confirm.roman')} description={t('confirm.romanDescription')} />
           </div>
         )}
         {/* data-testid: the label is t('confirm.continueIn', { language }) and interpolates

@@ -43,7 +43,6 @@ export default function LanguageSelector({ selected, onSelect, showRomanization 
 
       <div
         ref={listRef}
-        data-lenis-prevent
         className="lang-scroll lang-scroll--light min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain py-1 pr-1"
         role="listbox"
         aria-label="Available languages"

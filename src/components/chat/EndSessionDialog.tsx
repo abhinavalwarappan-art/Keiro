@@ -60,7 +60,6 @@ export default function EndSessionDialog({ open, onCancel, onConfirm, t }: EndSe
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18 }}
           onClick={() => !ending && onCancel()}
-          data-lenis-prevent
         >
           <motion.div
             role="alertdialog"

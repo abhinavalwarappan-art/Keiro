@@ -5,6 +5,8 @@ import { motion } from 'framer-motion'
 interface RomanizationToggleProps {
   enabled: boolean
   onToggle: () => void
+  label?: string
+  description?: string
 }
 
 /**
@@ -15,7 +17,7 @@ interface RomanizationToggleProps {
  * that script would be unreadable to exactly them. No hover tooltip — phones
  * have no hover — the label itself says what it does.
  */
-export default function RomanizationToggle({ enabled, onToggle }: RomanizationToggleProps) {
+export default function RomanizationToggle({ enabled, onToggle, label = 'English letters (ABC)', description = 'Shows Kai’s messages using English letters instead of the native script.' }: RomanizationToggleProps) {
   return (
     <motion.button
       type="button"
@@ -27,10 +29,10 @@ export default function RomanizationToggle({ enabled, onToggle }: RomanizationTo
         enabled ? 'bg-brand-subtle text-brand-ink' : 'bg-sunken text-text-secondary hover:text-text-primary'
       }`}
       aria-pressed={enabled}
-      aria-label="Toggle romanized script"
+      aria-label={label}
       aria-describedby="romanization-description"
     >
-      <span>English letters (ABC)</span>
+      <span>{label}</span>
       <span
         className={`relative h-6 w-10 shrink-0 rounded-full transition-colors duration-150 ${
           enabled ? 'bg-brand-ink' : 'bg-border-default'
@@ -44,7 +46,7 @@ export default function RomanizationToggle({ enabled, onToggle }: RomanizationTo
         />
       </span>
       <span id="romanization-description" className="sr-only">
-        Shows Kai’s messages using English letters instead of the native script.
+        {description}
       </span>
     </motion.button>
   )

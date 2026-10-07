@@ -474,7 +474,7 @@ function ReportContent() {
 
   if (error || !report) {
     return (
-      <main id="main-content" className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      <main id="main-content" className="flex min-h-svh flex-col items-center justify-center px-6 text-center">
         <Kai size="md" state="idle" interactive={false} />
         <h1 className="mt-4 text-base font-semibold text-text-primary">
           {error === 'loadFailed' ? t('report.loadFailed') : t('report.notFound')}
@@ -511,7 +511,7 @@ function ReportContent() {
       variants={pageVariants}
       initial="initial"
       animate="animate"
-      className="flex min-h-screen flex-col bg-transparent"
+      className="flex min-h-svh flex-col bg-transparent"
     >
       <header className="sticky top-0 z-10 flex min-h-16 items-center gap-3 border-b border-border-subtle/70 bg-white/80 px-4 backdrop-blur-xl backdrop-saturate-150">
         <button
@@ -812,7 +812,6 @@ function ReportContent() {
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center"
           onClick={() => setShowQr(false)}
           onKeyDown={(e) => e.key === 'Escape' && setShowQr(false)}
-          data-lenis-prevent
         >
           <motion.div
             role="dialog"

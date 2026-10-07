@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { useRouter } from 'next/navigation'
 import { MessageCircle, Phone } from 'lucide-react'
 import { trackEmergencyShown } from '@/lib/analytics'
@@ -37,7 +38,7 @@ const RTL_LANGUAGES = new Set(['العربية', 'اردو', 'فارسی'])
 
 export default function EmergencyPage() {
   const router = useRouter()
-  const reducedMotion = useReducedMotion()
+  const reducedMotion = usePrefersReducedMotion()
 
   // Where the phone is decides which number to show: the device time zone first,
   // the patient's language second. We start from the global fallback (112) so the
@@ -87,8 +88,8 @@ export default function EmergencyPage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-transparent">
-      <main id="main-content" className="mx-auto flex min-h-screen w-full max-w-2xl flex-col px-4 py-4 sm:py-6">
+    <div className="min-h-svh bg-transparent">
+      <main id="main-content" className="mx-auto flex min-h-svh w-full max-w-2xl flex-col px-4 py-4 sm:py-6">
         {/* Header — the one place red owns the screen */}
         <section className="rounded-3xl bg-error px-6 py-10 text-center">
           <h1 className="text-balance text-[2.25rem] font-semibold leading-[1.05] tracking-[-0.04em] text-white">

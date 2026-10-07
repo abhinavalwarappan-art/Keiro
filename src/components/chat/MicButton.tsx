@@ -11,17 +11,12 @@ interface MicButtonProps {
   onClick: () => void
   /** Already-localized accessible name for the recording state (the stop label). */
   stopLabel: string
+  /** Already-localized accessible names for the other states. */
+  labels: { idle: string; requesting: string; transcribing: string }
 }
 
 /** Press is a critically damped spring that starts on pointer-down. */
 const PRESS_SPRING = { type: 'spring', stiffness: 700, damping: 45 } as const
-
-const ARIA_LABEL: Record<MicState, string | null> = {
-  idle: 'Start voice input',
-  requesting: 'Requesting microphone access',
-  recording: null, // localized stop label
-  transcribing: 'Transcribing',
-}
 
 /**
  * The single most important target in the product: where a patient taps to
@@ -32,7 +27,7 @@ const ARIA_LABEL: Record<MicState, string | null> = {
  * State is carried by SHAPE as well as color (mic → square stop glyph →
  * spinner), never by color alone.
  */
-export default function MicButton({ state, disabled, onClick, stopLabel }: MicButtonProps) {
+export default function MicButton({ state, disabled, onClick, stopLabel, labels }: MicButtonProps) {
   const reduceMotion = useReducedMotion()
   const recording = state === 'recording'
   const busy = state === 'requesting' || state === 'transcribing'
@@ -51,7 +46,7 @@ export default function MicButton({ state, disabled, onClick, stopLabel }: MicBu
         disabled={disabled}
         whileTap={reduceMotion || disabled ? undefined : { scale: 0.93 }}
         transition={PRESS_SPRING}
-        aria-label={ARIA_LABEL[state] ?? stopLabel}
+        aria-label={state === 'recording' ? stopLabel : labels[state]}
         aria-pressed={recording}
         className={`relative flex size-16 items-center justify-center rounded-full text-white shadow-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-ink/30 disabled:opacity-60 ${
           recording

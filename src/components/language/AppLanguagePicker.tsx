@@ -1,11 +1,13 @@
 'use client'
 
 import { useMemo, useState, useSyncExternalStore } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion'
 import { Search } from 'lucide-react'
 import Kai from '@/components/kai/Kai'
-import { getLanguageDisplayLines, LANGUAGES, resolveLanguage, type Language } from '@/lib/languages'
+import { getLanguageDisplayLines, getLanguageByCode, LANGUAGES, resolveLanguage, type Language } from '@/lib/languages'
 import { trackLanguageSelected } from '@/lib/analytics'
+import { useSiteTranslations } from '@/i18n/useSiteTranslations'
 
 interface AppLanguagePickerProps {
   onSelect: (lang: Language) => void
@@ -15,8 +17,7 @@ interface AppLanguagePickerProps {
  *  re-targeted mid-flight, so a fast tap never waits on an animation. */
 const PRESS_SPRING = { type: 'spring', stiffness: 700, damping: 45 } as const
 
-/** Code of the first browser language Keiro supports, or '' (also the server
- *  snapshot, so hydration matches and the suggestion appears after mount). */
+/** Code of the first browser language Keiro supports, or ''. */
 function getDeviceLanguageCode(): string {
   for (const tag of navigator.languages ?? [navigator.language]) {
     const match = resolveLanguage(tag) ?? resolveLanguage(tag.split('-')[0])
@@ -25,10 +26,13 @@ function getDeviceLanguageCode(): string {
   return ''
 }
 const subscribeNever = () => () => {}
-const getServerDeviceLanguageCode = () => ''
+/* The server can't know the device language, but it reserves the suggestion
+   slot with the most common one. The browser then swaps the row's CONTENT
+   (same height), so the list below never jumps when the real language arrives. */
+const getServerDeviceLanguageCode = () => 'en-US'
 
 function LanguageRow({ lang, onPick }: { lang: Language; onPick: (lang: Language) => void }) {
-  const reduceMotion = useReducedMotion()
+  const reduceMotion = usePrefersReducedMotion()
   const lines = getLanguageDisplayLines(lang)
   // A patient reads their own script first; English is the helper line.
   const primary = lines.find((l) => l.role === 'native') ?? lines[0]
@@ -70,13 +74,14 @@ function LanguageRow({ lang, onPick }: { lang: Language; onPick: (lang: Language
  *  heading: every row is in its own script, the device language leads, and each
  *  target is a full-width 72px row. */
 export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) {
+  const { locale, t } = useSiteTranslations()
   const [query, setQuery] = useState('')
   const deviceCode = useSyncExternalStore(
     subscribeNever,
     getDeviceLanguageCode,
     getServerDeviceLanguageCode,
   )
-  const deviceLang = deviceCode ? resolveLanguage(deviceCode) : undefined
+  const deviceLang = locale !== 'en-US' ? getLanguageByCode(locale) : deviceCode ? resolveLanguage(deviceCode) : undefined
 
   const handleSelect = (lang: Language) => {
     trackLanguageSelected(lang.code)
@@ -100,7 +105,9 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
   }, [query])
 
   const showSuggestion = deviceLang && !query.trim()
-  const listed = showSuggestion ? filtered.filter((l) => l.code !== deviceLang.code) : filtered
+  // The full list stays put — the suggested language also appears in its usual
+  // place, so the list never re-flows when the suggestion changes after mount.
+  const listed = filtered
 
   return (
     <div className="mx-auto flex h-dvh min-h-0 w-full max-w-lg flex-col">
@@ -109,10 +116,10 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
           <Kai size="xs" state="waving" interactive={false} />
           <div className="min-w-0">
             <h1 className="font-display text-2xl font-semibold leading-tight tracking-tight text-text-primary">
-              Choose your language
+              {t('site.hero.choose')}
             </h1>
             <p className="mt-1 text-base leading-snug text-text-secondary">
-              Tap once. You&apos;ll confirm next.
+              {t('site.onboarding.tap')}
             </p>
           </div>
         </div>
@@ -123,9 +130,9 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search languages"
+            placeholder={t('site.hero.search')}
             className="min-h-[52px] flex-1 bg-transparent text-lg text-text-primary placeholder:text-text-placeholder focus:outline-none"
-            aria-label="Search languages"
+            aria-label={t('site.hero.search')}
             autoComplete="off"
             enterKeyHint="search"
           />
@@ -133,10 +140,9 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
       </header>
 
       <div
-        data-lenis-prevent
         className="lang-scroll lang-scroll--light min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain pb-[max(1.5rem,env(safe-area-inset-bottom))]"
         role="listbox"
-        aria-label="Available languages"
+        aria-label={t('site.onboarding.available')}
       >
         {showSuggestion && (
           <div
@@ -145,7 +151,7 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
             className="border-y border-brand-border bg-brand-subtle/60"
           >
             <div id="device-language-label" aria-hidden className="px-5 pt-3 text-sm font-medium text-brand-ink">
-              Your device language
+              {t(locale !== 'en-US' ? 'site.onboarding.current' : 'site.onboarding.device')}
             </div>
             <LanguageRow lang={deviceLang} onPick={handleSelect} />
           </div>
@@ -153,7 +159,7 @@ export default function AppLanguagePicker({ onSelect }: AppLanguagePickerProps) 
 
         {listed.length === 0 ? (
           <p className="px-5 py-10 text-center text-base text-text-secondary">
-            No languages match your search.
+            {t('site.onboarding.noMatch')}
           </p>
         ) : (
           <div

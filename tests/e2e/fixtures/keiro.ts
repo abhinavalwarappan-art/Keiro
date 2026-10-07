@@ -272,7 +272,7 @@ export async function completeProfileIntake(page: Page, o: ProfileOpts = {}): Pr
     .getByRole('button', { name: o.sex ?? 'Male', exact: true })
     .click()
   await dialog.getByRole('checkbox').check()
-  await dialog.getByRole('button', { name: /continue to symptom intake/i }).click()
+  await dialog.getByRole('button', { name: /continue to kai/i }).click()
   await expect(dialog).toBeHidden()
 }
 

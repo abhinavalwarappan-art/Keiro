@@ -96,6 +96,9 @@ const MIC_ERROR_MESSAGE: Record<MicErrorKind, string> = {
     'Voice input could not start on this device. Please type your message instead.',
 }
 
+/** Non-hardware voice failures, as stable codes the UI can translate. */
+export type VoiceErrorCode = 'failed' | 'rateLimited' | 'noSpeech' | 'interrupted' | 'startFailed'
+
 interface UseVoiceInputOptions {
   langCode: string
   /** Called once with the finished transcript. */
@@ -111,6 +114,8 @@ interface UseVoiceInput {
   error: string | null
   /** Set only for microphone faults — null for transcription/network errors. */
   errorKind: MicErrorKind | null
+  /** Set for transcription/network faults, so the UI can show them in the patient's language. */
+  errorCode: VoiceErrorCode | null
   /** Live Permissions API reading; 'unsupported' where the API is unavailable. */
   permission: MicPermissionState
   /** Host app name when running inside a webview that commonly blocks the mic. */
@@ -130,6 +135,13 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   const [transcribing, setTranscribing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [errorKind, setErrorKind] = useState<MicErrorKind | null>(null)
+  const [errorCode, setErrorCode] = useState<VoiceErrorCode | null>(null)
+
+  /** A voice failure that isn't the microphone's: English for logs/tests, a code for the UI. */
+  const failVoice = useCallback((code: VoiceErrorCode, message: string) => {
+    setErrorCode(code)
+    setError(message)
+  }, [])
   const [permission, setPermission] = useState<MicPermissionState>('unsupported')
 
   // Read straight from the user agent rather than mirroring it into state: the
@@ -246,7 +258,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       try {
         wav = await toWav(recorded)
       } catch {
-        setError('Voice input failed. Please type your message instead.')
+        failVoice('failed', 'Voice input failed. Please type your message instead.')
         return
       }
 
@@ -256,14 +268,14 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       form.append('langCode', langCode)
       const res = await fetch('/api/transcribe', { method: 'POST', body: form, signal: controller.signal })
       if (res.status === 429) {
-        setError('Please wait a moment before trying voice again, or type your message instead.')
+        failVoice('rateLimited', 'Please wait a moment before trying voice again, or type your message instead.')
         return
       }
       // Everything else — a Fish timeout, a rate limit upstream, malformed
       // audio, an unconfigured deploy — reads the same to the patient, because
       // the action is the same: type it instead.
       if (!res.ok) {
-        setError('Voice input failed. Please type your message instead.')
+        failVoice('failed', 'Voice input failed. Please type your message instead.')
         return
       }
       const data = (await res.json()) as { text?: string }
@@ -272,14 +284,14 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       if (!text) {
         // A successful transcription of silence. Saying nothing here would look
         // identical to the mic being broken.
-        setError('No speech was heard. Please try again, or type your message instead.')
+        failVoice('noSpeech', 'No speech was heard. Please try again, or type your message instead.')
         return
       }
       onTranscriptRef.current(text)
       onFinalRef.current?.()
     } catch {
       if (controller.signal.reason?.name !== 'AbortError') {
-        setError('Voice input could not finish. Please try again, or type your message instead.')
+        failVoice('interrupted', 'Voice input could not finish. Please try again, or type your message instead.')
       }
     } finally {
       clearTimeout(timeout)
@@ -288,7 +300,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
         setTranscribing(false)
       }
     }
-  }, [langCode])
+  }, [langCode, failVoice])
 
   /**
    * Record using a stream the caller already opened. The stream is never
@@ -310,7 +322,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
       recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream)
     } catch {
       stopTracks()
-      setError('Voice input could not start. Please try again.')
+      failVoice('startFailed', 'Voice input could not start. Please try again.')
       return
     }
 
@@ -337,9 +349,9 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     } catch {
       stopTracks()
       mediaRecorderRef.current = null
-      setError('Voice input could not start. Please try again.')
+      failVoice('startFailed', 'Voice input could not start. Please try again.')
     }
-  }, [transcribe, failMic])
+  }, [transcribe, failMic, failVoice])
 
   const stop = useCallback(() => {
     const recorder = mediaRecorderRef.current
@@ -422,6 +434,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     stopSpeech()
     setError(null)
     setErrorKind(null)
+    setErrorCode(null)
     discardRef.current = false
 
     void openMic(micRequest, ++requestGenerationRef.current)
@@ -444,6 +457,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
   const clearError = useCallback(() => {
     setError(null)
     setErrorKind(null)
+    setErrorCode(null)
   }, [])
 
   /**
@@ -457,6 +471,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     if (state !== 'denied') {
       setError(null)
       setErrorKind(null)
+      setErrorCode(null)
     }
     return state
   }, [applyProbedPermission])
@@ -479,6 +494,7 @@ export function useVoiceInput({ langCode, onTranscript, onFinal }: UseVoiceInput
     transcribing,
     error,
     errorKind,
+    errorCode,
     permission,
     inAppBrowser,
     toggle,

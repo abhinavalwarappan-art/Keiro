@@ -49,7 +49,7 @@ export function ErrorFallback({ onReset }: { onReset: () => void }) {
 
   return (
     <div
-      className="flex min-h-screen flex-col items-center justify-center bg-transparent px-6 text-center"
+      className="flex min-h-svh flex-col items-center justify-center bg-transparent px-6 text-center"
       role="alert"
       aria-live="assertive"
     >

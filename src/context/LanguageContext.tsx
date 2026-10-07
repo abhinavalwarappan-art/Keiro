@@ -1,9 +1,13 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { Language, LANGUAGES, getLanguageByCode } from '@/lib/languages'
+import { Language, LANGUAGES, getLanguageByCode, type SupportedLocale } from '@/lib/languages'
+import type { Dictionary } from '@/i18n/dictionaries'
+import en from '@/i18n/en.json'
 
 interface LanguageContextValue {
+  locale: SupportedLocale
+  dictionary: Dictionary
   language: Language | null
   setLanguage: (lang: Language) => void
   romanization: boolean
@@ -12,19 +16,14 @@ interface LanguageContextValue {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null)
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language | null>(null)
+export function LanguageProvider({ children, initialLocale, initialDictionary }: { children: React.ReactNode; initialLocale: SupportedLocale; initialDictionary: Dictionary }) {
+  const [language, setLanguageState] = useState<Language | null>(() => getLanguageByCode(initialLocale) ?? null)
   const [romanization, setRomanization] = useState(false)
 
   useEffect(() => {
     // Deferred so the restore doesn't cascade renders during hydration
     const timer = setTimeout(() => {
       try {
-        const code = localStorage.getItem('keiro-lang')
-        if (code) {
-          const lang = getLanguageByCode(code)
-          if (lang) setLanguageState(lang)
-        }
         setRomanization(localStorage.getItem('keiro-roman') === '1')
       } catch {
         // localStorage may be unavailable (e.g. private browsing restrictions)
@@ -37,6 +36,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(lang)
     try {
       localStorage.setItem('keiro-lang', lang.code)
+      document.cookie = `keiro-locale=${encodeURIComponent(lang.code)}; Path=/; Max-Age=31536000; SameSite=Lax`
     } catch {
       // localStorage may be unavailable
     }
@@ -54,6 +54,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   return (
     <LanguageContext.Provider
       value={{
+        locale: initialLocale,
+        dictionary: initialDictionary ?? en,
         language,
         setLanguage,
         romanization,

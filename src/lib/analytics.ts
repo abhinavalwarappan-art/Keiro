@@ -70,6 +70,14 @@ export function trackLanguageSelected(languageCode: string): void {
   capture('language_selected', { language: languageCode })
 }
 
+export function trackHomepageLanguageSelected(languageCode: string): void {
+  capture('homepage_language_selected', { language: languageCode })
+}
+
+export function trackLanguageOnboardingReached(languageCode: string): void {
+  capture('language_onboarding_reached', { language: languageCode })
+}
+
 export function trackOnboardingCompleted(languageCode: string, romanization: boolean): void {
   capture('onboarding_completed', { language: languageCode, romanization })
 }

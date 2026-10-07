@@ -3,7 +3,7 @@ import { Skeleton, SkeletonText } from '@/components/ui/Skeleton'
 /* Mirrors onboarding: compact header, search, language rows, CTA footer */
 export default function OnboardingLoading() {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col bg-transparent">
+    <div className="mx-auto flex min-h-svh w-full max-w-lg flex-col bg-transparent">
       <div className="space-y-3 border-b border-border-subtle px-5 pb-4 pt-5">
         <div className="flex items-center gap-3">
           <Skeleton className="size-12 rounded-full" />

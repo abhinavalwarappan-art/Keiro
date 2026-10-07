@@ -16,7 +16,7 @@ function HistoryCardSkeleton() {
 
 export default function HistoryLoading() {
   return (
-    <div className="flex min-h-screen flex-col bg-transparent">
+    <div className="flex min-h-svh flex-col bg-transparent">
       <div className="flex min-h-14 items-center gap-3 border-b border-border-subtle bg-surface px-4">
         <Skeleton className="size-9 rounded-md" />
         <SkeletonText className="h-4 w-24" />

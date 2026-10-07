@@ -23,7 +23,7 @@ test.describe('onboarding — language picker (/onboarding)', () => {
 
   test('renders search input and at least one language option', async ({ page }) => {
     await page.goto('/onboarding')
-    const searchInput = page.getByLabel('Search languages')
+    const searchInput = page.getByLabel(/Search.*languages/i)
     await expect(searchInput).toBeVisible()
     // The listbox must contain at least one option
     const firstOption = page.getByRole('option').first()
@@ -32,7 +32,7 @@ test.describe('onboarding — language picker (/onboarding)', () => {
 
   test('search filters the language list', async ({ page }) => {
     await page.goto('/onboarding')
-    const searchInput = page.getByLabel('Search languages')
+    const searchInput = page.getByLabel(/Search.*languages/i)
     await searchInput.fill('Spanish')
     // After filtering, "Spanish" option must be visible
     await expect(page.getByRole('option', { name: /Spanish/i }).first()).toBeVisible()
@@ -42,14 +42,14 @@ test.describe('onboarding — language picker (/onboarding)', () => {
 
   test('searching for a non-existent term shows empty state', async ({ page }) => {
     await page.goto('/onboarding')
-    const searchInput = page.getByLabel('Search languages')
+    const searchInput = page.getByLabel(/Search.*languages/i)
     await searchInput.fill('xyzzy_no_such_language')
     await expect(page.getByText(/no languages match/i)).toBeVisible()
   })
 
   test('picking a language navigates to /onboarding/confirm?lang=<code>', async ({ page }) => {
     await page.goto('/onboarding')
-    const searchInput = page.getByLabel('Search languages')
+    const searchInput = page.getByLabel(/Search.*languages/i)
     await searchInput.fill('Spanish')
     // Click the Spanish option
     await page.getByRole('option', { name: /Spanish/i }).first().click()
@@ -67,7 +67,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
   test('Latin-script languages get no romanization toggle', async ({ page }) => {
     await page.goto(`/onboarding/confirm?lang=${LANG_CODE}`)
     await expect(page.getByTestId('confirm-continue')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Toggle romanized script' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /ABC/ })).toHaveCount(0)
   })
 
   test('shows the chosen language name and a Continue button', async ({ page }) => {
@@ -75,7 +75,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
     // The page has a setTimeout(0) before populating state; wait for the button.
     await expect(page.getByTestId('confirm-continue')).toBeVisible()
     // The chosen language label should appear somewhere on screen
-    await expect(page.getByText(LANG_EN).first()).toBeVisible()
+    await expect(page.getByText(LANG_NATIVE).first()).toBeVisible()
   })
 
   // The toggle only exists for non-Latin scripts — English letters mean nothing
@@ -86,7 +86,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
     const continueBtn = page.getByTestId('confirm-continue')
     await expect(continueBtn).toBeVisible()
 
-    const toggle = page.getByRole('button', { name: 'Toggle romanized script' })
+    const toggle = page.getByRole('button', { name: /ABC/ })
     await expect(toggle).toBeVisible()
     // Initially romanization is off (aria-pressed = false)
     await expect(toggle).toHaveAttribute('aria-pressed', 'false')
@@ -125,7 +125,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
     await expect(continueBtn).toBeVisible()
 
     // Enable romanization toggle
-    const toggle = page.getByRole('button', { name: 'Toggle romanized script' })
+    const toggle = page.getByRole('button', { name: /ABC/ })
     await toggle.click()
     await expect(toggle).toHaveAttribute('aria-pressed', 'true')
 
@@ -150,7 +150,7 @@ test.describe('onboarding — confirm screen (/onboarding/confirm)', () => {
     // /onboarding?fresh=1 — must not still be on /confirm
     await page.waitForURL(/\/onboarding(\?|$)/)
     expect(page.url()).not.toContain('/confirm')
-    await expect(page.getByLabel('Search languages')).toBeVisible()
+    await expect(page.getByRole('searchbox')).toBeVisible()
   })
 
   test('redirects to /onboarding when no lang param is provided', async ({ page }) => {
@@ -185,7 +185,7 @@ test.describe('onboarding — deep-link behaviour', () => {
   test('/onboarding?fresh=1 clears saved language from localStorage', async ({ page }) => {
     // Navigate to /onboarding first so we can seed localStorage in the same origin
     await page.goto('/onboarding')
-    await expect(page.getByLabel('Search languages')).toBeVisible()
+    await expect(page.getByLabel(/Search.*languages/i)).toBeVisible()
     await page.evaluate(() => {
       localStorage.setItem('keiro_onboarding_lang', JSON.stringify({ code: 'es-ES', en: 'Spanish' }))
     })
@@ -195,7 +195,7 @@ test.describe('onboarding — deep-link behaviour', () => {
 
     // Navigate with fresh=1 — the onboarding page useEffect removes the key
     await page.goto('/onboarding?fresh=1')
-    await expect(page.getByLabel('Search languages')).toBeVisible()
+    await expect(page.getByLabel(/Search.*languages/i)).toBeVisible()
     // Wait for the useEffect to fire and remove the key (it runs after mount/render)
     await page.waitForFunction(() => localStorage.getItem('keiro_onboarding_lang') === null)
     const saved = await page.evaluate(() => localStorage.getItem('keiro_onboarding_lang'))
