@@ -30,6 +30,7 @@ const getNavLinks = (t: TranslateFn): NavLink[] => [
     label: t('site.nav.about'),
     children: [
       { href: '/about', label: t('site.nav.mission') },
+      { href: '/founder', label: t('site.nav.founder') },
       { href: '/meet-kai', label: t('site.nav.meet') },
       { href: '/privacy-safety', label: t('site.nav.privacy') },
       { href: '/accessibility', label: t('site.nav.accessibility') },
