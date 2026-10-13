@@ -235,3 +235,14 @@
   line-height: 1.12;
 }
 
+
+/* ─── Why Keiro: a detail in the summary, traced to the answer it came from ─── */
+.hm-trace {
+  background: none;
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--hm-leaf);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.22em;
+  text-decoration-skip-ink: auto;
+}

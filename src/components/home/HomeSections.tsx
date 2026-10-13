@@ -91,7 +91,8 @@ export function Trust() {
       <div className={`${INNER} grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-20`}>
         <div>
           <h2 className="hm-h2">
-            {t('site.trust.title')}
+            {t('site.trust.title')}{' '}
+            <span className="hm-quiet">{t('site.trust.titleQuiet')}</span>
           </h2>
         </div>
         <div>

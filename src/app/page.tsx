@@ -18,6 +18,7 @@ import '@/components/home/home.css'
 import { geistSans, literata, sourceSans, splineMono } from '@/components/landing-v3/fonts'
 import { Nav } from '@/components/landing-v3/Nav'
 import { HomeHero, Steps, LanguageWall, Trust, FinalCta } from '@/components/home/HomeSections'
+import { WhyKeiro } from '@/components/home/WhyKeiro'
 import { Footer } from '@/components/landing-v3/Footer'
 import { useSiteTranslations } from '@/i18n/useSiteTranslations'
 
@@ -60,6 +61,7 @@ export default function LandingPage() {
             <Steps />
             <LanguageWall />
             <Trust />
+            <WhyKeiro />
             <FinalCta />
           </main>
 
