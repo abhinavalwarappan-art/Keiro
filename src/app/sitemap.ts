@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/languages`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/meet-kai`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/about`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${BASE_URL}/founder`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/privacy-safety`, lastModified, changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/accessibility`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/for-clinics`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
